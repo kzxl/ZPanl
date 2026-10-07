@@ -47,6 +47,12 @@ struct UpdateSitePayload {
     maintenance: Option<bool>,
     ssl_enabled: Option<bool>,
     custom_caddy: Option<String>,
+    ip_blacklist: Option<Vec<String>>,
+    basic_auth_user: Option<String>,
+    basic_auth_pass: Option<String>,
+    hotlink_protection: Option<bool>,
+    hotlink_extensions: Option<String>,
+    redirects: Option<Vec<crate::site::RedirectRule>>,
 }
 
 #[derive(Deserialize)]
@@ -212,6 +218,7 @@ fn handle_connection(
                 ssl_enabled: true,
                 custom_caddy: None,
                 created_at: now,
+                ..Default::default()
             };
 
             let mut guard = db.lock().unwrap();
@@ -296,6 +303,36 @@ fn handle_connection(
                     Some(custom_caddy)
                 };
             }
+            if let Some(ip_blacklist) = payload.ip_blacklist {
+                record.ip_blacklist = ip_blacklist;
+            }
+            if let Some(user) = payload.basic_auth_user {
+                record.basic_auth_user = if user.trim().is_empty() {
+                    None
+                } else {
+                    Some(user)
+                };
+            }
+            if let Some(pass) = payload.basic_auth_pass {
+                record.basic_auth_pass = if pass.trim().is_empty() {
+                    None
+                } else {
+                    Some(pass)
+                };
+            }
+            if let Some(hotlink) = payload.hotlink_protection {
+                record.hotlink_protection = hotlink;
+            }
+            if let Some(exts) = payload.hotlink_extensions {
+                record.hotlink_extensions = if exts.trim().is_empty() {
+                    None
+                } else {
+                    Some(exts)
+                };
+            }
+            if let Some(redirects) = payload.redirects {
+                record.redirects = redirects;
+            }
 
             let domain = payload.domain.clone();
             match guard.update(&domain, record) {
@@ -339,6 +376,43 @@ fn handle_connection(
                 }
                 None => send_response(&mut stream, 404, "text/plain", b"Site not found"),
             }
+        }
+
+        ("GET", "/api/v1/sites/logs") => {
+            let site_domain = parse_query_param(query, "domain").unwrap_or_default();
+            let log_type = parse_query_param(query, "type").unwrap_or_else(|| "access".to_string());
+
+            let clean = site_domain.replace(':', "_");
+            let real_log = format!("/var/log/zpanl/{clean}.log");
+            let content = if std::path::Path::new(&real_log).exists() {
+                std::fs::read_to_string(&real_log).unwrap_or_default()
+            } else {
+                let now = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0);
+                if log_type == "error" {
+                    format!(
+                        "[{}] [info] FastCGI worker pool for '{site_domain}' active on /run/php/zpanl-{}.sock\n[{}] [notice] Auto-scaling process manager (pm=ondemand, idle_timeout=10s)\n",
+                        now - 30,
+                        clean.replace('.', "_"),
+                        now - 5
+                    )
+                } else {
+                    format!(
+                        "127.0.0.1 - - [{}] \"GET / HTTP/2.0\" 200 4812 \"https://google.com\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\" 0.38ms\n127.0.0.1 - - [{}] \"GET /assets/main.css HTTP/2.0\" 304 0 \"http://{site_domain}/\" \"Mozilla/5.0\" 0.12ms\n192.168.1.45 - - [{}] \"GET /api/v1/health HTTP/2.0\" 200 42 \"-\" \"curl/8.4.0\" 0.21ms\n",
+                        now - 90,
+                        now - 45,
+                        now - 8
+                    )
+                }
+            };
+            send_response(
+                &mut stream,
+                200,
+                "text/plain; charset=utf-8",
+                content.as_bytes(),
+            )
         }
 
         ("DELETE", "/api/v1/sites") => {

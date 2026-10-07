@@ -21,6 +21,19 @@ fn default_port() -> u16 {
     80
 }
 
+fn default_redirect_code() -> u16 {
+    301
+}
+
+/// URL Redirect mapping rule.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RedirectRule {
+    pub source_path: String,
+    pub target_url: String,
+    #[serde(default = "default_redirect_code")]
+    pub code: u16,
+}
+
 /// Metadata record for a hosted site.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SiteRecord {
@@ -45,6 +58,18 @@ pub struct SiteRecord {
     pub ssl_enabled: bool,
     #[serde(default)]
     pub custom_caddy: Option<String>,
+    #[serde(default)]
+    pub ip_blacklist: Vec<String>,
+    #[serde(default)]
+    pub basic_auth_user: Option<String>,
+    #[serde(default)]
+    pub basic_auth_pass: Option<String>,
+    #[serde(default)]
+    pub hotlink_protection: bool,
+    #[serde(default)]
+    pub hotlink_extensions: Option<String>,
+    #[serde(default)]
+    pub redirects: Vec<RedirectRule>,
     pub created_at: u64,
 }
 
@@ -64,6 +89,12 @@ impl Default for SiteRecord {
             maintenance: false,
             ssl_enabled: true,
             custom_caddy: None,
+            ip_blacklist: Vec::new(),
+            basic_auth_user: None,
+            basic_auth_pass: None,
+            hotlink_protection: false,
+            hotlink_extensions: None,
+            redirects: Vec::new(),
             created_at: 0,
         }
     }
@@ -204,6 +235,57 @@ impl SiteDatabase {
 
         out.push_str(&format!("    root * {}\n", effective_root));
         out.push_str("    encode zstd gzip\n");
+
+        // Access log output
+        let clean_dom = site.domain.replace(':', "_");
+        out.push_str(&format!(
+            "    log {{\n        output file /var/log/zpanl/{clean_dom}.log\n    }}\n"
+        ));
+
+        // IP Blacklist access control
+        let valid_ips: Vec<&str> = site
+            .ip_blacklist
+            .iter()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect();
+        if !valid_ips.is_empty() {
+            out.push_str("    @blocked_ips {\n        remote_ip ");
+            out.push_str(&valid_ips.join(" "));
+            out.push_str("\n    }\n    respond @blocked_ips 403\n");
+        }
+
+        // HTTP Basic Authentication
+        if let (Some(ref u), Some(ref p)) = (&site.basic_auth_user, &site.basic_auth_pass) {
+            let user = u.trim();
+            let pass = p.trim();
+            if !user.is_empty() && !pass.is_empty() {
+                out.push_str(&format!(
+                    "    basicauth * {{\n        {user} {pass}\n    }}\n"
+                ));
+            }
+        }
+
+        // Hotlink / Anti-Leech Protection
+        if site.hotlink_protection {
+            let exts = site
+                .hotlink_extensions
+                .as_deref()
+                .unwrap_or("*.jpg *.jpeg *.png *.webp *.gif *.svg");
+            out.push_str(&format!(
+                "    @hotlink {{\n        path {exts}\n        not header Referer *{}*\n        not header Referer \"\"\n    }}\n    respond @hotlink 403\n",
+                site.domain
+            ));
+        }
+
+        // Custom URL Redirects
+        for r in &site.redirects {
+            let src = r.source_path.trim();
+            let tgt = r.target_url.trim();
+            if !src.is_empty() && !tgt.is_empty() {
+                out.push_str(&format!("    redir {src} {tgt} {}\n", r.code));
+            }
+        }
 
         if let Some(ref upstream) = site.proxy_upstream {
             let up = upstream.trim();

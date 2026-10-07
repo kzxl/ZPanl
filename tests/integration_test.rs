@@ -154,7 +154,24 @@ fn test_site_modification_and_advanced_features() {
     // Test Update in Database
     site.maintenance = false;
     site.proxy_upstream = Some("127.0.0.1:3000".to_string());
+    site.ip_blacklist = vec!["10.0.0.1".to_string(), "192.168.1.0/24".to_string()];
+    site.basic_auth_user = Some("admin".to_string());
+    site.basic_auth_pass = Some("secret".to_string());
+    site.hotlink_protection = true;
+    site.redirects = vec![zpanl::site::RedirectRule {
+        source_path: "/old".to_string(),
+        target_url: "/new".to_string(),
+        code: 301,
+    }];
+
     assert!(db.update("myapi.com", site.clone()).is_ok());
     let updated_caddy = db.generate_site_caddyfile(db.find_by_domain("myapi.com").unwrap());
     assert!(updated_caddy.contains("reverse_proxy 127.0.0.1:3000"));
+    assert!(updated_caddy.contains("@blocked_ips"));
+    assert!(updated_caddy.contains("remote_ip 10.0.0.1 192.168.1.0/24"));
+    assert!(updated_caddy.contains("basicauth *"));
+    assert!(updated_caddy.contains("admin secret"));
+    assert!(updated_caddy.contains("@hotlink"));
+    assert!(updated_caddy.contains("redir /old /new 301"));
+    assert!(updated_caddy.contains("log {"));
 }

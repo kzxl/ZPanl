@@ -1128,11 +1128,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         <div class="mod-sidebar">
           <div class="mod-tab-item active" id="btn-modtab-domain" onclick="switchModTab('domain')">Domain Manager</div>
           <div class="mod-tab-item" id="btn-modtab-directory" onclick="switchModTab('directory')">Directory</div>
+          <div class="mod-tab-item" id="btn-modtab-limit" onclick="switchModTab('limit')">Limit access</div>
           <div class="mod-tab-item" id="btn-modtab-rewrite" onclick="switchModTab('rewrite')">URL rewrite</div>
           <div class="mod-tab-item" id="btn-modtab-php" onclick="switchModTab('php')">PHP version</div>
           <div class="mod-tab-item" id="btn-modtab-proxy" onclick="switchModTab('proxy')">Reverse proxy</div>
           <div class="mod-tab-item" id="btn-modtab-ssl" onclick="switchModTab('ssl')">SSL</div>
+          <div class="mod-tab-item" id="btn-modtab-redirect" onclick="switchModTab('redirect')">Redirect</div>
+          <div class="mod-tab-item" id="btn-modtab-hotlink" onclick="switchModTab('hotlink')">Hotlink Protection</div>
           <div class="mod-tab-item" id="btn-modtab-maintenance" onclick="switchModTab('maintenance')">Maintenance Mode</div>
+          <div class="mod-tab-item" id="btn-modtab-log" onclick="switchModTab('log')">Response log</div>
           <div class="mod-tab-item" id="btn-modtab-config" onclick="switchModTab('config')">Config (Caddy)</div>
         </div>
         <!-- RIGHT SUB-CONTENT -->
@@ -1191,7 +1195,35 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </div>
           </div>
 
-          <!-- SUB-TAB 3: URL REWRITE -->
+          <!-- SUB-TAB 3: LIMIT ACCESS -->
+          <div id="modtab-limit" class="mod-tab-content">
+            <div class="form-group">
+              <label>IP Address Blacklist (CIDR notation supported)</label>
+              <textarea id="modIpBlacklist" class="form-input" style="height: 100px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="192.168.1.50&#10;10.0.0.0/8&#10;172.16.0.0/12"></textarea>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                One IP or CIDR per line. Any connection matching will immediately receive HTTP 403 Forbidden.
+              </div>
+            </div>
+            <div class="toggle-row" style="margin-top: 1rem;">
+              <label for="modBasicAuthToggle">
+                HTTP Basic Authentication
+                <span class="sub">Require username and password before granting access to website</span>
+              </label>
+              <input type="checkbox" id="modBasicAuthToggle" style="accent-color: var(--cyan); transform: scale(1.3);" onchange="toggleBasicAuthFields()">
+            </div>
+            <div id="basicAuthFields" style="display: none; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
+              <div class="form-group">
+                <label>Auth Username</label>
+                <input id="modAuthUser" class="form-input" placeholder="admin">
+              </div>
+              <div class="form-group">
+                <label>Auth Password</label>
+                <input id="modAuthPass" type="password" class="form-input" placeholder="••••••••">
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 4: URL REWRITE -->
           <div id="modtab-rewrite" class="mod-tab-content">
             <div class="form-group">
               <label>Framework URL Rewrite Preset</label>
@@ -1208,7 +1240,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </div>
           </div>
 
-          <!-- SUB-TAB 4: PHP VERSION -->
+          <!-- SUB-TAB 5: PHP VERSION -->
           <div id="modtab-php" class="mod-tab-content">
             <div class="form-group">
               <label>PHP-FPM Worker Runtime</label>
@@ -1230,7 +1262,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </div>
           </div>
 
-          <!-- SUB-TAB 5: REVERSE PROXY -->
+          <!-- SUB-TAB 6: REVERSE PROXY -->
           <div id="modtab-proxy" class="mod-tab-content">
             <div class="toggle-row">
               <label for="modProxyToggle">
@@ -1251,7 +1283,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </div>
           </div>
 
-          <!-- SUB-TAB 6: SSL -->
+          <!-- SUB-TAB 7: SSL -->
           <div id="modtab-ssl" class="mod-tab-content">
             <div class="toggle-row">
               <label for="modSslToggle">
@@ -1274,7 +1306,66 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </div>
           </div>
 
-          <!-- SUB-TAB 7: MAINTENANCE MODE -->
+          <!-- SUB-TAB 8: REDIRECT -->
+          <div id="modtab-redirect" class="mod-tab-content">
+            <div class="mod-hint-box">
+              Configure 301 (Permanent) or 302 (Temporary) redirects. Great for migrating old URLs, campaign links, or forwarding external domains.
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; align-items: flex-end;">
+              <div style="flex: 1;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Source Path</label>
+                <input id="newRedirSource" class="form-input" placeholder="/old-path" style="font-family: var(--font-mono); font-size: 0.85rem;">
+              </div>
+              <div style="flex: 1.5;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Target URL</label>
+                <input id="newRedirTarget" class="form-input" placeholder="https://example.com/new" style="font-family: var(--font-mono); font-size: 0.85rem;">
+              </div>
+              <div style="width: 100px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">HTTP Code</label>
+                <select id="newRedirCode" class="form-select" style="font-size: 0.85rem;">
+                  <option value="301">301 (Perm)</option>
+                  <option value="302">302 (Temp)</option>
+                </select>
+              </div>
+              <button class="btn btn-success" style="padding: 0.55rem 1rem;" onclick="addRedirectRule()">Add</button>
+            </div>
+            <div style="margin-top: 1.25rem; border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
+                    <th style="padding: 0.5rem 0.75rem;">Source</th>
+                    <th style="padding: 0.5rem 0.75rem;">Target</th>
+                    <th style="padding: 0.5rem 0.75rem; width: 60px;">Code</th>
+                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 70px;">Operate</th>
+                  </tr>
+                </thead>
+                <tbody id="modRedirectsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 9: HOTLINK PROTECTION -->
+          <div id="modtab-hotlink" class="mod-tab-content">
+            <div class="toggle-row">
+              <label for="modHotlinkToggle">
+                Enable Anti-Leech / Hotlink Protection
+                <span class="sub">Block other domains from embedding and stealing your images, media, and bandwidth</span>
+              </label>
+              <input type="checkbox" id="modHotlinkToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>Protected Media Extensions</label>
+              <input id="modHotlinkExts" class="form-input" style="font-family: var(--font-mono);" value="*.jpg *.jpeg *.png *.webp *.gif *.svg *.mp4 *.zip">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                Space-separated glob patterns.
+              </div>
+            </div>
+            <div class="mod-hint-box" style="margin-top: 0.75rem;">
+              Caddy checks the HTTP <code>Referer</code> header against the virtual host domain. Direct requests without referrers and internal links remain permitted.
+            </div>
+          </div>
+
+          <!-- SUB-TAB 10: MAINTENANCE MODE -->
           <div id="modtab-maintenance" class="mod-tab-content">
             <div class="toggle-row" style="border-left: 4px solid var(--yellow);">
               <label for="modMaintToggle">
@@ -1288,7 +1379,22 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </div>
           </div>
 
-          <!-- SUB-TAB 8: CONFIG (CADDY) -->
+          <!-- SUB-TAB 11: RESPONSE LOG -->
+          <div id="modtab-log" class="mod-tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <select id="modLogType" class="form-select" style="width: 140px; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onchange="loadModSiteLogs()">
+                  <option value="access">Access Log</option>
+                  <option value="error">Error Log</option>
+                </select>
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="loadModSiteLogs()">Refresh</button>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">/var/log/zpanl/&lt;domain&gt;.log</span>
+            </div>
+            <pre class="code-block" id="modLogViewer" style="height: 250px; margin: 0; line-height: 1.5; font-size: 0.78rem; overflow-y: auto;"></pre>
+          </div>
+
+          <!-- SUB-TAB 12: CONFIG (CADDY) -->
           <div id="modtab-config" class="mod-tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
               <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Active Virtual Host Caddyfile Block</span>
@@ -1915,6 +2021,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       if (tabName === 'config' && currentModSite) {
         loadModCaddyfile(currentModSite.domain);
       }
+      if (tabName === 'log' && currentModSite) {
+        loadModSiteLogs();
+      }
     }
 
     async function openSiteModModal(domain) {
@@ -1926,6 +2035,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         }
         currentModSite = await res.json();
         if (!currentModSite.aliases) currentModSite.aliases = [];
+        if (!currentModSite.ip_blacklist) currentModSite.ip_blacklist = [];
+        if (!currentModSite.redirects) currentModSite.redirects = [];
 
         document.getElementById('modSiteDomainTitle').textContent = currentModSite.domain;
         const d = new Date((currentModSite.created_at || 0) * 1000);
@@ -1939,11 +2050,19 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         document.getElementById('modRootPath').value = currentModSite.root_path || '';
         document.getElementById('modRunningDir').value = currentModSite.running_dir || '';
 
-        // Tab 3: URL rewrite
+        // Tab 3: Limit access
+        document.getElementById('modIpBlacklist').value = currentModSite.ip_blacklist.join('\n');
+        const hasAuth = !!(currentModSite.basic_auth_user && currentModSite.basic_auth_pass);
+        document.getElementById('modBasicAuthToggle').checked = hasAuth;
+        document.getElementById('modAuthUser').value = currentModSite.basic_auth_user || '';
+        document.getElementById('modAuthPass').value = currentModSite.basic_auth_pass || '';
+        toggleBasicAuthFields();
+
+        // Tab 4: URL rewrite
         document.getElementById('modRewritePreset').value = currentModSite.rewrite_preset || '';
         updateRewriteSnippetPreview();
 
-        // Tab 4: PHP version
+        // Tab 5: PHP version
         if (currentModSite.kind === 'php_fpm') {
           document.getElementById('modPhpVersion').value = currentModSite.php_version || '8.2';
         } else {
@@ -1951,18 +2070,30 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         }
         updatePhpSocketPreview();
 
-        // Tab 5: Reverse proxy
+        // Tab 6: Reverse proxy
         const isProxy = currentModSite.kind === 'reverse_proxy' || !!currentModSite.proxy_upstream;
         document.getElementById('modProxyToggle').checked = isProxy;
         document.getElementById('modProxyUpstream').value = currentModSite.proxy_upstream || '';
 
-        // Tab 6: SSL
+        // Tab 7: SSL
         document.getElementById('modSslToggle').checked = currentModSite.ssl_enabled !== false;
 
-        // Tab 7: Maintenance Mode
+        // Tab 8: Redirects
+        renderModRedirectsTable();
+        document.getElementById('newRedirSource').value = '';
+        document.getElementById('newRedirTarget').value = '';
+
+        // Tab 9: Hotlink Protection
+        document.getElementById('modHotlinkToggle').checked = !!currentModSite.hotlink_protection;
+        document.getElementById('modHotlinkExts').value = currentModSite.hotlink_extensions || '*.jpg *.jpeg *.png *.webp *.gif *.svg *.mp4 *.zip';
+
+        // Tab 10: Maintenance Mode
         document.getElementById('modMaintToggle').checked = !!currentModSite.maintenance;
 
-        // Tab 8: Config
+        // Tab 11: Response log
+        loadModSiteLogs();
+
+        // Tab 12: Config
         loadModCaddyfile(currentModSite.domain);
 
         switchModTab('domain');
@@ -1974,6 +2105,11 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
     function closeSiteModModal() {
       document.getElementById('siteModModal').classList.remove('active');
+    }
+
+    function toggleBasicAuthFields() {
+      const checked = document.getElementById('modBasicAuthToggle').checked;
+      document.getElementById('basicAuthFields').style.display = checked ? 'grid' : 'none';
     }
 
     function renderModDomainTable() {
@@ -2031,6 +2167,64 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       if (!currentModSite || !currentModSite.aliases) return;
       currentModSite.aliases.splice(index, 1);
       renderModDomainTable();
+    }
+
+    function renderModRedirectsTable() {
+      if (!currentModSite) return;
+      const tbody = document.getElementById('modRedirectsTableBody');
+      if (!currentModSite.redirects || !currentModSite.redirects.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1rem;">No redirects configured.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = currentModSite.redirects.map((r, idx) => `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem; font-family: var(--font-mono);">${r.source_path}</td>
+          <td style="padding: 0.5rem 0.75rem; font-family: var(--font-mono); color: var(--cyan);">${r.target_url}</td>
+          <td style="padding: 0.5rem 0.75rem; font-family: var(--font-mono); font-size: 0.8rem;"><span class="badge badge-purple">${r.code}</span></td>
+          <td style="padding: 0.5rem 0.75rem; text-align: right;">
+            <button class="btn btn-danger" style="padding: 0.15rem 0.45rem; font-size: 0.7rem;" onclick="removeRedirectRule(${idx})">Del</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function addRedirectRule() {
+      if (!currentModSite) return;
+      const src = document.getElementById('newRedirSource').value.trim();
+      const tgt = document.getElementById('newRedirTarget').value.trim();
+      const code = parseInt(document.getElementById('newRedirCode').value) || 301;
+      if (!src || !tgt) {
+        showToast('Please specify source path and target URL', 'error');
+        return;
+      }
+      currentModSite.redirects.push({ source_path: src, target_url: tgt, code });
+      document.getElementById('newRedirSource').value = '';
+      document.getElementById('newRedirTarget').value = '';
+      renderModRedirectsTable();
+    }
+
+    function removeRedirectRule(idx) {
+      if (!currentModSite || !currentModSite.redirects) return;
+      currentModSite.redirects.splice(idx, 1);
+      renderModRedirectsTable();
+    }
+
+    async function loadModSiteLogs() {
+      if (!currentModSite) return;
+      const logType = document.getElementById('modLogType').value;
+      const pre = document.getElementById('modLogViewer');
+      pre.textContent = 'Loading logs...';
+      try {
+        const res = await fetch(`/api/v1/sites/logs?domain=${encodeURIComponent(currentModSite.domain)}&type=${logType}`);
+        if (res.ok) {
+          pre.textContent = await res.text();
+          pre.scrollTop = pre.scrollHeight;
+        } else {
+          pre.textContent = 'Could not load log: ' + await res.text();
+        }
+      } catch (e) {
+        pre.textContent = 'Error: ' + e.message;
+      }
     }
 
     function updateRewriteSnippetPreview() {
@@ -2098,6 +2292,13 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           kind = 'spa_fallback';
         }
 
+        const ipList = document.getElementById('modIpBlacklist').value
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
+
+        const hasBasicAuth = document.getElementById('modBasicAuthToggle').checked;
+
         const payload = {
           domain: currentModSite.domain,
           aliases: currentModSite.aliases,
@@ -2109,7 +2310,13 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           proxy_upstream: isProxy ? document.getElementById('modProxyUpstream').value.trim() : null,
           rewrite_preset: rewrite || null,
           maintenance: document.getElementById('modMaintToggle').checked,
-          ssl_enabled: document.getElementById('modSslToggle').checked
+          ssl_enabled: document.getElementById('modSslToggle').checked,
+          ip_blacklist: ipList,
+          basic_auth_user: hasBasicAuth ? document.getElementById('modAuthUser').value.trim() || null : null,
+          basic_auth_pass: hasBasicAuth ? document.getElementById('modAuthPass').value.trim() || null : null,
+          hotlink_protection: document.getElementById('modHotlinkToggle').checked,
+          hotlink_extensions: document.getElementById('modHotlinkExts').value.trim() || null,
+          redirects: currentModSite.redirects || []
         };
 
         const res = await fetch('/api/v1/sites/update', {
