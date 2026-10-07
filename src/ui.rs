@@ -732,25 +732,25 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     <div class="sidebar-nav">
       <!-- CORE SECTION -->
       <div>
-        <div class="nav-group-title">Core Management</div>
+        <div class="nav-group-title" data-i18n="nav_core">Core Management</div>
         <ul class="nav-list">
           <li class="nav-item">
             <button class="active" onclick="switchTab('overview')">
               <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-              Dashboard
+              <span data-i18n="nav_dashboard">Dashboard</span>
             </button>
           </li>
           <li class="nav-item">
             <button onclick="switchTab('sites')">
               <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-              Websites
+              <span data-i18n="nav_websites">Websites</span>
               <span class="nav-badge" id="navSitesCount">0</span>
             </button>
           </li>
           <li class="nav-item">
             <button onclick="switchTab('files')">
               <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-              File Manager
+              <span data-i18n="nav_files">File Manager</span>
             </button>
           </li>
         </ul>
@@ -758,24 +758,24 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
       <!-- SYSTEM & SERVERS -->
       <div>
-        <div class="nav-group-title">Services & Engines</div>
+        <div class="nav-group-title" data-i18n="nav_services_group">Services & Engines</div>
         <ul class="nav-list">
           <li class="nav-item">
             <button onclick="switchTab('services')">
               <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-              Services
+              <span data-i18n="nav_services">Services</span>
             </button>
           </li>
           <li class="nav-item">
             <button onclick="switchTab('caddy')">
               <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-              Caddyfile
+              <span data-i18n="nav_caddyfile">Caddyfile</span>
             </button>
           </li>
           <li class="nav-item">
             <button onclick="switchTab('php')">
               <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4zm2 4v8h2v-3h2c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2H6zm2 2h2v2H8v-2zm7-2v8h2v-3h2c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2h-4zm2 2h2v2h-2v-2z"/></svg>
-              PHP-FPM Pools
+              <span data-i18n="nav_php_pools">PHP-FPM Pools</span>
             </button>
           </li>
         </ul>
@@ -786,9 +786,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     <div class="sidebar-footer">
       <div class="server-status-pill">
         <span class="pulse-dot"></span>
-        <span id="sidebarProcMode">Linux /proc Active</span>
+        <span id="sidebarProcMode" data-i18n="nav_online">Linux /proc Active</span>
       </div>
-      <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">
+      <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;" data-i18n="nav_footprint">
         Footprint: &lt; 10 MB RAM
       </div>
     </div>
@@ -817,9 +817,13 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <span>NET:</span>
           <strong id="topbarNet">↓ 0 KB/s</strong>
         </div>
+        <!-- LANGUAGE SWITCHER -->
+        <button class="btn btn-secondary" id="langSwitchBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: flex; align-items: center; gap: 0.35rem;" onclick="toggleLanguage()">
+          <span id="langFlag">🇻🇳</span> <span id="langText">Tiếng Việt</span>
+        </button>
         <button class="btn" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;" onclick="openAddSiteModal()">
           <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-          Deploy Site
+          <span data-i18n="deploy_site">Deploy Site</span>
         </button>
       </div>
     </header>
@@ -832,7 +836,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- CPU GAUGE -->
           <div class="card">
             <div class="card-header">
-              <span class="card-title">CPU Utilization</span>
+              <span class="card-title" data-i18n="card_cpu_title">CPU Utilization</span>
               <span class="card-icon">
                 <svg viewBox="0 0 24 24"><path d="M17 17H7V7h10v10zm2-14v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h-2v-2h-2v2h-2v-2h-2v2H7v-2H5v-2H3v-2h2v-2H3v-2h2V9H3V7h2V5h2V3h2v2h2V3h2v2h2V3h2zm-4 12V9H9v6h6z"/></svg>
               </span>
@@ -856,7 +860,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- RAM GAUGE -->
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Memory Allocation</span>
+              <span class="card-title" data-i18n="card_ram_title">Memory Allocation</span>
               <span class="card-icon">
                 <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM2 4v16h20V4H2zm3 4h2v8H5V8zm4 0h2v8H9V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
               </span>
@@ -880,7 +884,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- NETWORK THROUGHPUT -->
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Network I/O</span>
+              <span class="card-title" data-i18n="card_net_title">Network I/O</span>
               <span class="card-icon">
                 <svg viewBox="0 0 24 24"><path d="M4.5 11h-2V9H1v6h1.5v-2h2v2H6V9H4.5v2zm15 0h-2V9H16v6h1.5v-2h2v2H21V9h-1.5v2zm-7.5-6h-1V2H8v5h3v2h2V7h3V2h-3v3h-1zM11 17h2v2h-2v-2zm-3 2h2v2H8v-2zm6 0h2v2h-2v-2zm-5 2h4v1h-4v-1z"/></svg>
               </span>
@@ -898,14 +902,14 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- SYSTEM ARCHITECTURE -->
           <div class="card">
             <div class="card-header">
-              <span class="card-title">Panel Sovereign Stack</span>
+              <span class="card-title" data-i18n="card_stack_title">Panel Sovereign Stack</span>
               <span class="card-icon">
                 <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
               </span>
             </div>
             <div style="display: flex; flex-direction: column; justify-content: center; height: 80px;">
               <div style="font-weight: 800; font-size: 1.25rem; color: var(--cyan-glow);">Pure Rust + Caddy</div>
-              <div class="radial-sub-val" style="margin-top: 0.35rem;">Single binary (< 1 MB)</div>
+              <div class="radial-sub-val" style="margin-top: 0.35rem;">Single binary (&lt; 1 MB)</div>
             </div>
             <div style="font-size: 0.75rem; color: var(--green); display: flex; justify-content: space-between; margin-top: 0.5rem;">
               <span>Zero external deps</span>
@@ -916,23 +920,23 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
         <!-- RECENT SITES -->
         <div class="toolbar">
-          <h3 class="toolbar-title">Active Virtual Hosts</h3>
-          <button class="btn btn-secondary" onclick="switchTab('sites')">View All Websites &rarr;</button>
+          <h3 class="toolbar-title" data-i18n="active_vhosts">Active Virtual Hosts</h3>
+          <button class="btn btn-secondary" onclick="switchTab('sites')"><span data-i18n="view_all_sites">View All Websites &rarr;</span></button>
         </div>
         <div class="table-container">
           <table>
             <thead>
               <tr>
-                <th>Domain Name</th>
-                <th>Type</th>
-                <th>PHP Version</th>
-                <th>Web Root</th>
-                <th>SSL Security</th>
-                <th style="text-align: right;">Action</th>
+                <th data-i18n="th_domain">Domain Name</th>
+                <th data-i18n="th_type">Type</th>
+                <th data-i18n="th_php">PHP Version</th>
+                <th data-i18n="th_root">Web Root</th>
+                <th data-i18n="th_security">SSL Security</th>
+                <th style="text-align: right;" data-i18n="th_actions">Action</th>
               </tr>
             </thead>
             <tbody id="overviewSitesTable">
-              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading websites...</td></tr>
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;" data-i18n="loading_sites">Loading websites...</td></tr>
             </tbody>
           </table>
         </div>
@@ -942,14 +946,14 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       <div id="tab-sites" class="tab-content">
         <div class="toolbar">
           <div>
-            <h2 class="toolbar-title">Websites & Virtual Hosts</h2>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Declarative Caddy v2 reverse proxy routing with automatic Let's Encrypt HTTPS</div>
+            <h2 class="toolbar-title" data-i18n="sites_title">Websites & Virtual Hosts</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="sites_subtitle">Declarative Caddy v2 reverse proxy routing with automatic Let's Encrypt HTTPS</div>
           </div>
           <div class="toolbar-actions">
-            <input type="text" id="siteSearchInput" class="search-input" placeholder="Search domain or path..." oninput="filterSitesTable()">
+            <input type="text" id="siteSearchInput" class="search-input" placeholder="Search domain or path..." data-i18n-placeholder="search_placeholder" oninput="filterSitesTable()">
             <button class="btn" onclick="openAddSiteModal()">
               <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-              Add Virtual Host
+              <span data-i18n="add_vhost_btn">Add Virtual Host</span>
             </button>
           </div>
         </div>
@@ -957,16 +961,16 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <table>
             <thead>
               <tr>
-                <th>Domain</th>
-                <th>Type</th>
-                <th>PHP Engine</th>
-                <th>Document Root</th>
-                <th>Security / SSL</th>
-                <th style="text-align: right;">Actions</th>
+                <th data-i18n="th_domain">Domain</th>
+                <th data-i18n="th_type">Type</th>
+                <th data-i18n="th_php">PHP Engine</th>
+                <th data-i18n="th_root">Document Root</th>
+                <th data-i18n="th_security">Security / SSL</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
               </tr>
             </thead>
             <tbody id="sitesTableBody">
-              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Loading websites...</td></tr>
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="loading_sites">Loading websites...</td></tr>
             </tbody>
           </table>
         </div>
@@ -985,15 +989,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <div class="toolbar-actions">
             <button class="btn btn-secondary" onclick="openNewEntryModal(false)">
               <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-              New File
+              <span data-i18n="new_file_btn">New File</span>
             </button>
             <button class="btn btn-secondary" onclick="openNewEntryModal(true)">
               <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
-              New Folder
+              <span data-i18n="new_folder_btn">New Folder</span>
             </button>
             <button class="btn btn-secondary" onclick="loadSiteFiles()">
               <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-              Refresh
+              <span data-i18n="refresh_btn">Refresh</span>
             </button>
           </div>
         </div>
@@ -1001,15 +1005,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <table>
             <thead>
               <tr>
-                <th>File Name</th>
-                <th>Type</th>
-                <th>Size</th>
-                <th>POSIX Permissions</th>
-                <th style="text-align: right;">Actions</th>
+                <th data-i18n="th_file_name">File Name</th>
+                <th data-i18n="th_file_type">Type</th>
+                <th data-i18n="th_file_size">Size</th>
+                <th data-i18n="th_file_perm">POSIX Permissions</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
               </tr>
             </thead>
             <tbody id="filesTableBody">
-              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Select a site to explore files.</td></tr>
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="select_site_explore">Select a site to explore files.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1019,12 +1023,12 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       <div id="tab-services" class="tab-content">
         <div class="toolbar">
           <div>
-            <h2 class="toolbar-title">Linux Systemd Services</h2>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Daemon process supervision via <code>zero-sys</code></div>
+            <h2 class="toolbar-title" data-i18n="services_title">Linux Systemd Services</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="services_subtitle">Daemon process supervision via <code>zero-sys</code></div>
           </div>
           <button class="btn btn-secondary" onclick="loadServices()">
             <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-            Refresh Daemons
+            <span data-i18n="refresh_daemons">Refresh Daemons</span>
           </button>
         </div>
         <div class="grid-4" id="servicesGrid">
@@ -1036,12 +1040,12 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       <div id="tab-caddy" class="tab-content">
         <div class="toolbar">
           <div>
-            <h2 class="toolbar-title">Active Reverse Proxy Configuration</h2>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Live synchronized from <code>/etc/caddy/Caddyfile</code></div>
+            <h2 class="toolbar-title" data-i18n="caddy_title">Active Reverse Proxy Configuration</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="caddy_subtitle">Live synchronized from <code>/etc/caddy/Caddyfile</code></div>
           </div>
           <div class="toolbar-actions">
-            <button class="btn btn-secondary" onclick="copyCaddyfile()">Copy Caddyfile</button>
-            <button class="btn" onclick="loadCaddyfile()">Reload Preview</button>
+            <button class="btn btn-secondary" onclick="copyCaddyfile()" data-i18n="copy_caddyfile">Copy Caddyfile</button>
+            <button class="btn" onclick="loadCaddyfile()" data-i18n="reload_preview">Reload Preview</button>
           </div>
         </div>
         <pre class="code-block" id="caddyfileContent">Loading Caddyfile...</pre>
@@ -1051,15 +1055,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       <div id="tab-php" class="tab-content">
         <div class="toolbar">
           <div>
-            <h2 class="toolbar-title">PHP-FPM Worker Pools</h2>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Isolated on-demand fastcgi worker pools generated by <code>zero-fastcgi</code></div>
+            <h2 class="toolbar-title" data-i18n="php_title">PHP-FPM Worker Pools</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="php_subtitle">Isolated on-demand fastcgi worker pools generated by <code>zero-fastcgi</code></div>
           </div>
         </div>
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Select Site to Inspect PHP Pool Configuration</h3>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.5rem;" data-i18n="select_site_php">Select Site to Inspect PHP Pool Configuration</h3>
           <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
             <select id="phpSiteSelect" class="form-select" style="width: 320px;" onchange="loadPhpPoolConfig()"></select>
-            <button class="btn btn-secondary" onclick="loadPhpPoolConfig()">View Pool INI</button>
+            <button class="btn btn-secondary" onclick="loadPhpPoolConfig()" data-i18n="view_pool_ini">View Pool INI</button>
           </div>
         </div>
         <pre class="code-block" id="phpPoolConfigContent">Select a PHP website above to inspect its pool.d/*.conf configuration.</pre>
@@ -1071,24 +1075,24 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
   <div id="addSiteModal" class="modal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3>Deploy New Virtual Host</h3>
+        <h3 data-i18n="modal_add_title">Deploy New Virtual Host</h3>
         <button class="modal-close" onclick="closeAddSiteModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Fully Qualified Domain Name</label>
+          <label data-i18n="modal_domain_label">Fully Qualified Domain Name</label>
           <input id="newDomain" class="form-input" placeholder="e.g. blog.mydomain.com" oninput="autoSuggestRoot()">
         </div>
         <div class="form-group">
-          <label>Application Type</label>
+          <label data-i18n="modal_app_type">Application Type</label>
           <select id="newKind" class="form-select" onchange="togglePhpField()">
-            <option value="static">Static HTML / CSS / JS / Assets</option>
-            <option value="spa_fallback">Single Page Application (SPA Fallback /index.html)</option>
-            <option value="php_fpm">Dynamic PHP (PHP-FPM Unix Socket)</option>
+            <option value="static" data-i18n="type_static">Static HTML / CSS / JS / Assets</option>
+            <option value="spa_fallback" data-i18n="type_spa">Single Page Application (SPA Fallback /index.html)</option>
+            <option value="php_fpm" data-i18n="type_php">Dynamic PHP (PHP-FPM Unix Socket)</option>
           </select>
         </div>
         <div class="form-group" id="phpVersionGroup" style="display: none;">
-          <label>PHP-FPM Worker Version</label>
+          <label data-i18n="modal_php_ver">PHP-FPM Worker Version</label>
           <select id="newPhpVer" class="form-select">
             <option value="8.3">PHP 8.3-FPM (Latest)</option>
             <option value="8.2" selected>PHP 8.2-FPM (Recommended LTS)</option>
@@ -1096,19 +1100,19 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           </select>
         </div>
         <div class="form-group">
-          <label>Document Web Root Path</label>
+          <label data-i18n="modal_web_root">Document Web Root Path</label>
           <input id="newRoot" class="form-input" placeholder="/var/www/blog.mydomain.com">
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem;">
           <input type="checkbox" id="newSsl" checked disabled style="accent-color: var(--cyan);">
-          <label for="newSsl" style="font-size: 0.85rem; color: var(--text-muted); cursor: default;">
+          <label for="newSsl" style="font-size: 0.85rem; color: var(--text-muted); cursor: default;" data-i18n="modal_auto_https">
             Automatic HTTPS via Caddy (Let's Encrypt / ZeroSSL)
           </label>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeAddSiteModal()">Cancel</button>
-        <button class="btn" onclick="submitCreateSite()">Create Virtual Host</button>
+        <button class="btn btn-secondary" onclick="closeAddSiteModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateSite()" data-i18n="btn_create_vhost">Create Virtual Host</button>
       </div>
     </div>
   </div>
@@ -1119,46 +1123,46 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       <div class="modal-header" style="padding: 0.85rem 1.25rem;">
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600;">
           <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: var(--cyan);"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-          <span>Site modification [<span id="modSiteDomainTitle" style="color: var(--cyan-glow);">domain.com</span>] -- Time added [<span id="modSiteTimeTitle" style="color: var(--text-dim); font-size: 0.8rem;">2026-10-07</span>]</span>
+          <span><span data-i18n="mod_title_prefix">Site modification</span> [<span id="modSiteDomainTitle" style="color: var(--cyan-glow);">domain.com</span>] -- <span data-i18n="mod_time_added">Time added</span> [<span id="modSiteTimeTitle" style="color: var(--text-dim); font-size: 0.8rem;">2026-10-07</span>]</span>
         </div>
         <button class="modal-close" onclick="closeSiteModModal()">&times;</button>
       </div>
       <div class="modal-body" style="padding: 0; display: flex; flex: 1; overflow: hidden;">
         <!-- LEFT SUB-SIDEBAR -->
         <div class="mod-sidebar">
-          <div class="mod-tab-item active" id="btn-modtab-domain" onclick="switchModTab('domain')">Domain Manager</div>
-          <div class="mod-tab-item" id="btn-modtab-directory" onclick="switchModTab('directory')">Directory</div>
-          <div class="mod-tab-item" id="btn-modtab-limit" onclick="switchModTab('limit')">Limit access</div>
-          <div class="mod-tab-item" id="btn-modtab-rewrite" onclick="switchModTab('rewrite')">URL rewrite</div>
-          <div class="mod-tab-item" id="btn-modtab-php" onclick="switchModTab('php')">PHP version</div>
-          <div class="mod-tab-item" id="btn-modtab-proxy" onclick="switchModTab('proxy')">Reverse proxy</div>
-          <div class="mod-tab-item" id="btn-modtab-ssl" onclick="switchModTab('ssl')">SSL</div>
-          <div class="mod-tab-item" id="btn-modtab-redirect" onclick="switchModTab('redirect')">Redirect</div>
-          <div class="mod-tab-item" id="btn-modtab-hotlink" onclick="switchModTab('hotlink')">Hotlink Protection</div>
-          <div class="mod-tab-item" id="btn-modtab-maintenance" onclick="switchModTab('maintenance')">Maintenance Mode</div>
-          <div class="mod-tab-item" id="btn-modtab-log" onclick="switchModTab('log')">Response log</div>
-          <div class="mod-tab-item" id="btn-modtab-config" onclick="switchModTab('config')">Config (Caddy)</div>
+          <div class="mod-tab-item active" id="btn-modtab-domain" onclick="switchModTab('domain')" data-i18n="mod_tab_domain">Domain Manager</div>
+          <div class="mod-tab-item" id="btn-modtab-directory" onclick="switchModTab('directory')" data-i18n="mod_tab_directory">Directory</div>
+          <div class="mod-tab-item" id="btn-modtab-limit" onclick="switchModTab('limit')" data-i18n="mod_tab_limit">Limit access</div>
+          <div class="mod-tab-item" id="btn-modtab-rewrite" onclick="switchModTab('rewrite')" data-i18n="mod_tab_rewrite">URL rewrite</div>
+          <div class="mod-tab-item" id="btn-modtab-php" onclick="switchModTab('php')" data-i18n="mod_tab_php">PHP version</div>
+          <div class="mod-tab-item" id="btn-modtab-proxy" onclick="switchModTab('proxy')" data-i18n="mod_tab_proxy">Reverse proxy</div>
+          <div class="mod-tab-item" id="btn-modtab-ssl" onclick="switchModTab('ssl')" data-i18n="mod_tab_ssl">SSL</div>
+          <div class="mod-tab-item" id="btn-modtab-redirect" onclick="switchModTab('redirect')" data-i18n="mod_tab_redirect">Redirect</div>
+          <div class="mod-tab-item" id="btn-modtab-hotlink" onclick="switchModTab('hotlink')" data-i18n="mod_tab_hotlink">Hotlink Protection</div>
+          <div class="mod-tab-item" id="btn-modtab-maintenance" onclick="switchModTab('maintenance')" data-i18n="mod_tab_maintenance">Maintenance Mode</div>
+          <div class="mod-tab-item" id="btn-modtab-log" onclick="switchModTab('log')" data-i18n="mod_tab_log">Response log</div>
+          <div class="mod-tab-item" id="btn-modtab-config" onclick="switchModTab('config')" data-i18n="mod_tab_config">Config (Caddy)</div>
         </div>
         <!-- RIGHT SUB-CONTENT -->
         <div class="mod-content">
           <!-- SUB-TAB 1: DOMAIN MANAGER -->
           <div id="modtab-domain" class="mod-tab-content active">
-            <div class="mod-hint-box">
+            <div class="mod-hint-box" data-i18n="mod_hint_domain">
               A domain per line, the default port is 80.<br>
               Wildcard domain format: *.domain.com<br>
               To add another port, the format is www.domain.com:88
             </div>
             <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
               <textarea id="modNewAliases" class="form-input" style="flex: 1; height: 75px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="alias1.domain.com&#10;alias2.domain.com:8080"></textarea>
-              <button class="btn btn-success" style="align-self: flex-start; padding: 0.6rem 1.25rem;" onclick="addDomainAliases()">Add</button>
+              <button class="btn btn-success" style="align-self: flex-start; padding: 0.6rem 1.25rem;" onclick="addDomainAliases()" data-i18n="btn_add">Add</button>
             </div>
             <div style="margin-top: 1.25rem; border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden;">
               <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
                 <thead>
                   <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
-                    <th style="padding: 0.5rem 0.75rem;">Domain name</th>
-                    <th style="padding: 0.5rem 0.75rem; width: 80px;">Port</th>
-                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 100px;">Operate</th>
+                    <th style="padding: 0.5rem 0.75rem;" data-i18n="th_domain_name">Domain name</th>
+                    <th style="padding: 0.5rem 0.75rem; width: 80px;" data-i18n="th_port">Port</th>
+                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 100px;" data-i18n="th_operate">Operate</th>
                   </tr>
                 </thead>
                 <tbody id="modDomainTableBody"></tbody>
@@ -1169,26 +1173,26 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- SUB-TAB 2: DIRECTORY -->
           <div id="modtab-directory" class="mod-tab-content">
             <div class="form-group">
-              <label>Site Base Directory</label>
+              <label data-i18n="mod_base_dir">Site Base Directory</label>
               <div style="display: flex; gap: 0.5rem;">
                 <input id="modRootPath" class="form-input" style="font-family: var(--font-mono);" placeholder="/var/www/domain.com">
-                <button class="btn btn-secondary" onclick="openModSiteInFileManager()">Files &rarr;</button>
+                <button class="btn btn-secondary" onclick="openModSiteInFileManager()" data-i18n="mod_btn_files">Files &rarr;</button>
               </div>
             </div>
             <div class="form-group">
-              <label>Running Directory (Sub-path / Web Root)</label>
+              <label data-i18n="mod_running_dir">Running Directory (Sub-path / Web Root)</label>
               <select id="modRunningDir" class="form-select">
                 <option value="">/ (Root Directory - Standard)</option>
                 <option value="/public">/public (Laravel, Symfony, ThinkPHP)</option>
                 <option value="/dist">/dist (Vite, Vue, React Production Build)</option>
                 <option value="/build">/build (Webpack, Next.js Static Export)</option>
               </select>
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="mod_running_dir_hint">
                 Point to framework public folder to keep vendor / .env secure.
               </div>
             </div>
             <div class="form-group">
-              <label>Directory Ownership &amp; Permission</label>
+              <label data-i18n="mod_dir_ownership">Directory Ownership &amp; Permission</label>
               <div style="background: var(--surface-elevated); padding: 0.75rem 1rem; border-radius: 0.45rem; font-family: var(--font-mono); font-size: 0.85rem; border: 1px solid var(--border); color: var(--cyan-glow);">
                 User: www-data:www-data | Permissions: 755 (Directories) / 644 (Files)
               </div>
@@ -1198,26 +1202,26 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- SUB-TAB 3: LIMIT ACCESS -->
           <div id="modtab-limit" class="mod-tab-content">
             <div class="form-group">
-              <label>IP Address Blacklist (CIDR notation supported)</label>
+              <label data-i18n="mod_ip_blacklist">IP Address Blacklist (CIDR notation supported)</label>
               <textarea id="modIpBlacklist" class="form-input" style="height: 100px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="192.168.1.50&#10;10.0.0.0/8&#10;172.16.0.0/12"></textarea>
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="mod_ip_hint">
                 One IP or CIDR per line. Any connection matching will immediately receive HTTP 403 Forbidden.
               </div>
             </div>
             <div class="toggle-row" style="margin-top: 1rem;">
               <label for="modBasicAuthToggle">
-                HTTP Basic Authentication
-                <span class="sub">Require username and password before granting access to website</span>
+                <span data-i18n="mod_basic_auth">HTTP Basic Authentication</span>
+                <span class="sub" data-i18n="mod_basic_auth_desc">Require username and password before granting access to website</span>
               </label>
               <input type="checkbox" id="modBasicAuthToggle" style="accent-color: var(--cyan); transform: scale(1.3);" onchange="toggleBasicAuthFields()">
             </div>
             <div id="basicAuthFields" style="display: none; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
               <div class="form-group">
-                <label>Auth Username</label>
+                <label data-i18n="mod_auth_user">Auth Username</label>
                 <input id="modAuthUser" class="form-input" placeholder="admin">
               </div>
               <div class="form-group">
-                <label>Auth Password</label>
+                <label data-i18n="mod_auth_pass">Auth Password</label>
                 <input id="modAuthPass" type="password" class="form-input" placeholder="••••••••">
               </div>
             </div>
@@ -1226,7 +1230,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- SUB-TAB 4: URL REWRITE -->
           <div id="modtab-rewrite" class="mod-tab-content">
             <div class="form-group">
-              <label>Framework URL Rewrite Preset</label>
+              <label data-i18n="mod_rewrite_preset">Framework URL Rewrite Preset</label>
               <select id="modRewritePreset" class="form-select" onchange="updateRewriteSnippetPreview()">
                 <option value="">Default (Static File Server)</option>
                 <option value="laravel">Laravel / Symfony (try_files {path} {path}/ /index.php?{query})</option>
@@ -1235,7 +1239,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
               </select>
             </div>
             <div class="form-group">
-              <label>Caddyfile Rewrite Snippet Preview</label>
+              <label data-i18n="mod_rewrite_preview">Caddyfile Rewrite Snippet Preview</label>
               <pre class="code-block" id="modRewritePreview" style="height: 160px;"></pre>
             </div>
           </div>
@@ -1243,7 +1247,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- SUB-TAB 5: PHP VERSION -->
           <div id="modtab-php" class="mod-tab-content">
             <div class="form-group">
-              <label>PHP-FPM Worker Runtime</label>
+              <label data-i18n="mod_php_runtime">PHP-FPM Worker Runtime</label>
               <select id="modPhpVersion" class="form-select" onchange="updatePhpSocketPreview()">
                 <option value="none">Static (No PHP Processing)</option>
                 <option value="8.4">PHP 8.4-FPM (Bleeding Edge)</option>
@@ -1254,10 +1258,10 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
               </select>
             </div>
             <div class="form-group">
-              <label>FastCGI Socket Endpoint</label>
+              <label data-i18n="mod_fastcgi_socket">FastCGI Socket Endpoint</label>
               <input id="modPhpSocketPreview" class="form-input" readonly style="font-family: var(--font-mono); color: var(--cyan-glow);">
             </div>
-            <div class="mod-hint-box">
+            <div class="mod-hint-box" data-i18n="mod_php_hint">
               ZPanl configures FastCGI with <code>pm = ondemand</code>, dynamically spinning up worker processes when HTTP requests arrive and terminating idle workers after 10s to keep RAM footprint &lt; 10 MB.
             </div>
           </div>
@@ -1266,13 +1270,13 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <div id="modtab-proxy" class="mod-tab-content">
             <div class="toggle-row">
               <label for="modProxyToggle">
-                Enable Reverse Proxy
-                <span class="sub">Forward all traffic to internal application server (Node, Go, Python, Docker)</span>
+                <span data-i18n="mod_enable_proxy">Enable Reverse Proxy</span>
+                <span class="sub" data-i18n="mod_enable_proxy_desc">Forward all traffic to internal application server (Node, Go, Python, Docker)</span>
               </label>
               <input type="checkbox" id="modProxyToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
             </div>
             <div class="form-group" style="margin-top: 1rem;">
-              <label>Upstream Target (Host:Port or Unix Socket)</label>
+              <label data-i18n="mod_upstream_target">Upstream Target (Host:Port or Unix Socket)</label>
               <input id="modProxyUpstream" class="form-input" style="font-family: var(--font-mono);" placeholder="127.0.0.1:3000">
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
                 Example: <code>127.0.0.1:3000</code> for Next.js, <code>127.0.0.1:8000</code> for Python FastAPI/Django.
@@ -1287,17 +1291,17 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <div id="modtab-ssl" class="mod-tab-content">
             <div class="toggle-row">
               <label for="modSslToggle">
-                Automatic HTTPS (Let's Encrypt / ZeroSSL)
-                <span class="sub">Zero-configuration automated ACME certificate issuance and renewal</span>
+                <span data-i18n="mod_auto_ssl">Automatic HTTPS (Let's Encrypt / ZeroSSL)</span>
+                <span class="sub" data-i18n="mod_auto_ssl_desc">Zero-configuration automated ACME certificate issuance and renewal</span>
               </label>
               <input type="checkbox" id="modSslToggle" checked style="accent-color: var(--cyan); transform: scale(1.3);">
             </div>
             <div class="form-group">
-              <label>SSL / TLS Protocol Strictness</label>
+              <label data-i18n="mod_tls_strict">SSL / TLS Protocol Strictness</label>
               <div style="background: var(--surface-elevated); padding: 0.75rem 1rem; border-radius: 0.45rem; border: 1px solid var(--border); font-size: 0.85rem;">
                 <div style="color: var(--green-glow); font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                   <span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;"></span>
-                  TLS 1.2 &amp; TLS 1.3 Modern Cipher Suite Active
+                  <span data-i18n="mod_tls_status">TLS 1.2 &amp; TLS 1.3 Modern Cipher Suite Active</span>
                 </div>
                 <div style="color: var(--text-dim); font-size: 0.75rem; margin-top: 0.35rem;">
                   Automated OCSP stapling &amp; HTTP/2, HTTP/3 (QUIC) enabled by Caddy v2.
@@ -1308,35 +1312,35 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
           <!-- SUB-TAB 8: REDIRECT -->
           <div id="modtab-redirect" class="mod-tab-content">
-            <div class="mod-hint-box">
+            <div class="mod-hint-box" data-i18n="mod_redir_hint">
               Configure 301 (Permanent) or 302 (Temporary) redirects. Great for migrating old URLs, campaign links, or forwarding external domains.
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 1rem; align-items: flex-end;">
               <div style="flex: 1;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Source Path</label>
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;" data-i18n="mod_redir_src">Source Path</label>
                 <input id="newRedirSource" class="form-input" placeholder="/old-path" style="font-family: var(--font-mono); font-size: 0.85rem;">
               </div>
               <div style="flex: 1.5;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Target URL</label>
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;" data-i18n="mod_redir_tgt">Target URL</label>
                 <input id="newRedirTarget" class="form-input" placeholder="https://example.com/new" style="font-family: var(--font-mono); font-size: 0.85rem;">
               </div>
               <div style="width: 100px;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">HTTP Code</label>
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;" data-i18n="mod_redir_code">HTTP Code</label>
                 <select id="newRedirCode" class="form-select" style="font-size: 0.85rem;">
                   <option value="301">301 (Perm)</option>
                   <option value="302">302 (Temp)</option>
                 </select>
               </div>
-              <button class="btn btn-success" style="padding: 0.55rem 1rem;" onclick="addRedirectRule()">Add</button>
+              <button class="btn btn-success" style="padding: 0.55rem 1rem;" onclick="addRedirectRule()" data-i18n="btn_add">Add</button>
             </div>
             <div style="margin-top: 1.25rem; border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden;">
               <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
                 <thead>
                   <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
-                    <th style="padding: 0.5rem 0.75rem;">Source</th>
-                    <th style="padding: 0.5rem 0.75rem;">Target</th>
-                    <th style="padding: 0.5rem 0.75rem; width: 60px;">Code</th>
-                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 70px;">Operate</th>
+                    <th style="padding: 0.5rem 0.75rem;" data-i18n="th_source">Source</th>
+                    <th style="padding: 0.5rem 0.75rem;" data-i18n="th_target">Target</th>
+                    <th style="padding: 0.5rem 0.75rem; width: 60px;" data-i18n="th_code">Code</th>
+                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 70px;" data-i18n="th_operate">Operate</th>
                   </tr>
                 </thead>
                 <tbody id="modRedirectsTableBody"></tbody>
@@ -1348,13 +1352,13 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <div id="modtab-hotlink" class="mod-tab-content">
             <div class="toggle-row">
               <label for="modHotlinkToggle">
-                Enable Anti-Leech / Hotlink Protection
-                <span class="sub">Block other domains from embedding and stealing your images, media, and bandwidth</span>
+                <span data-i18n="mod_hotlink_title">Enable Anti-Leech / Hotlink Protection</span>
+                <span class="sub" data-i18n="mod_hotlink_desc">Block other domains from embedding and stealing your images, media, and bandwidth</span>
               </label>
               <input type="checkbox" id="modHotlinkToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
             </div>
             <div class="form-group" style="margin-top: 1rem;">
-              <label>Protected Media Extensions</label>
+              <label data-i18n="mod_hotlink_exts">Protected Media Extensions</label>
               <input id="modHotlinkExts" class="form-input" style="font-family: var(--font-mono);" value="*.jpg *.jpeg *.png *.webp *.gif *.svg *.mp4 *.zip">
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
                 Space-separated glob patterns.
@@ -1369,12 +1373,12 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <div id="modtab-maintenance" class="mod-tab-content">
             <div class="toggle-row" style="border-left: 4px solid var(--yellow);">
               <label for="modMaintToggle">
-                Site Maintenance Mode (HTTP 503)
-                <span class="sub">Immediately returns 503 Service Unavailable for maintenance without removing vhost</span>
+                <span data-i18n="mod_maint_title">Site Maintenance Mode (HTTP 503)</span>
+                <span class="sub" data-i18n="mod_maint_desc">Immediately returns 503 Service Unavailable for maintenance without removing vhost</span>
               </label>
               <input type="checkbox" id="modMaintToggle" style="accent-color: var(--yellow); transform: scale(1.3);">
             </div>
-            <div class="mod-hint-box" style="border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); color: #fde68a;">
+            <div class="mod-hint-box" style="border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); color: #fde68a;" data-i18n="mod_maint_box">
               When maintenance mode is activated, Caddy intercepts all incoming traffic for this virtual host and cleanly returns an HTTP 503 response. Safe for software upgrades, database migrations, and emergencies.
             </div>
           </div>
@@ -1384,10 +1388,10 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
               <div style="display: flex; gap: 0.5rem; align-items: center;">
                 <select id="modLogType" class="form-select" style="width: 140px; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onchange="loadModSiteLogs()">
-                  <option value="access">Access Log</option>
-                  <option value="error">Error Log</option>
+                  <option value="access" data-i18n="mod_log_access">Access Log</option>
+                  <option value="error" data-i18n="mod_log_error">Error Log</option>
                 </select>
-                <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="loadModSiteLogs()">Refresh</button>
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="loadModSiteLogs()" data-i18n="refresh_btn">Refresh</button>
               </div>
               <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">/var/log/zpanl/&lt;domain&gt;.log</span>
             </div>
@@ -1397,16 +1401,16 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <!-- SUB-TAB 12: CONFIG (CADDY) -->
           <div id="modtab-config" class="mod-tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
-              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Active Virtual Host Caddyfile Block</span>
-              <button class="btn btn-secondary" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" onclick="copyModCaddyfile()">Copy Config</button>
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;" data-i18n="mod_active_block">Active Virtual Host Caddyfile Block</span>
+              <button class="btn btn-secondary" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" onclick="copyModCaddyfile()" data-i18n="mod_copy_config">Copy Config</button>
             </div>
             <pre class="code-block" id="modCaddyfilePreview" style="height: 240px; margin: 0;"></pre>
           </div>
         </div>
       </div>
       <div class="modal-footer" style="padding: 0.75rem 1.25rem;">
-        <button class="btn btn-secondary" onclick="closeSiteModModal()">Close</button>
-        <button class="btn" onclick="saveSiteModChanges()">Save &amp; Apply Changes</button>
+        <button class="btn btn-secondary" onclick="closeSiteModModal()" data-i18n="btn_close">Close</button>
+        <button class="btn" onclick="saveSiteModChanges()" data-i18n="btn_save_apply">Save &amp; Apply Changes</button>
       </div>
     </div>
   </div>
@@ -1432,8 +1436,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           Shortcut: <kbd style="background: rgba(255,255,255,0.1); padding: 0.15rem 0.4rem; border-radius: 3px;">Ctrl+S</kbd> to save
         </div>
         <div style="display: flex; gap: 0.75rem;">
-          <button class="btn btn-secondary" onclick="closeEditorModal()">Cancel</button>
-          <button class="btn" onclick="saveFileContent()">Save Changes (Atomic)</button>
+          <button class="btn btn-secondary" onclick="closeEditorModal()" data-i18n="btn_cancel">Cancel</button>
+          <button class="btn" onclick="saveFileContent()" data-i18n="save_changes_btn">Save Changes (Atomic)</button>
         </div>
       </div>
     </div>
@@ -1443,18 +1447,18 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
   <div id="newEntryModal" class="modal">
     <div class="modal-box" style="max-width: 440px;">
       <div class="modal-header">
-        <h3 id="newEntryTitle">Create New Item</h3>
+        <h3 id="newEntryTitle" data-i18n="modal_new_item">Create New Item</h3>
         <button class="modal-close" onclick="closeNewEntryModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label id="newEntryLabel">Item Name</label>
+          <label id="newEntryLabel" data-i18n="item_name">Item Name</label>
           <input id="newEntryName" class="form-input" placeholder="e.g. index.php">
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeNewEntryModal()">Cancel</button>
-        <button class="btn" onclick="submitCreateEntry()">Create</button>
+        <button class="btn btn-secondary" onclick="closeNewEntryModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateEntry()" data-i18n="create_btn">Create</button>
       </div>
     </div>
   </div>
@@ -1469,25 +1473,362 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     let editingRelPath = '';
     let allSites = [];
 
+    let currentLang = localStorage.getItem('zpanl_lang') || 'vi';
+
+    const I18N = {
+      en: {
+        nav_core: 'Core Management',
+        nav_dashboard: 'Dashboard',
+        nav_websites: 'Websites',
+        nav_files: 'File Manager',
+        nav_services_group: 'Services & Engines',
+        nav_services: 'Services',
+        nav_caddyfile: 'Caddyfile',
+        nav_php_pools: 'PHP-FPM Pools',
+        nav_online: 'Linux /proc Native',
+        nav_footprint: 'Footprint: &lt; 10 MB RAM',
+        deploy_site: 'Deploy Site',
+        card_cpu_title: 'CPU Utilization',
+        card_ram_title: 'Memory Allocation',
+        card_net_title: 'Network I/O',
+        card_stack_title: 'Panel Sovereign Stack',
+        active_vhosts: 'Active Virtual Hosts',
+        view_all_sites: 'View All Websites &rarr;',
+        th_domain: 'Domain Name',
+        th_type: 'Type',
+        th_php: 'PHP Version',
+        th_root: 'Web Root',
+        th_security: 'SSL Security',
+        th_actions: 'Actions',
+        sites_title: 'Websites & Virtual Hosts',
+        sites_subtitle: "Declarative Caddy v2 reverse proxy routing with automatic Let's Encrypt HTTPS",
+        search_placeholder: 'Search domain or path...',
+        add_vhost_btn: 'Add Virtual Host',
+        loading_sites: 'Loading websites...',
+        no_sites: 'No virtual hosts registered yet. Click "+ Add Virtual Host" to start!',
+        new_file_btn: 'New File',
+        new_folder_btn: 'New Folder',
+        refresh_btn: 'Refresh',
+        th_file_name: 'File Name',
+        th_file_type: 'Type',
+        th_file_size: 'Size',
+        th_file_perm: 'POSIX Permissions',
+        select_site_explore: 'Select a site to explore files.',
+        services_title: 'Linux Systemd Services',
+        services_subtitle: 'Daemon process supervision via zero-sys',
+        refresh_daemons: 'Refresh Daemons',
+        caddy_title: 'Active Reverse Proxy Configuration',
+        caddy_subtitle: 'Live synchronized from /etc/caddy/Caddyfile',
+        copy_caddyfile: 'Copy Caddyfile',
+        reload_preview: 'Reload Preview',
+        php_title: 'PHP-FPM Worker Pools',
+        php_subtitle: 'Isolated on-demand fastcgi worker pools generated by zero-fastcgi',
+        select_site_php: 'Select Site to Inspect PHP Pool Configuration',
+        view_pool_ini: 'View Pool INI',
+        modal_add_title: 'Deploy New Virtual Host',
+        modal_domain_label: 'Fully Qualified Domain Name',
+        modal_app_type: 'Application Type',
+        type_static: 'Static HTML / CSS / JS / Assets',
+        type_spa: 'Single Page Application (SPA Fallback /index.html)',
+        type_php: 'Dynamic PHP (PHP-FPM Unix Socket)',
+        modal_php_ver: 'PHP-FPM Worker Version',
+        modal_web_root: 'Document Web Root Path',
+        modal_auto_https: "Automatic HTTPS via Caddy (Let's Encrypt / ZeroSSL)",
+        btn_cancel: 'Cancel',
+        btn_create_vhost: 'Create Virtual Host',
+        btn_close: 'Close',
+        btn_save_apply: 'Save & Apply Changes',
+        mod_title_prefix: 'Site modification',
+        mod_time_added: 'Time added',
+        mod_tab_domain: 'Domain Manager',
+        mod_tab_directory: 'Directory',
+        mod_tab_limit: 'Limit access',
+        mod_tab_rewrite: 'URL rewrite',
+        mod_tab_php: 'PHP version',
+        mod_tab_proxy: 'Reverse proxy',
+        mod_tab_ssl: 'SSL',
+        mod_tab_redirect: 'Redirect',
+        mod_tab_hotlink: 'Hotlink Protection',
+        mod_tab_maintenance: 'Maintenance Mode',
+        mod_tab_log: 'Response log',
+        mod_tab_config: 'Config (Caddy)',
+        mod_hint_domain: 'A domain per line, the default port is 80.<br>Wildcard domain format: *.domain.com<br>To add another port, the format is www.domain.com:88',
+        btn_add: 'Add',
+        th_domain_name: 'Domain name',
+        th_port: 'Port',
+        th_operate: 'Operate',
+        mod_base_dir: 'Site Base Directory',
+        mod_btn_files: 'Files &rarr;',
+        mod_running_dir: 'Running Directory (Sub-path / Web Root)',
+        mod_running_dir_hint: 'Point to framework public folder to keep vendor / .env secure.',
+        mod_dir_ownership: 'Directory Ownership & Permission',
+        mod_ip_blacklist: 'IP Address Blacklist (CIDR notation supported)',
+        mod_ip_hint: 'One IP or CIDR per line. Any connection matching will immediately receive HTTP 403 Forbidden.',
+        mod_basic_auth: 'HTTP Basic Authentication',
+        mod_basic_auth_desc: 'Require username and password before granting access to website',
+        mod_auth_user: 'Auth Username',
+        mod_auth_pass: 'Auth Password',
+        mod_rewrite_preset: 'Framework URL Rewrite Preset',
+        mod_rewrite_preview: 'Caddyfile Rewrite Snippet Preview',
+        mod_php_runtime: 'PHP-FPM Worker Runtime',
+        mod_fastcgi_socket: 'FastCGI Socket Endpoint',
+        mod_php_hint: 'ZPanl configures FastCGI with <code>pm = ondemand</code>, dynamically spinning up worker processes when HTTP requests arrive and terminating idle workers after 10s to keep RAM footprint &lt; 10 MB.',
+        mod_enable_proxy: 'Enable Reverse Proxy',
+        mod_enable_proxy_desc: 'Forward all traffic to internal application server (Node, Go, Python, Docker)',
+        mod_upstream_target: 'Upstream Target (Host:Port or Unix Socket)',
+        mod_auto_ssl: "Automatic HTTPS (Let's Encrypt / ZeroSSL)",
+        mod_auto_ssl_desc: 'Zero-configuration automated ACME certificate issuance and renewal',
+        mod_tls_strict: 'SSL / TLS Protocol Strictness',
+        mod_tls_status: 'TLS 1.2 & TLS 1.3 Modern Cipher Suite Active',
+        mod_redir_hint: 'Configure 301 (Permanent) or 302 (Temporary) redirects. Great for migrating old URLs, campaign links, or forwarding external domains.',
+        mod_redir_src: 'Source Path',
+        mod_redir_tgt: 'Target URL',
+        mod_redir_code: 'HTTP Code',
+        th_source: 'Source',
+        th_target: 'Target',
+        th_code: 'Code',
+        mod_hotlink_title: 'Enable Anti-Leech / Hotlink Protection',
+        mod_hotlink_desc: 'Block other domains from embedding and stealing your images, media, and bandwidth',
+        mod_hotlink_exts: 'Protected Media Extensions',
+        mod_maint_title: 'Site Maintenance Mode (HTTP 503)',
+        mod_maint_desc: 'Immediately returns 503 Service Unavailable for maintenance without removing vhost',
+        mod_maint_box: 'When maintenance mode is activated, Caddy intercepts all incoming traffic for this virtual host and cleanly returns an HTTP 503 response. Safe for software upgrades, database migrations, and emergencies.',
+        mod_log_access: 'Access Log',
+        mod_log_error: 'Error Log',
+        mod_active_block: 'Active Virtual Host Caddyfile Block',
+        mod_copy_config: 'Copy Config',
+        save_changes_btn: 'Save Changes (Atomic)',
+        modal_new_item: 'Create New Item',
+        item_name: 'Item Name',
+        create_btn: 'Create',
+        btn_config: '⚙️ Config',
+        btn_files: 'Files',
+        btn_delete: 'Del',
+        btn_edit: 'Edit',
+        btn_download: 'Download',
+        status_active: 'Active',
+        status_stopped: 'Stopped',
+        confirm_delete_site: "Are you sure you want to remove domain '{domain}' from ZPanl?",
+        confirm_delete_file: "Are you sure you want to delete '{name}'?",
+        site_created: "Virtual host '{domain}' created successfully!",
+        site_deleted: "Site '{domain}' deleted",
+        site_updated: '✨ Site settings applied & Caddyfile reloaded in < 1ms!'
+      },
+      vi: {
+        nav_core: 'Quản Lý Cốt Lõi',
+        nav_dashboard: 'Tổng Quan',
+        nav_websites: 'Website',
+        nav_files: 'Quản Lý Tệp',
+        nav_services_group: 'Dịch Vụ & Máy Chủ',
+        nav_services: 'Dịch Vụ',
+        nav_caddyfile: 'Cấu Hình Caddy',
+        nav_php_pools: 'Cụm Worker PHP',
+        nav_online: 'Linux /proc Chuẩn',
+        nav_footprint: 'Dung lượng: &lt; 10 MB RAM',
+        deploy_site: 'Thêm Website',
+        card_cpu_title: 'Tải CPU',
+        card_ram_title: 'Bộ Nhớ RAM',
+        card_net_title: 'Băng Thông Mạng',
+        card_stack_title: 'Nền Tảng Sovereign',
+        active_vhosts: 'Website Đang Chạy',
+        view_all_sites: 'Xem tất cả Website &rarr;',
+        th_domain: 'Tên Miền',
+        th_type: 'Thể Loại',
+        th_php: 'Phiên Bản PHP',
+        th_root: 'Thư Mục Gốc',
+        th_security: 'Chứng Chỉ SSL',
+        th_actions: 'Thao Tác',
+        sites_title: 'Danh Sách Website & Virtual Host',
+        sites_subtitle: "Điều hướng reverse proxy Caddy v2 tốc độ cao với HTTPS tự động Let's Encrypt",
+        search_placeholder: 'Tìm kiếm tên miền hoặc đường dẫn...',
+        add_vhost_btn: 'Thêm Website Mới',
+        loading_sites: 'Đang tải danh sách website...',
+        no_sites: 'Chưa có website nào được đăng ký. Bấm "+ Thêm Website Mới" để bắt đầu!',
+        new_file_btn: 'Tệp Mới',
+        new_folder_btn: 'Thư Mục Mới',
+        refresh_btn: 'Làm Mới',
+        th_file_name: 'Tên Tệp Tin',
+        th_file_type: 'Loại',
+        th_file_size: 'Dung Lượng',
+        th_file_perm: 'Quyền POSIX',
+        select_site_explore: 'Chọn một website để duyệt tệp tin.',
+        services_title: 'Dịch Vụ Hệ Thống Linux',
+        services_subtitle: 'Giám sát tiến trình daemon hệ thống qua zero-sys',
+        refresh_daemons: 'Làm Mới Tiến Trình',
+        caddy_title: 'Cấu Hình Reverse Proxy Đang Chạy',
+        caddy_subtitle: 'Đồng bộ trực tiếp thời gian thực từ /etc/caddy/Caddyfile',
+        copy_caddyfile: 'Sao Chép Caddyfile',
+        reload_preview: 'Tải Lại Cấu Hình',
+        php_title: 'Cụm Worker PHP-FPM',
+        php_subtitle: 'Các worker FastCGI theo yêu cầu tách biệt tạo bởi zero-fastcgi',
+        select_site_php: 'Chọn Website Để Xem Cấu Hình PHP Pool',
+        view_pool_ini: 'Xem Cấu Hình INI',
+        modal_add_title: 'Khởi Tạo Website Mới',
+        modal_domain_label: 'Tên Miền Đầy Đủ (FQDN)',
+        modal_app_type: 'Thể Loại Ứng Dụng',
+        type_static: 'Tĩnh (HTML / CSS / JS / Assets)',
+        type_spa: 'Ứng Dụng SPA (Fallback /index.html)',
+        type_php: 'PHP Động (Socket Unix PHP-FPM)',
+        modal_php_ver: 'Phiên Bản PHP-FPM Worker',
+        modal_web_root: 'Đường Dẫn Thư Mục Web Gốc',
+        modal_auto_https: "Tự động cấp SSL HTTPS qua Caddy (Let's Encrypt / ZeroSSL)",
+        btn_cancel: 'Hủy Bỏ',
+        btn_create_vhost: 'Tạo Website',
+        btn_close: 'Đóng',
+        btn_save_apply: 'Lưu & Áp Dụng Thay Đổi',
+        mod_title_prefix: 'Chỉnh sửa cấu hình Website',
+        mod_time_added: 'Thời gian tạo',
+        mod_tab_domain: 'Quản Lý Tên Miền',
+        mod_tab_directory: 'Thư Mục Web',
+        mod_tab_limit: 'Giới Hạn Truy Cập',
+        mod_tab_rewrite: 'Viết Lại URL',
+        mod_tab_php: 'Phiên Bản PHP',
+        mod_tab_proxy: 'Reverse Proxy',
+        mod_tab_ssl: 'Chứng Chỉ SSL',
+        mod_tab_redirect: 'Chuyển Hướng',
+        mod_tab_hotlink: 'Chống Hotlink',
+        mod_tab_maintenance: 'Chế Độ Bảo Trì',
+        mod_tab_log: 'Nhật Ký Truy Cập & Lỗi',
+        mod_tab_config: 'Cấu Hình Caddy',
+        mod_hint_domain: 'Mỗi dòng một tên miền, cổng mặc định là 80.<br>Định dạng wildcard: *.domain.com<br>Thêm cổng khác theo định dạng: www.domain.com:88',
+        btn_add: 'Thêm',
+        th_domain_name: 'Tên miền',
+        th_port: 'Cổng',
+        th_operate: 'Thao tác',
+        mod_base_dir: 'Thư Mục Cơ Sở Website',
+        mod_btn_files: 'Quản Lý Tệp &rarr;',
+        mod_running_dir: 'Thư Mục Chạy (Thư Mục Con / Web Root)',
+        mod_running_dir_hint: 'Trỏ vào thư mục public của framework để bảo vệ tệp tin vendor / .env.',
+        mod_dir_ownership: 'Quyền Sở Hữu & Phân Quyền Thư Mục',
+        mod_ip_blacklist: 'Danh Sách Đen IP (Hỗ trợ định dạng CIDR)',
+        mod_ip_hint: 'Mỗi IP hoặc dải CIDR một dòng. Mọi kết nối trùng khớp sẽ lập tức nhận mã HTTP 403 Forbidden.',
+        mod_basic_auth: 'Xác Thực HTTP Basic',
+        mod_basic_auth_desc: 'Yêu cầu tài khoản và mật khẩu trước khi cấp quyền truy cập website',
+        mod_auth_user: 'Tên Đăng Nhập',
+        mod_auth_pass: 'Mật Khẩu',
+        mod_rewrite_preset: 'Bộ Viết Lại URL Theo Framework',
+        mod_rewrite_preview: 'Xem Trước Cấu Hình Caddyfile',
+        mod_php_runtime: 'Môi Trường Thực Thi PHP-FPM',
+        mod_fastcgi_socket: 'Điểm Cuối Unix Socket FastCGI',
+        mod_php_hint: 'ZPanl cấu hình FastCGI với <code>pm = ondemand</code>, tự động khởi tạo worker khi có request và giải phóng sau 10s rảnh rỗi nhằm duy trì RAM &lt; 10 MB.',
+        mod_enable_proxy: 'Kích Hoạt Reverse Proxy',
+        mod_enable_proxy_desc: 'Chuyển tiếp toàn bộ lưu lượng tới máy chủ backend nội bộ (Node, Go, Python, Docker)',
+        mod_upstream_target: 'Địa Chỉ Upstream (Host:Port hoặc Unix Socket)',
+        mod_auto_ssl: "Tự Động Cấp SSL (Let's Encrypt / ZeroSSL)",
+        mod_auto_ssl_desc: 'Tự động đăng ký và gia hạn chứng chỉ ACME hoàn toàn không cần cấu hình',
+        mod_tls_strict: 'Mức Độ Bảo Mật SSL / TLS',
+        mod_tls_status: 'Kích Hoạt Bộ Mã Hóa Hiện Đại TLS 1.2 & TLS 1.3',
+        mod_redir_hint: 'Cấu hình chuyển hướng 301 (Vĩnh viễn) hoặc 302 (Tạm thời). Phù hợp khi đổi liên kết hoặc chuyển tiếp tên miền ngoài.',
+        mod_redir_src: 'Đường Dẫn Gốc',
+        mod_redir_tgt: 'URL Đích',
+        mod_redir_code: 'Mã HTTP',
+        th_source: 'Nguồn',
+        th_target: 'Đích',
+        th_code: 'Mã',
+        mod_hotlink_title: 'Kích Hoạt Chống Lấy Trộm Liên Kết (Hotlink)',
+        mod_hotlink_desc: 'Ngăn chặn trang web khác nhúng và tiêu tốn băng thông hình ảnh, video của bạn',
+        mod_hotlink_exts: 'Đuôi Tệp Đang Được Bảo Vệ',
+        mod_maint_title: 'Chế Độ Bảo Trì Website (HTTP 503)',
+        mod_maint_desc: 'Lập tức trả về mã HTTP 503 Service Unavailable để bảo trì mà không cần xóa vhost',
+        mod_maint_box: 'Khi bật chế độ bảo trì, Caddy chặn toàn bộ truy cập tới vhost này và trả về mã HTTP 503 sạch. An toàn cho nâng cấp mã nguồn, di chuyển CSDL hoặc xử lý sự cố.',
+        mod_log_access: 'Nhật Ký Truy Cập',
+        mod_log_error: 'Nhật Ký Lỗi',
+        mod_active_block: 'Khối Cấu Hình Caddyfile Của Website Này',
+        mod_copy_config: 'Sao Chép Cấu Hình',
+        save_changes_btn: 'Lưu Thay Đổi (Atomic)',
+        modal_new_item: 'Tạo Mục Mới',
+        item_name: 'Tên Mục',
+        create_btn: 'Tạo Mới',
+        btn_config: '⚙️ Cấu Hình',
+        btn_files: 'Tệp Tin',
+        btn_delete: 'Xóa',
+        btn_edit: 'Sửa',
+        btn_download: 'Tải Về',
+        status_active: 'Đang chạy',
+        status_stopped: 'Đã dừng',
+        confirm_delete_site: "Bạn có chắc chắn muốn xóa tên miền '{domain}' khỏi ZPanl không?",
+        confirm_delete_file: "Bạn có chắc muốn xóa '{name}' không?",
+        site_created: "Website '{domain}' đã được tạo thành công!",
+        site_deleted: "Website '{domain}' đã bị xóa",
+        site_updated: '✨ Cấu hình website đã được áp dụng & nạp lại Caddyfile trong < 1ms!'
+      }
+    };
+
+    function t(key, fallback = '') {
+      if (I18N[currentLang] && I18N[currentLang][key]) {
+        return I18N[currentLang][key];
+      }
+      if (I18N['en'] && I18N['en'][key]) {
+        return I18N['en'][key];
+      }
+      return fallback || key;
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'vi' ? 'en' : 'vi';
+      localStorage.setItem('zpanl_lang', currentLang);
+      updateLanguageUI();
+      applyTranslations();
+      if (currentTab === 'sites') renderSitesTable(allSites);
+      if (currentTab === 'overview') renderOverviewTable(allSites);
+      if (currentTab === 'files') loadSiteFiles();
+      if (currentTab === 'services') loadServices();
+    }
+
+    function updateLanguageUI() {
+      const flag = document.getElementById('langFlag');
+      const text = document.getElementById('langText');
+      if (currentLang === 'vi') {
+        if (flag) flag.textContent = '🇻🇳';
+        if (text) text.textContent = 'Tiếng Việt';
+      } else {
+        if (flag) flag.textContent = '🇬🇧';
+        if (text) text.textContent = 'English';
+      }
+      const titleObj = tabTitles[currentTab];
+      if (titleObj) {
+        document.getElementById('breadcrumbTitle').textContent = titleObj[currentLang] || titleObj.en;
+      }
+    }
+
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const val = t(key);
+        if (val) {
+          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.placeholder = val;
+          } else {
+            el.innerHTML = val;
+          }
+        }
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        const val = t(key);
+        if (val) el.placeholder = val;
+      });
+    }
+
     const tabTitles = {
-      overview: 'Dashboard',
-      sites: 'Websites & Virtual Hosts',
-      files: 'File Manager',
-      services: 'Systemd Services',
-      caddy: 'Reverse Proxy Caddyfile',
-      php: 'PHP-FPM Worker Pools'
+      overview: { en: 'Dashboard', vi: 'Bảng Điều Khiển' },
+      sites: { en: 'Websites & Virtual Hosts', vi: 'Website & Virtual Host' },
+      files: { en: 'File Manager', vi: 'Quản Lý Tệp Tin' },
+      services: { en: 'Systemd Services', vi: 'Dịch Vụ Hệ Thống' },
+      caddy: { en: 'Reverse Proxy Caddyfile', vi: 'Cấu Hình Caddyfile' },
+      php: { en: 'PHP-FPM Worker Pools', vi: 'Cụm Worker PHP-FPM' }
     };
 
     function showToast(message, type = 'info') {
       const c = document.getElementById('toastContainer');
-      const t = document.createElement('div');
-      t.className = `toast toast-${type}`;
-      t.textContent = message;
-      c.appendChild(t);
+      const tEl = document.createElement('div');
+      tEl.className = `toast toast-${type}`;
+      tEl.textContent = message;
+      c.appendChild(tEl);
       setTimeout(() => {
-        t.style.opacity = '0';
-        t.style.transition = 'opacity 0.3s';
-        setTimeout(() => t.remove(), 300);
+        tEl.style.opacity = '0';
+        tEl.style.transition = 'opacity 0.3s';
+        setTimeout(() => tEl.remove(), 300);
       }, 3500);
     }
 
@@ -1496,13 +1837,14 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       document.querySelectorAll('#sidebar button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       
-      const navBtn = Array.from(document.querySelectorAll('#sidebar button')).find(b => b.textContent.trim().toLowerCase().includes(tab));
+      const navBtn = document.querySelector(`#sidebar button[onclick*="'${tab}'"]`);
       if (navBtn) navBtn.classList.add('active');
       
       const targetContent = document.getElementById('tab-' + tab);
       if (targetContent) targetContent.classList.add('active');
 
-      document.getElementById('breadcrumbTitle').textContent = tabTitles[tab] || 'Overview';
+      const titleObj = tabTitles[tab];
+      document.getElementById('breadcrumbTitle').textContent = (titleObj && titleObj[currentLang]) || 'Overview';
 
       if (tab === 'sites') loadSites();
       if (tab === 'files') initFilesTab();
@@ -1534,15 +1876,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         document.getElementById('ramRadial').style.strokeDashoffset = ramOffset;
         document.getElementById('ramRadialText').textContent = Math.round(d.ram_usage_percent) + '%';
         document.getElementById('ramDetailVal').textContent = `${d.ram_used_mb} / ${d.ram_total_mb} MB`;
-        document.getElementById('ramAvailText').textContent = `Available: ${d.ram_free_mb} MB`;
+        document.getElementById('ramAvailText').textContent = `${currentLang === 'vi' ? 'Khả dụng' : 'Available'}: ${d.ram_free_mb} MB`;
 
         // Network
         document.getElementById('netDetailRx').textContent = `↓ ${d.net_rx_kbps} KB/s`;
-        document.getElementById('netDetailTx').textContent = `↑ ${d.net_tx_kbps} KB/s outbound`;
+        document.getElementById('netDetailTx').textContent = `↑ ${d.net_tx_kbps} KB/s ${currentLang === 'vi' ? 'chiều gửi' : 'outbound'}`;
 
         // Sidebar & Uptime
-        document.getElementById('uptimeQuickText').textContent = `Uptime: ${d.uptime_seconds}s`;
-        document.getElementById('sidebarProcMode').textContent = d.is_linux_proc ? 'Linux /proc Native' : 'Local Dev Fallback';
+        document.getElementById('uptimeQuickText').textContent = `${currentLang === 'vi' ? 'Thời gian chạy' : 'Uptime'}: ${d.uptime_seconds}s`;
+        document.getElementById('sidebarProcMode').textContent = d.is_linux_proc ? (currentLang === 'vi' ? 'Linux /proc Chuẩn' : 'Linux /proc Native') : (currentLang === 'vi' ? 'Chế độ Dev Fallback' : 'Local Dev Fallback');
       } catch (e) {
         console.error('Telemetry error:', e);
       }
@@ -1566,7 +1908,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     function renderSitesTable(sites) {
       const tbody = document.getElementById('sitesTableBody');
       if (!sites.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No virtual hosts registered yet. Click "+ Add Virtual Host" to start!</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">${t('no_sites')}</td></tr>`;
         return;
       }
 
@@ -1579,6 +1921,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         const maintBadge = s.maintenance ? '<span class="badge badge-yellow" style="margin-left: 0.35rem;">Maint (503)</span>' : '';
         const aliasCount = s.aliases && s.aliases.length ? `<span style="font-size: 0.72rem; color: var(--text-dim); display: block;">+${s.aliases.length} alias</span>` : '';
         const portStr = s.port && s.port !== 80 && s.port !== 443 ? `:${s.port}` : '';
+        const sslLabel = s.ssl_enabled ? 'Auto HTTPS' : (currentLang === 'vi' ? 'Chỉ HTTP' : 'HTTP Only');
 
         return `
           <tr>
@@ -1594,12 +1937,12 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
               ${s.root_path}${s.running_dir ? '<span style="color: var(--cyan);">' + s.running_dir + '</span>' : ''}
             </td>
-            <td><span class="badge badge-green">${s.ssl_enabled ? 'Auto HTTPS' : 'HTTP Only'}</span></td>
+            <td><span class="badge badge-green">${sslLabel}</span></td>
             <td style="text-align: right;">
               <div style="display: inline-flex; gap: 0.35rem;">
-                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: var(--cyan-glow);" onclick="openSiteModModal('${s.domain}')">⚙️ Config</button>
-                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="openSiteInFiles('${s.domain}')">Files</button>
-                <button class="btn btn-danger" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="deleteSite('${s.domain}')">Del</button>
+                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: var(--cyan-glow);" onclick="openSiteModModal('${s.domain}')">${t('btn_config')}</button>
+                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="openSiteInFiles('${s.domain}')">${t('btn_files')}</button>
+                <button class="btn btn-danger" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="deleteSite('${s.domain}')">${t('btn_delete')}</button>
               </div>
             </td>
           </tr>
@@ -1610,7 +1953,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     function renderOverviewTable(sites) {
       const tbody = document.getElementById('overviewSitesTable');
       if (!sites.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No virtual hosts registered yet.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">${t('no_sites')}</td></tr>`;
         return;
       }
       tbody.innerHTML = sites.slice(0, 5).map(s => {
@@ -1621,9 +1964,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             <td><span class="badge badge-cyan">${s.kind}</span></td>
             <td style="font-family: var(--font-mono);">${s.php_version ? 'PHP ' + s.php_version : '-'}</td>
             <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${s.root_path}</td>
-            <td><span class="badge badge-green">Active</span></td>
+            <td><span class="badge badge-green">${t('status_active')}</span></td>
             <td style="text-align: right;">
-              <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="openSiteModModal('${s.domain}')">⚙️ Config</button>
+              <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="openSiteModModal('${s.domain}')">${t('btn_config')}</button>
             </td>
           </tr>
         `;
@@ -1684,7 +2027,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         });
         if (res.ok) {
           closeAddSiteModal();
-          showToast(`Virtual host '${domain}' created successfully!`, 'success');
+          showToast(t('site_created').replace('{domain}', domain), 'success');
           loadSites();
         } else {
           showToast('Failed: ' + await res.text(), 'error');
@@ -1695,11 +2038,11 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     }
 
     async function deleteSite(domain) {
-      if (!confirm(`Are you sure you want to remove domain '${domain}' from ZPanl?`)) return;
+      if (!confirm(t('confirm_delete_site').replace('{domain}', domain))) return;
       try {
         const res = await fetch(`/api/v1/sites?domain=${encodeURIComponent(domain)}`, { method: 'DELETE' });
         if (res.ok) {
-          showToast(`Site '${domain}' deleted`, 'success');
+          showToast(t('site_deleted').replace('{domain}', domain), 'success');
           loadSites();
         } else {
           showToast('Failed: ' + await res.text(), 'error');
@@ -1745,7 +2088,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         if (currentSubpath) {
           rows += `<tr>
             <td colspan="5" style="cursor: pointer; color: var(--cyan-glow); font-weight: 600;" onclick="navigateUp()">
-              📁 .. (Back to parent directory)
+              📁 .. (${currentLang === 'vi' ? 'Quay lại thư mục cha' : 'Back to parent directory'})
             </td>
           </tr>`;
         }
@@ -1756,26 +2099,29 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           const clickAction = isDir
             ? `onclick="navigateDir('${e.name}')"`
             : `onclick="openEditor('${e.rel_path}')"`;
+          const typeBadge = isDir 
+            ? (currentLang === 'vi' ? 'Thư mục' : 'Directory')
+            : (currentLang === 'vi' ? 'Tệp tin' : 'File');
           return `
             <tr>
               <td style="cursor: pointer; font-weight: 500;" ${clickAction}>
                 <span style="margin-right: 0.5rem;">${icon}</span>
                 <span style="${isDir ? 'color: var(--cyan-glow); font-weight: 600;' : ''}">${e.name}</span>
               </td>
-              <td><span class="badge ${isDir ? 'badge-yellow' : 'badge-cyan'}">${e.file_type}</span></td>
+              <td><span class="badge ${isDir ? 'badge-yellow' : 'badge-cyan'}">${typeBadge}</span></td>
               <td style="font-family: var(--font-mono);">${formatBytes(e.size_bytes)}</td>
               <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">0o${e.posix_mode.toString(8)}</td>
               <td style="text-align: right;">
                 <div style="display: inline-flex; gap: 0.4rem;">
-                  ${!isDir ? `<button class="btn btn-secondary" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;" onclick="openEditor('${e.rel_path}')">Edit</button>` : ''}
-                  <button class="btn btn-danger" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;" onclick="deleteFileItem('${e.rel_path}')">Delete</button>
+                  ${!isDir ? `<button class="btn btn-secondary" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;" onclick="openEditor('${e.rel_path}')">${t('btn_edit')}</button>` : ''}
+                  <button class="btn btn-danger" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;" onclick="deleteFileItem('${e.rel_path}')">${t('btn_delete')}</button>
                 </div>
               </td>
             </tr>
           `;
         }).join('');
 
-        tbody.innerHTML = rows || '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Directory is empty.</td></tr>';
+        tbody.innerHTML = rows || `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">${currentLang === 'vi' ? 'Thư mục trống.' : 'Directory is empty.'}</td></tr>`;
       } catch (e) {
         console.error(e);
       }
@@ -1850,7 +2196,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     });
 
     async function deleteFileItem(relPath) {
-      if (!confirm(`Delete '${relPath}' permanently?`)) return;
+      if (!confirm(t('confirm_delete_file').replace('{name}', relPath))) return;
       const domain = document.getElementById('fileSiteSelect').value;
       try {
         const res = await fetch('/api/v1/files/delete', {
@@ -1871,8 +2217,12 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
     function openNewEntryModal(isDir) {
       isCreatingDir = isDir;
-      document.getElementById('newEntryTitle').textContent = isDir ? 'Create New Directory' : 'Create New File';
-      document.getElementById('newEntryLabel').textContent = isDir ? 'Folder Name' : 'File Name (e.g. index.php)';
+      document.getElementById('newEntryTitle').textContent = isDir 
+        ? (currentLang === 'vi' ? 'Tạo Thư Mục Mới' : 'Create New Directory')
+        : (currentLang === 'vi' ? 'Tạo Tệp Tin Mới' : 'Create New File');
+      document.getElementById('newEntryLabel').textContent = isDir 
+        ? (currentLang === 'vi' ? 'Tên Thư Mục' : 'Folder Name')
+        : (currentLang === 'vi' ? 'Tên Tệp Tin (vd: index.php)' : 'File Name (e.g. index.php)');
       document.getElementById('newEntryName').value = '';
       document.getElementById('newEntryModal').classList.add('active');
     }
@@ -1921,8 +2271,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
               </span>
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem;">
-              <button class="btn btn-secondary" style="flex: 1; font-size: 0.8rem; justify-content: center;" onclick="actionService('${s.name}', 'restart')">Restart</button>
-              <button class="btn btn-secondary" style="flex: 1; font-size: 0.8rem; justify-content: center;" onclick="actionService('${s.name}', 'reload')">Reload</button>
+              <button class="btn btn-secondary" style="flex: 1; font-size: 0.8rem; justify-content: center;" onclick="actionService('${s.name}', 'restart')">${currentLang === 'vi' ? 'Khởi động lại' : 'Restart'}</button>
+              <button class="btn btn-secondary" style="flex: 1; font-size: 0.8rem; justify-content: center;" onclick="actionService('${s.name}', 'reload')">${currentLang === 'vi' ? 'Nạp lại' : 'Reload'}</button>
             </div>
           </div>
         `).join('');
@@ -2331,7 +2681,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           return;
         }
 
-        showToast('✨ Site settings applied & Caddyfile reloaded in < 1ms!', 'success');
+        showToast(t('site_updated'), 'success');
         closeSiteModModal();
         loadSites();
       } catch (e) {
@@ -2340,6 +2690,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     }
 
     // Initial load
+    updateLanguageUI();
+    applyTranslations();
     loadSites();
   </script>
 </body>
