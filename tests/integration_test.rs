@@ -1,4 +1,5 @@
 use std::fs;
+use zpanl::auth::{hash_password, sha256, to_hex, AuthStorage};
 use zpanl::cron::{CronDatabase, CronJob};
 use zpanl::database::{DatabaseRecord, DatabaseStorage};
 use zpanl::deploy::{DeployConfig, DeployStorage};
@@ -394,4 +395,89 @@ fn test_deploy_manager_workflow() {
     assert_eq!(history[0].triggered_by, "rollback");
 
     let _ = fs::remove_dir_all(&temp_dir);
+}
+
+#[test]
+fn test_auth_manager_and_brute_force() {
+    // 1. Verify standard FIPS 180-4 SHA-256 test vectors
+    let empty_hash = to_hex(&sha256(b""));
+    assert_eq!(
+        empty_hash,
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
+
+    let hello_hash = to_hex(&sha256(b"hello world"));
+    assert_eq!(
+        hello_hash,
+        "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+    );
+
+    // 2. Test key stretching
+    let hash1 = hash_password("secretPass", "fixedSalt123");
+    let hash2 = hash_password("secretPass", "fixedSalt123");
+    let hash3 = hash_password("secretPass", "differentSalt");
+    assert_eq!(hash1, hash2);
+    assert_ne!(hash1, hash3);
+
+    // 3. Test AuthStorage lifecycle
+    let temp_auth = std::env::temp_dir().join("zpanl_test_auth.json");
+    let _ = fs::remove_file(&temp_auth);
+    let (mut auth, initial_pass) = AuthStorage::load_or_init(&temp_auth.to_string_lossy());
+    assert_eq!(initial_pass.as_deref(), Some("zpanl@admin2026"));
+    assert_eq!(auth.admin.username, "admin");
+
+    // 4. Valid Authentication & Session validation
+    let token = auth
+        .authenticate("admin", "zpanl@admin2026", "10.0.0.1", "Mozilla/5.0")
+        .expect("Valid login should succeed");
+    assert!(!token.is_empty());
+    assert!(auth.validate_session(&token));
+    assert!(!auth.validate_session("invalid_fake_token"));
+
+    // 5. Brute-Force Lockout Defense Test (5 failed attempts from same IP)
+    let attacker_ip = "198.51.100.99";
+    for i in 1..=4 {
+        let res = auth.authenticate("admin", "wrong_password", attacker_ip, "curl/7.88");
+        assert!(res.is_err());
+        let err_msg = res.unwrap_err();
+        assert!(
+            err_msg.contains("remaining before temporary lockout"),
+            "Failed attempt {i}: {err_msg}"
+        );
+    }
+
+    // 5th failed attempt triggers 15-minute lockout
+    let res5 = auth.authenticate("admin", "wrong_password", attacker_ip, "curl/7.88");
+    assert!(res5.is_err());
+    let err5 = res5.unwrap_err();
+    assert!(err5.contains("locked for 15 minutes"));
+
+    // 6th attempt even with correct password is blocked due to active IP lockout
+    let res6 = auth.authenticate("admin", "zpanl@admin2026", attacker_ip, "curl/7.88");
+    assert!(res6.is_err());
+    let err6 = res6.unwrap_err();
+    assert!(err6.contains("IP temporarily locked"));
+
+    // But legitimate IP can still log in without obstruction!
+    let legit_login = auth.authenticate("admin", "zpanl@admin2026", "10.0.0.2", "Chrome/120");
+    assert!(legit_login.is_ok());
+
+    // 6. Update Credentials Test
+    assert!(auth.verify_password("zpanl@admin2026"));
+    auth.update_username("super_admin");
+    auth.update_password("newSecurePassword2026!");
+
+    assert_eq!(auth.admin.username, "super_admin");
+    assert!(auth.verify_password("newSecurePassword2026!"));
+    assert!(!auth.verify_password("zpanl@admin2026"));
+
+    // Password change must revoke all active sessions
+    assert!(!auth.validate_session(&token));
+
+    // Audit logs test
+    let logs = auth.list_logs();
+    assert!(logs.len() >= 6);
+    assert_eq!(logs[0].status, "success");
+
+    let _ = fs::remove_file(&temp_auth);
 }

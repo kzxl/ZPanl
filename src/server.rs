@@ -1,3 +1,4 @@
+use crate::auth::AuthStorage;
 use crate::cron::{CronDatabase, CronJob};
 use crate::database::{DatabaseRecord, DatabaseStorage};
 use crate::deploy::DeployStorage;
@@ -24,6 +25,8 @@ pub struct HttpServer {
     database_db_path: String,
     deploy_db: Arc<Mutex<DeployStorage>>,
     deploy_db_path: String,
+    auth_db: Arc<Mutex<AuthStorage>>,
+    auth_db_path: String,
     telemetry: Arc<TelemetryCollector>,
 }
 
@@ -132,15 +135,30 @@ struct RollbackDeployPayload {
     release_id: String,
 }
 
+#[derive(Deserialize)]
+struct LoginPayload {
+    username: String,
+    password: String,
+}
+
+#[derive(Deserialize)]
+struct UpdateCredentialsPayload {
+    old_password: String,
+    new_username: Option<String>,
+    new_password: Option<String>,
+}
+
 impl HttpServer {
     pub fn new(bind_addr: &str, db_path: &str) -> Self {
         let db = SiteDatabase::load_or_default(db_path);
         let cron_path = format!("{}_cron.json", db_path.trim_end_matches(".json"));
         let database_path = format!("{}_databases.json", db_path.trim_end_matches(".json"));
         let deploy_path = format!("{}_deploy.json", db_path.trim_end_matches(".json"));
+        let auth_path = format!("{}_auth.json", db_path.trim_end_matches(".json"));
         let cron_db = CronDatabase::load_or_default(&cron_path);
         let database_db = DatabaseStorage::load_or_default(&database_path);
         let deploy_db = DeployStorage::load_or_default(&deploy_path);
+        let (auth_db, _initial_pass) = AuthStorage::load_or_init(&auth_path);
 
         Self {
             bind_addr: bind_addr.to_string(),
@@ -152,6 +170,8 @@ impl HttpServer {
             database_db_path: database_path,
             deploy_db: Arc::new(Mutex::new(deploy_db)),
             deploy_db_path: deploy_path,
+            auth_db: Arc::new(Mutex::new(auth_db)),
+            auth_db_path: auth_path,
             telemetry: Arc::new(TelemetryCollector::new()),
         }
     }
@@ -171,6 +191,8 @@ impl HttpServer {
                     let database_db_path = self.database_db_path.clone();
                     let deploy_db = Arc::clone(&self.deploy_db);
                     let deploy_db_path = self.deploy_db_path.clone();
+                    let auth_db = Arc::clone(&self.auth_db);
+                    let auth_db_path = self.auth_db_path.clone();
                     let telemetry = Arc::clone(&self.telemetry);
 
                     thread::spawn(move || {
@@ -184,6 +206,8 @@ impl HttpServer {
                             &database_db_path,
                             deploy_db,
                             &deploy_db_path,
+                            auth_db,
+                            &auth_db_path,
                             telemetry,
                         ) {
                             eprintln!("Error handling connection: {e}");
@@ -209,6 +233,8 @@ fn handle_connection(
     database_db_path: &str,
     deploy_db: Arc<Mutex<DeployStorage>>,
     deploy_db_path: &str,
+    auth_db: Arc<Mutex<AuthStorage>>,
+    auth_db_path: &str,
     telemetry: Arc<TelemetryCollector>,
 ) -> std::io::Result<()> {
     let mut reader = BufReader::new(&stream);
@@ -230,8 +256,16 @@ fn handle_connection(
         None => (full_path, ""),
     };
 
-    // Parse headers to get Content-Length
+    // Parse headers to get Content-Length, Authorization, Cookie, User-Agent, X-Forwarded-For
+    let peer_ip = stream
+        .peer_addr()
+        .map(|a| a.ip().to_string())
+        .unwrap_or_else(|_| "127.0.0.1".to_string());
+    let mut client_ip = peer_ip;
+    let mut user_agent = String::from("unknown");
+    let mut auth_token = String::new();
     let mut content_length = 0usize;
+
     loop {
         let mut line = String::new();
         if reader.read_line(&mut line)? <= 2 && (line == "\r\n" || line == "\n" || line.is_empty())
@@ -240,8 +274,38 @@ fn handle_connection(
         }
         let lower = line.to_lowercase();
         if lower.starts_with("content-length:") {
-            if let Some(val) = line.split(':').nth(1) {
+            if let Some((_, val)) = line.split_once(':') {
                 content_length = val.trim().parse().unwrap_or(0);
+            }
+        } else if lower.starts_with("authorization:") {
+            if let Some((_, val)) = line.split_once(':') {
+                let val = val.trim();
+                if val.to_lowercase().starts_with("bearer ") {
+                    auth_token = val[7..].trim().to_string();
+                }
+            }
+        } else if lower.starts_with("cookie:") {
+            if let Some((_, val)) = line.split_once(':') {
+                for cookie in val.split(';') {
+                    if let Some((k, v)) = cookie.split_once('=') {
+                        if k.trim() == "zpanl_token" && auth_token.is_empty() {
+                            auth_token = v.trim().to_string();
+                        }
+                    }
+                }
+            }
+        } else if lower.starts_with("user-agent:") {
+            if let Some((_, val)) = line.split_once(':') {
+                user_agent = val.trim().to_string();
+            }
+        } else if lower.starts_with("x-forwarded-for:") {
+            if let Some((_, val)) = line.split_once(':') {
+                if let Some(first_ip) = val.split(',').next() {
+                    let trimmed = first_ip.trim();
+                    if !trimmed.is_empty() {
+                        client_ip = trimmed.to_string();
+                    }
+                }
             }
         }
     }
@@ -265,6 +329,22 @@ fn handle_connection(
         return send_response(&mut stream, 200, "text/plain", b"OK");
     }
 
+    // Sovereign Auth Gate: all /api/v1/ endpoints require a valid token, except login and deploy webhook
+    if path.starts_with("/api/v1/")
+        && path != "/api/v1/auth/login"
+        && path != "/api/v1/deploy/webhook"
+    {
+        let mut guard = auth_db.lock().unwrap();
+        if !guard.validate_session(&auth_token) {
+            return send_response(
+                &mut stream,
+                401,
+                "application/json",
+                b"{\"error\":\"Unauthorized: Session token required or expired\"}",
+            );
+        }
+    }
+
     // Route matching
     match (method, path) {
         ("GET", "/") => send_response(
@@ -273,6 +353,136 @@ fn handle_connection(
             "text/html; charset=utf-8",
             INDEX_HTML.as_bytes(),
         ),
+
+        ("POST", "/api/v1/auth/login") => {
+            let payload: LoginPayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let mut guard = auth_db.lock().unwrap();
+            match guard.authenticate(
+                &payload.username,
+                &payload.password,
+                &client_ip,
+                &user_agent,
+            ) {
+                Ok(token) => {
+                    let _ = guard.save(auth_db_path);
+                    let username = guard.admin.username.clone();
+                    let resp = serde_json::json!({
+                        "status": "success",
+                        "token": token,
+                        "username": username
+                    });
+                    send_response(
+                        &mut stream,
+                        200,
+                        "application/json",
+                        resp.to_string().as_bytes(),
+                    )
+                }
+                Err(err_msg) => {
+                    let _ = guard.save(auth_db_path);
+                    let status_code = if err_msg.contains("locked") { 429 } else { 401 };
+                    let resp = serde_json::json!({
+                        "status": "error",
+                        "message": err_msg
+                    });
+                    send_response(
+                        &mut stream,
+                        status_code,
+                        "application/json",
+                        resp.to_string().as_bytes(),
+                    )
+                }
+            }
+        }
+
+        ("GET", "/api/v1/auth/verify") => {
+            let guard = auth_db.lock().unwrap();
+            let username = guard.admin.username.clone();
+            let resp = serde_json::json!({
+                "authenticated": true,
+                "username": username
+            });
+            send_response(
+                &mut stream,
+                200,
+                "application/json",
+                resp.to_string().as_bytes(),
+            )
+        }
+
+        ("POST", "/api/v1/auth/logout") => {
+            let mut guard = auth_db.lock().unwrap();
+            guard.revoke_session(&auth_token);
+            let _ = guard.save(auth_db_path);
+            send_response(
+                &mut stream,
+                200,
+                "application/json",
+                b"{\"status\":\"logged_out\"}",
+            )
+        }
+
+        ("POST", "/api/v1/auth/update_credentials") => {
+            let payload: UpdateCredentialsPayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let mut guard = auth_db.lock().unwrap();
+            if !guard.verify_password(&payload.old_password) {
+                return send_response(
+                    &mut stream,
+                    400,
+                    "application/json",
+                    b"{\"error\":\"Current password incorrect\"}",
+                );
+            }
+
+            if let Some(new_user) = payload.new_username {
+                let trimmed = new_user.trim();
+                if !trimmed.is_empty() {
+                    guard.update_username(trimmed);
+                }
+            }
+
+            if let Some(new_pass) = payload.new_password {
+                let trimmed = new_pass.trim();
+                if !trimmed.is_empty() {
+                    if trimmed.len() < 6 {
+                        return send_response(
+                            &mut stream,
+                            400,
+                            "application/json",
+                            b"{\"error\":\"New password must be at least 6 characters\"}",
+                        );
+                    }
+                    guard.update_password(trimmed);
+                }
+            }
+
+            let _ = guard.save(auth_db_path);
+            send_response(
+                &mut stream,
+                200,
+                "application/json",
+                b"{\"status\":\"credentials_updated\"}",
+            )
+        }
+
+        ("GET", "/api/v1/auth/logs") => {
+            let guard = auth_db.lock().unwrap();
+            let logs = guard.list_logs();
+            let json = serde_json::to_vec(&logs).unwrap_or_default();
+            send_response(&mut stream, 200, "application/json", &json)
+        }
 
         ("GET", "/api/v1/telemetry") => {
             let stats = telemetry.sample();
@@ -1175,8 +1385,11 @@ fn send_response(
     let status_line = match status_code {
         200 => "HTTP/1.1 200 OK",
         400 => "HTTP/1.1 400 Bad Request",
+        401 => "HTTP/1.1 401 Unauthorized",
         403 => "HTTP/1.1 403 Forbidden",
         404 => "HTTP/1.1 404 Not Found",
+        413 => "HTTP/1.1 413 Payload Too Large",
+        429 => "HTTP/1.1 429 Too Many Requests",
         500 => "HTTP/1.1 500 Internal Server Error",
         _ => "HTTP/1.1 200 OK",
     };
@@ -1186,8 +1399,8 @@ fn send_response(
          Content-Type: {content_type}\r\n\
          Content-Length: {}\r\n\
          Access-Control-Allow-Origin: *\r\n\
-         Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\n\
-         Access-Control-Allow-Headers: Content-Type\r\n\
+         Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n\
+         Access-Control-Allow-Headers: Content-Type, Authorization\r\n\
          Connection: close\r\n\r\n",
         body.len()
     );

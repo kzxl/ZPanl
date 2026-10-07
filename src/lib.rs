@@ -2,6 +2,7 @@
 //!
 //! Exposes internal modules for CLI and integration tests.
 
+pub mod auth;
 pub mod cli;
 pub mod cron;
 pub mod database;

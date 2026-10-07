@@ -733,11 +733,135 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       color: var(--text-muted);
       font-weight: normal;
     }
+
+    /* SOVEREIGN LOGIN GATE STYLES */
+    #loginScreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 30%, #152238 0%, #090d16 85%);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(18, 24, 41, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2.25rem 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(6, 182, 212, 0.15);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .login-logo-box {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 1rem;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.5);
+    }
+    .login-logo-box svg { width: 28px; height: 28px; fill: #fff; }
+    .login-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .login-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+    .login-error {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fda4af;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.82rem;
+      margin-bottom: 1.25rem;
+      display: none;
+      line-height: 1.4;
+    }
+    .login-error.active { display: block; animation: shake 0.25s ease-in-out 2; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .btn-login {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+    }
   </style>
 </head>
 <body>
-  <!-- LEFT SIDEBAR -->
-  <aside id="sidebar">
+  <!-- SOVEREIGN AUTHENTICATION LOGIN GATE -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div style="position: absolute; top: 1rem; right: 1rem;">
+        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;" onclick="toggleLanguage()">
+          <span class="langFlagDisplay">🇻🇳</span> <span class="langTextDisplay">Tiếng Việt</span>
+        </button>
+      </div>
+      <div class="login-header">
+        <div class="login-logo-box">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h2 class="login-title">ZPanl</h2>
+        <div class="login-subtitle" data-i18n="login_sovereign_subtitle">Sovereign Edge Linux Web Panel</div>
+      </div>
+
+      <div id="loginErrorMsg" class="login-error"></div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label data-i18n="login_username_label">Admin Username</label>
+          <input id="loginUsername" type="text" class="form-input" required autocomplete="username" placeholder="admin" autofocus>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label data-i18n="login_password_label">Password</label>
+          <input id="loginPassword" type="password" class="form-input" required autocomplete="current-password" placeholder="••••••••••••">
+        </div>
+        <button id="btnLoginSubmit" type="submit" class="btn btn-login">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          <span data-i18n="login_submit_btn">Enter Control Panel</span>
+        </button>
+      </form>
+
+      <div style="margin-top: 1.5rem; text-align: center; font-size: 0.72rem; color: var(--text-dim);">
+        <span data-i18n="login_protected_hint">Protected by Pure Rust SHA-256 Key Stretching &amp; Brute-Force Gate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APPLICATION CONTAINER -->
+  <div id="appContainer" style="display: none; width: 100vw; min-height: 100vh;">
+    <!-- LEFT SIDEBAR -->
+    <aside id="sidebar">
     <a href="#" class="sidebar-brand" onclick="switchTab('overview')">
       <div class="brand-logo-icon">
         <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -861,6 +985,17 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         <button class="btn btn-secondary" id="langSwitchBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: flex; align-items: center; gap: 0.35rem;" onclick="toggleLanguage()">
           <span id="langFlag">🇻🇳</span> <span id="langText">Tiếng Việt</span>
         </button>
+        <!-- ADMIN SECURITY BADGE -->
+        <div class="user-badge" style="display: flex; align-items: center; gap: 0.45rem; background: var(--surface-elevated); border: 1px solid var(--border); padding: 0.25rem 0.65rem; border-radius: 0.45rem;">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: var(--cyan);"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span id="topbarAdminUser" style="font-size: 0.78rem; font-weight: 700; color: var(--cyan-glow);">admin</span>
+          <button onclick="openAdminSecurityModal()" title="Security &amp; Credentials" style="background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 2px;">
+            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          </button>
+          <button onclick="handleLogout()" title="Logout" style="background: none; border: none; cursor: pointer; color: var(--red); display: flex; align-items: center; padding: 2px;">
+            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          </button>
+        </div>
         <button class="btn" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;" onclick="openAddSiteModal()">
           <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
           <span data-i18n="deploy_site">Deploy Site</span>
@@ -1191,6 +1326,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       </div>
     </main>
   </div>
+  </div> <!-- /#appContainer -->
 
   <!-- MODAL: ADD SITE -->
   <div id="addSiteModal" class="modal">
@@ -1923,10 +2059,118 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- MODAL: ADMIN SECURITY & CREDENTIALS -->
+  <div id="adminSecurityModal" class="modal">
+    <div class="modal-box" style="max-width: 720px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--cyan);"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+          <span style="font-weight: 700; font-size: 1.05rem;" data-i18n="sec_modal_title">Admin Security &amp; Access Control</span>
+        </div>
+        <button class="modal-close" onclick="closeAdminSecurityModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+        <!-- TABS -->
+        <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.25rem;">
+          <button id="tabBtnSecCreds" class="btn btn-secondary active" style="border-radius: 0; border: none; border-bottom: 2px solid var(--cyan); padding: 0.5rem 0.75rem;" onclick="switchSecTab('creds')" data-i18n="sec_tab_creds">Credentials &amp; Password</button>
+          <button id="tabBtnSecLogs" class="btn btn-secondary" style="border-radius: 0; border: none; border-bottom: 2px solid transparent; padding: 0.5rem 0.75rem;" onclick="switchSecTab('logs')" data-i18n="sec_tab_logs">Login Audit Logs</button>
+        </div>
+
+        <!-- SUBTAB 1: CREDENTIALS -->
+        <div id="secSubtabCreds">
+          <form onsubmit="submitUpdateCredentials(event)">
+            <div class="form-group">
+              <label data-i18n="sec_old_pass">Current Password *</label>
+              <input id="secOldPass" type="password" class="form-input" required placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+              <label data-i18n="sec_new_user">New Username (Leave blank to keep current)</label>
+              <input id="secNewUser" type="text" class="form-input" placeholder="admin">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label data-i18n="sec_new_pass">New Password</label>
+                <input id="secNewPass" type="password" class="form-input" placeholder="Min 6 characters">
+              </div>
+              <div class="form-group">
+                <label data-i18n="sec_confirm_pass">Confirm New Password</label>
+                <input id="secConfirmPass" type="password" class="form-input" placeholder="Re-enter new password">
+              </div>
+            </div>
+            <div class="mod-hint-box" style="margin-top: 0.5rem;" data-i18n="sec_pass_hint">
+              🛡️ Passwords are cryptographically salted and stretched using pure FIPS 180-4 SHA-256 (1,000 iterations). Changing your password immediately invalidates all other active sessions across devices.
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
+              <button type="submit" class="btn" data-i18n="sec_btn_save">Update Credentials</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- SUBTAB 2: LOGIN LOGS -->
+        <div id="secSubtabLogs" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);" data-i18n="sec_logs_subtitle">Audit trail of recent login attempts (Latest 50 events)</span>
+            <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="loadLoginLogs()" data-i18n="refresh_btn">Refresh</button>
+          </div>
+          <div style="border: 1px solid var(--border); border-radius: 0.45rem; overflow: hidden; max-height: 320px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.25); color: var(--text-dim); text-align: left;">
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_time">Time</th>
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_user">Username</th>
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_ip">IP Address</th>
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_agent">User-Agent</th>
+                  <th style="padding: 0.5rem 0.75rem; text-align: right;" data-i18n="sec_col_status">Status</th>
+                </tr>
+              </thead>
+              <tbody id="secLogsTableBody">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 2rem;">Loading login logs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAdminSecurityModal()" data-i18n="btn_close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
+    // Pure Sovereign Auth Interceptor: auto-inject Bearer token and handle 401
+    const _rawFetch = window.fetch;
+    window.fetch = async function(url, options = {}) {
+      options = options || {};
+      options.headers = options.headers || {};
+      const token = localStorage.getItem('zpanl_auth_token');
+      if (token) {
+        if (options.headers instanceof Headers) {
+          if (!options.headers.has('Authorization')) {
+            options.headers.set('Authorization', 'Bearer ' + token);
+          }
+        } else if (Array.isArray(options.headers)) {
+          if (!options.headers.some(h => h[0].toLowerCase() === 'authorization')) {
+            options.headers.push(['Authorization', 'Bearer ' + token]);
+          }
+        } else {
+          if (!options.headers['Authorization'] && !options.headers['authorization']) {
+            options.headers['Authorization'] = 'Bearer ' + token;
+          }
+        }
+      }
+      const res = await _rawFetch(url, options);
+      if (res.status === 401 && !url.includes('/api/v1/auth/login')) {
+        localStorage.removeItem('zpanl_auth_token');
+        showLoginScreen();
+      }
+      return res;
+    };
+
+    let currentAdminUser = localStorage.getItem('zpanl_auth_user') || 'admin';
+    let telemetryTimer = null;
     let currentTab = 'overview';
     let currentSubpath = '';
     let isCreatingDir = false;
@@ -2172,7 +2416,32 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         upload_completed: 'Completed',
         upload_failed: 'Failed',
         upload_empty_queue: 'No files in queue. Drag & drop files here or click Add Files.',
-        upload_all_done: 'All file(s) uploaded successfully!'
+        upload_all_done: 'All file(s) uploaded successfully!',
+        login_sovereign_subtitle: 'Sovereign Edge Linux Web Panel',
+        login_username_label: 'Admin Username',
+        login_password_label: 'Password',
+        login_submit_btn: 'Enter Control Panel',
+        login_protected_hint: 'Protected by Pure Rust SHA-256 Key Stretching & Brute-Force Gate',
+        login_success: 'Authenticated successfully. Welcome back!',
+        login_failed: 'Login failed. Please check your credentials.',
+        logged_out: 'Logged out successfully',
+        sec_modal_title: 'Admin Security & Access Control',
+        sec_tab_creds: 'Credentials & Password',
+        sec_tab_logs: 'Login Audit Logs',
+        sec_old_pass: 'Current Password *',
+        sec_new_user: 'New Username (Leave blank to keep current)',
+        sec_new_pass: 'New Password',
+        sec_confirm_pass: 'Confirm New Password',
+        sec_pass_hint: '🛡️ Passwords are cryptographically salted and stretched using pure FIPS 180-4 SHA-256 (1,000 iterations). Changing your password immediately invalidates all other active sessions across devices.',
+        sec_btn_save: 'Update Credentials',
+        sec_logs_subtitle: 'Audit trail of recent login attempts (Latest 50 events)',
+        sec_col_time: 'Time',
+        sec_col_user: 'Username',
+        sec_col_ip: 'IP Address',
+        sec_col_agent: 'User-Agent',
+        sec_col_status: 'Status',
+        sec_pass_mismatch: 'New password and confirmation do not match!',
+        sec_creds_updated: 'Admin credentials updated successfully! Please re-login if password changed.'
       },
       vi: {
         nav_core: 'Quản Lý Cốt Lõi',
@@ -2407,7 +2676,32 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         upload_completed: 'Hoàn thành',
         upload_failed: 'Thất bại',
         upload_empty_queue: 'Chưa có tệp nào trong hàng đợi. Kéo thả tệp vào đây hoặc bấm Thêm Tệp.',
-        upload_all_done: 'Đã tải lên tất cả tệp tin thành công!'
+        upload_all_done: 'Đã tải lên tất cả tệp tin thành công!',
+        login_sovereign_subtitle: 'Bảng Điều Khiển Web Server Sovereign',
+        login_username_label: 'Tên Đăng Nhập Quản Trị',
+        login_password_label: 'Mật Khẩu',
+        login_submit_btn: 'Đăng Nhập Vào Panel',
+        login_protected_hint: 'Bảo vệ bởi mã hóa Pure Rust SHA-256 & Khóa chống Brute-Force',
+        login_success: 'Đăng nhập thành công. Chào mừng bạn trở lại!',
+        login_failed: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.',
+        logged_out: 'Đã đăng xuất thành công',
+        sec_modal_title: 'Bảo Mật & Quản Trị Truy Cập Admin',
+        sec_tab_creds: 'Thông Tin Đăng Nhập & Mật Khẩu',
+        sec_tab_logs: 'Nhật Ký Đăng Nhập',
+        sec_old_pass: 'Mật Khẩu Hiện Tại *',
+        sec_new_user: 'Tên Đăng Nhập Mới (Để trống nếu giữ nguyên)',
+        sec_new_pass: 'Mật Khẩu Mới',
+        sec_confirm_pass: 'Xác Nhận Mật Khẩu Mới',
+        sec_pass_hint: '🛡️ Mật khẩu được băm muối đa vòng bằng thuật toán FIPS 180-4 SHA-256 (1.000 vòng). Đổi mật khẩu sẽ lập tức thu hồi mọi phiên làm việc trên các thiết bị khác.',
+        sec_btn_save: 'Cập Nhật Thông Tin',
+        sec_logs_subtitle: 'Nhật ký các lần đăng nhập gần đây (Tối đa 50 bản ghi)',
+        sec_col_time: 'Thời Gian',
+        sec_col_user: 'Tài Khoản',
+        sec_col_ip: 'Địa Chỉ IP',
+        sec_col_agent: 'Trình Duyệt / Thiết Bị',
+        sec_col_status: 'Trạng Thái',
+        sec_pass_mismatch: 'Mật khẩu mới và xác nhận mật khẩu không trùng khớp!',
+        sec_creds_updated: 'Thông tin quản trị đã cập nhật thành công!'
       }
     };
 
@@ -2444,6 +2738,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         if (flag) flag.textContent = '🇬🇧';
         if (text) text.textContent = 'English';
       }
+      document.querySelectorAll('.langFlagDisplay').forEach(el => el.textContent = currentLang === 'vi' ? '🇻🇳' : '🇬🇧');
+      document.querySelectorAll('.langTextDisplay').forEach(el => el.textContent = currentLang === 'vi' ? 'Tiếng Việt' : 'English');
       const titleObj = tabTitles[currentTab];
       if (titleObj) {
         document.getElementById('breadcrumbTitle').textContent = titleObj[currentLang] || titleObj.en;
@@ -4258,13 +4554,256 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       }
     }
 
+    // ==========================================
+    // SOVEREIGN AUTHENTICATION & ACCESS CONTROL
+    // ==========================================
+
+    function showLoginScreen() {
+      const loginScreen = document.getElementById('loginScreen');
+      const appContainer = document.getElementById('appContainer');
+      if (loginScreen) loginScreen.style.display = 'flex';
+      if (appContainer) appContainer.style.display = 'none';
+      if (telemetryTimer) {
+        clearInterval(telemetryTimer);
+        telemetryTimer = null;
+      }
+      const errBox = document.getElementById('loginErrorMsg');
+      if (errBox) {
+        errBox.classList.remove('active');
+        errBox.textContent = '';
+      }
+    }
+
+    function showAppContainer() {
+      const loginScreen = document.getElementById('loginScreen');
+      const appContainer = document.getElementById('appContainer');
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (appContainer) appContainer.style.display = 'flex';
+      const userEl = document.getElementById('topbarAdminUser');
+      if (userEl) userEl.textContent = currentAdminUser;
+
+      // Start telemetry polling if not already started
+      if (!telemetryTimer) {
+        pollTelemetry();
+        telemetryTimer = setInterval(pollTelemetry, 2000);
+      }
+    }
+
+    async function checkAuthStatus() {
+      const token = localStorage.getItem('zpanl_auth_token');
+      if (!token) {
+        showLoginScreen();
+        return;
+      }
+
+      try {
+        const res = await _rawFetch('/api/v1/auth/verify', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          currentAdminUser = data.username || 'admin';
+          localStorage.setItem('zpanl_auth_user', currentAdminUser);
+          showAppContainer();
+          loadSites();
+          loadDatabases();
+          loadCronJobs();
+        } else {
+          localStorage.removeItem('zpanl_auth_token');
+          showLoginScreen();
+        }
+      } catch (e) {
+        console.error('Verify error:', e);
+        showLoginScreen();
+      }
+    }
+
+    async function handleLogin(e) {
+      if (e) e.preventDefault();
+      const user = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('btnLoginSubmit');
+      const errBox = document.getElementById('loginErrorMsg');
+
+      if (!user || !pass) return;
+
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
+      errBox.classList.remove('active');
+      errBox.textContent = '';
+
+      try {
+        const res = await _rawFetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: user, password: pass })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          localStorage.setItem('zpanl_auth_token', data.token);
+          currentAdminUser = data.username || user;
+          localStorage.setItem('zpanl_auth_user', currentAdminUser);
+          showToast(t('login_success', 'Login successful!'), 'success');
+          document.getElementById('loginPassword').value = '';
+          showAppContainer();
+          loadSites();
+          loadDatabases();
+          loadCronJobs();
+        } else {
+          errBox.textContent = data.message || t('login_failed', 'Login failed');
+          errBox.classList.add('active');
+        }
+      } catch (err) {
+        errBox.textContent = 'Connection error: ' + err.message;
+        errBox.classList.add('active');
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    }
+
+    async function handleLogout() {
+      const confirmMsg = currentLang === 'vi' ? 'Bạn có chắc chắn muốn đăng xuất không?' : 'Are you sure you want to log out?';
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        await fetch('/api/v1/auth/logout', { method: 'POST' });
+      } catch (e) {}
+
+      localStorage.removeItem('zpanl_auth_token');
+      localStorage.removeItem('zpanl_auth_user');
+      showToast(t('logged_out', 'Logged out successfully'), 'info');
+      showLoginScreen();
+    }
+
+    function openAdminSecurityModal() {
+      const modal = document.getElementById('adminSecurityModal');
+      const curUser = document.getElementById('secNewUser');
+      if (curUser) curUser.placeholder = currentAdminUser;
+      document.getElementById('secOldPass').value = '';
+      document.getElementById('secNewPass').value = '';
+      document.getElementById('secConfirmPass').value = '';
+      switchSecTab('creds');
+      modal.classList.add('active');
+    }
+
+    function closeAdminSecurityModal() {
+      document.getElementById('adminSecurityModal').classList.remove('active');
+    }
+
+    function switchSecTab(tab) {
+      const credsTab = document.getElementById('secSubtabCreds');
+      const logsTab = document.getElementById('secSubtabLogs');
+      const btnCreds = document.getElementById('tabBtnSecCreds');
+      const btnLogs = document.getElementById('tabBtnSecLogs');
+
+      if (tab === 'creds') {
+        credsTab.style.display = 'block';
+        logsTab.style.display = 'none';
+        btnCreds.classList.add('active');
+        btnCreds.style.borderBottomColor = 'var(--cyan)';
+        btnLogs.classList.remove('active');
+        btnLogs.style.borderBottomColor = 'transparent';
+      } else {
+        credsTab.style.display = 'none';
+        logsTab.style.display = 'block';
+        btnLogs.classList.add('active');
+        btnLogs.style.borderBottomColor = 'var(--cyan)';
+        btnCreds.classList.remove('active');
+        btnCreds.style.borderBottomColor = 'transparent';
+        loadLoginLogs();
+      }
+    }
+
+    async function submitUpdateCredentials(e) {
+      if (e) e.preventDefault();
+      const oldPass = document.getElementById('secOldPass').value;
+      const newUser = document.getElementById('secNewUser').value.trim();
+      const newPass = document.getElementById('secNewPass').value;
+      const confirmPass = document.getElementById('secConfirmPass').value;
+
+      if (newPass && newPass !== confirmPass) {
+        showToast(t('sec_pass_mismatch', 'Passwords do not match'), 'error');
+        return;
+      }
+
+      if (newPass && newPass.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/v1/auth/update_credentials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            old_password: oldPass,
+            new_username: newUser || null,
+            new_password: newPass || null
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.status === 'credentials_updated') {
+          showToast(t('sec_creds_updated', 'Credentials updated successfully!'), 'success');
+          closeAdminSecurityModal();
+          if (newPass) {
+            // Password change revokes sessions, prompt login
+            localStorage.removeItem('zpanl_auth_token');
+            showLoginScreen();
+          } else if (newUser) {
+            currentAdminUser = newUser;
+            localStorage.setItem('zpanl_auth_user', newUser);
+            document.getElementById('topbarAdminUser').textContent = newUser;
+          }
+        } else {
+          showToast(data.error || 'Failed to update credentials', 'error');
+        }
+      } catch (err) {
+        showToast('Update error: ' + err.message, 'error');
+      }
+    }
+
+    async function loadLoginLogs() {
+      const tbody = document.getElementById('secLogsTableBody');
+      try {
+        const res = await fetch('/api/v1/auth/logs');
+        if (!res.ok) return;
+        const logs = await res.json();
+        if (!logs.length) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">${currentLang === 'vi' ? 'Chưa có nhật ký nào.' : 'No login logs recorded yet.'}</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = logs.map(l => {
+          let badge = '<span class="badge badge-green">Success</span>';
+          if (l.status === 'failed') badge = '<span class="badge badge-red">Failed</span>';
+          else if (l.status === 'locked') badge = '<span class="badge badge-yellow">Locked IP</span>';
+
+          const timeStr = new Date((l.timestamp || 0) * 1000).toLocaleString();
+          const cleanAgent = l.user_agent ? l.user_agent.substring(0, 45) + (l.user_agent.length > 45 ? '...' : '') : '-';
+
+          return `
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.4rem 0.6rem; color: var(--text-muted); font-size: 0.75rem;">${timeStr}</td>
+              <td style="padding: 0.4rem 0.6rem; font-weight: 600; color: var(--cyan);">${l.username}</td>
+              <td style="padding: 0.4rem 0.6rem; font-family: var(--font-mono); font-size: 0.75rem;">${l.ip}</td>
+              <td style="padding: 0.4rem 0.6rem; color: var(--text-dim); font-size: 0.72rem;" title="${l.user_agent || ''}">${cleanAgent}</td>
+              <td style="padding: 0.4rem 0.6rem; text-align: right;">${badge}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Error loading login logs:', e);
+      }
+    }
+
     // Initial load
     updateLanguageUI();
     applyTranslations();
-    loadSites();
-    loadDatabases();
-    loadCronJobs();
     initFileDragAndDrop();
+    checkAuthStatus();
   </script>
 </body>
 </html>
