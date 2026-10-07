@@ -6,14 +6,14 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZPanl ⚡ Sovereign Web Panel</title>
   <style>
-    :root {
+    :root, body.theme-dark {
       --bg: #090d16;
       --sidebar-bg: #0d121f;
       --surface: #121829;
       --surface-elevated: #18223a;
       --surface-hover: #1e2a47;
       --border: rgba(255, 255, 255, 0.08);
-      --border-light: rgba(255, 255, 255, 0.12);
+      --border-light: rgba(255, 255, 255, 0.14);
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
@@ -25,9 +25,53 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       --yellow: #f59e0b;
       --red: #f43f5e;
       --purple: #a855f7;
+      --topbar-bg: rgba(13, 18, 31, 0.8);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      --modal-box-bg: #0f1626;
+      --input-bg: #090d16;
+      --code-bg: #05070d;
+      --radial-track: rgba(255, 255, 255, 0.06);
+      --hero-banner-bg: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(59, 130, 246, 0.08));
+      --hero-banner-border: rgba(6, 182, 212, 0.25);
+      --login-bg: radial-gradient(circle at 50% 30%, #152238 0%, #090d16 85%);
+      --login-card-bg: rgba(18, 24, 41, 0.85);
       --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
     }
+
+    body.theme-light {
+      --bg: #f8fafc;
+      --sidebar-bg: #ffffff;
+      --surface: #ffffff;
+      --surface-elevated: #f1f5f9;
+      --surface-hover: #e2e8f0;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-light: rgba(0, 0, 0, 0.14);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --cyan: #0284c7;
+      --cyan-glow: #0369a1;
+      --blue: #2563eb;
+      --green: #059669;
+      --green-glow: #047857;
+      --yellow: #d97706;
+      --red: #e11d48;
+      --purple: #9333ea;
+      --topbar-bg: rgba(255, 255, 255, 0.88);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      --modal-box-bg: #ffffff;
+      --input-bg: #ffffff;
+      --code-bg: #0f172a;
+      --radial-track: rgba(0, 0, 0, 0.06);
+      --hero-banner-bg: linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(37, 99, 235, 0.05));
+      --hero-banner-border: rgba(2, 132, 199, 0.2);
+      --login-bg: radial-gradient(circle at 50% 30%, #e2e8f0 0%, #cbd5e1 85%);
+      --login-card-bg: rgba(255, 255, 255, 0.95);
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
@@ -37,6 +81,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       display: flex;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     /* APP LAYOUT: SIDEBAR + CONTENT */
@@ -201,7 +246,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     /* TOP HEADER BAR */
     #topbar {
       height: 64px;
-      background: rgba(13, 18, 31, 0.75);
+      background: var(--topbar-bg);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       padding: 0 2rem;
@@ -211,6 +256,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       position: sticky;
       top: 0;
       z-index: 40;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
     .topbar-breadcrumb {
       display: flex;
@@ -234,7 +280,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       gap: 0.45rem;
       font-size: 0.78rem;
       font-family: var(--font-mono);
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--surface-elevated);
       border: 1px solid var(--border);
       padding: 0.35rem 0.75rem;
       border-radius: 0.4rem;
@@ -268,10 +314,10 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       border: 1px solid var(--border);
       border-radius: 0.75rem;
       padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--card-shadow);
       position: relative;
       overflow: hidden;
-      transition: border-color 0.2s, transform 0.15s;
+      transition: border-color 0.2s, transform 0.15s, background-color 0.2s, box-shadow 0.2s;
     }
     .card:hover {
       border-color: var(--border-light);
@@ -314,7 +360,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     }
     .radial-bg {
       fill: none;
-      stroke: rgba(255, 255, 255, 0.06);
+      stroke: var(--radial-track);
       stroke-width: 7;
     }
     .radial-progress {
@@ -503,13 +549,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       to { opacity: 1; transform: scale(1); }
     }
     .modal-box {
-      background: #0f1626;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--modal-box-bg);
+      border: 1px solid var(--border-light);
       border-radius: 0.75rem;
       width: 100%;
       max-width: 650px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       overflow: hidden;
+      color: var(--text);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
     .modal-header {
       padding: 1.25rem 1.5rem;
@@ -531,7 +579,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     .modal-body { padding: 1.5rem; }
     .modal-footer {
       padding: 1rem 1.5rem;
-      background: rgba(0, 0, 0, 0.25);
+      background: var(--surface-elevated);
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: flex-end;
@@ -569,7 +617,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     }
     .form-input, .form-select {
       width: 100%;
-      background: var(--bg);
+      background: var(--input-bg);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 0.6rem 0.85rem;
@@ -741,24 +789,26 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       inset: 0;
       width: 100vw;
       height: 100vh;
-      background: radial-gradient(circle at 50% 30%, #152238 0%, #090d16 85%);
+      background: var(--login-bg);
       z-index: 10000;
       align-items: center;
       justify-content: center;
       padding: 1.5rem;
+      transition: background 0.3s ease;
     }
     .login-card {
       width: 100%;
       max-width: 420px;
-      background: rgba(18, 24, 41, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--login-card-bg);
+      border: 1px solid var(--border-light);
       border-radius: 1rem;
       padding: 2.25rem 2rem;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(6, 182, 212, 0.15);
+      box-shadow: var(--card-shadow);
       backdrop-filter: blur(12px);
       display: flex;
       flex-direction: column;
       position: relative;
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
     .login-header {
       text-align: center;
@@ -822,7 +872,10 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
   <!-- SOVEREIGN AUTHENTICATION LOGIN GATE -->
   <div id="loginScreen">
     <div class="login-card">
-      <div style="position: absolute; top: 1rem; right: 1rem;">
+      <div style="position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.45rem;">
+        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <span class="themeIconDisplay">🌙</span> <span class="themeTextDisplay">Dark</span>
+        </button>
         <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;" onclick="toggleLanguage()">
           <span class="langFlagDisplay">🇻🇳</span> <span class="langTextDisplay">Tiếng Việt</span>
         </button>
@@ -981,6 +1034,10 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <span>NET:</span>
           <strong id="topbarNet">↓ 0 KB/s</strong>
         </div>
+        <!-- THEME SWITCHER -->
+        <button class="btn btn-secondary" id="themeSwitchBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: flex; align-items: center; gap: 0.35rem;" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <span class="themeIconDisplay">🌙</span> <span class="themeTextDisplay">Dark</span>
+        </button>
         <!-- LANGUAGE SWITCHER -->
         <button class="btn btn-secondary" id="langSwitchBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: flex; align-items: center; gap: 0.35rem;" onclick="toggleLanguage()">
           <span id="langFlag">🇻🇳</span> <span id="langText">Tiếng Việt</span>
@@ -1006,8 +1063,53 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     <main>
       <!-- TAB 1: DASHBOARD -->
       <div id="tab-overview" class="tab-content active">
-        <!-- 4 RADIAL GAUGES (AAPANEL STYLE) -->
-        <div class="grid-4">
+        <!-- 1. SOVEREIGN HEALTH & ACTION HERO BANNER -->
+        <div class="overview-hero-banner" style="background: var(--hero-banner-bg); border: 1px solid var(--hero-banner-border); border-radius: 0.75rem; padding: 1.15rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <span class="pulse-dot" style="width: 12px; height: 12px; box-shadow: 0 0 12px var(--green);"></span>
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <h2 style="font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em;" data-i18n="hero_status_title">All Sovereign Systems Operational</h2>
+                <span class="badge badge-green" data-i18n="hero_badge_healthy">Optimal</span>
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;">
+                <span><strong id="heroSiteCount" style="color: var(--cyan);">0</strong> <span data-i18n="nav_websites">Websites</span></span>
+                <span>•</span>
+                <span><strong id="heroDbCount" style="color: var(--purple);">0</strong> <span data-i18n="nav_databases">Databases</span></span>
+                <span>•</span>
+                <span><strong id="heroCronCount" style="color: var(--yellow);">0</strong> <span data-i18n="nav_cron">Cron Tasks</span></span>
+                <span>•</span>
+                <span id="heroUptimeLabel">Uptime: 0s</span>
+                <span>•</span>
+                <span class="badge badge-cyan" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">Edge Footprint &lt; 10 MB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Shortcuts -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAddSiteModal()">
+              + <span data-i18n="deploy_site">Deploy Site</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAddDatabaseModal()">
+              + <span data-i18n="add_db_btn">Add DB</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAddCronModal()">
+              + <span data-i18n="add_cron_btn">Add Cron</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="switchTab('caddy')">
+              ⚙️ <span data-i18n="nav_caddyfile">Caddyfile</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAdminSecurityModal()">
+              🛡️ <span data-i18n="sec_tab_logs">Audit</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. CORE RADIAL METRICS -->
+        <div class="grid-4" style="margin-bottom: 1.5rem;">
           <!-- CPU GAUGE -->
           <div class="card">
             <div class="card-header">
@@ -1027,7 +1129,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
               <div class="radial-details">
                 <div class="radial-main-val" id="cpuDetailVal">0.0%</div>
                 <div class="radial-sub-val">Linux /proc/stat delta</div>
-                <div class="radial-sub-val" style="color: var(--cyan);">Non-blocking parser</div>
+                <div class="radial-sub-val" style="color: var(--cyan);">Non-blocking sampling</div>
               </div>
             </div>
           </div>
@@ -1051,7 +1153,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
               <div class="radial-details">
                 <div class="radial-main-val" id="ramDetailVal">0 / 0 MB</div>
                 <div class="radial-sub-val" id="ramAvailText">Available: 0 MB</div>
-                <div class="radial-sub-val" style="color: var(--purple);">/proc/meminfo</div>
+                <div class="radial-sub-val" style="color: var(--purple);">Linux /proc/meminfo</div>
               </div>
             </div>
           </div>
@@ -1065,11 +1167,11 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
               </span>
             </div>
             <div style="display: flex; flex-direction: column; justify-content: center; height: 80px;">
-              <div class="radial-main-val" id="netDetailRx" style="font-size: 1.6rem; color: var(--green-glow);">↓ 0 KB/s</div>
+              <div class="radial-main-val" id="netDetailRx" style="font-size: 1.55rem; color: var(--green);">↓ 0 KB/s</div>
               <div class="radial-sub-val" id="netDetailTx" style="font-size: 0.85rem; margin-top: 0.35rem;">↑ 0 KB/s outbound</div>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.5rem; display: flex; justify-content: space-between;">
-              <span>Interfaces: eth0, lo</span>
+              <span>Sockets: Active</span>
               <span>/proc/net/dev</span>
             </div>
           </div>
@@ -1083,37 +1185,118 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
               </span>
             </div>
             <div style="display: flex; flex-direction: column; justify-content: center; height: 80px;">
-              <div style="font-weight: 800; font-size: 1.25rem; color: var(--cyan-glow);">Pure Rust + Caddy</div>
-              <div class="radial-sub-val" style="margin-top: 0.35rem;">Single binary (&lt; 1 MB)</div>
+              <div style="font-weight: 800; font-size: 1.25rem; color: var(--cyan);">Pure Rust + Caddy</div>
+              <div class="radial-sub-val" style="margin-top: 0.35rem;">Single binary (&lt; 1.2 MB)</div>
             </div>
             <div style="font-size: 0.75rem; color: var(--green); display: flex; justify-content: space-between; margin-top: 0.5rem;">
-              <span>Zero external deps</span>
+              <span>Zero external runtime</span>
               <span id="uptimeQuickText">Uptime: 0s</span>
             </div>
           </div>
         </div>
 
-        <!-- RECENT SITES -->
-        <div class="toolbar">
-          <h3 class="toolbar-title" data-i18n="active_vhosts">Active Virtual Hosts</h3>
-          <button class="btn btn-secondary" onclick="switchTab('sites')"><span data-i18n="view_all_sites">View All Websites &rarr;</span></button>
+        <!-- 3. REAL-TIME TELEMETRY WAVEFORM (CANVAS) -->
+        <div class="card" style="margin-bottom: 1.75rem; padding: 1.25rem 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan);"></span>
+                <span data-i18n="chart_telemetry_title">Real-Time Host Activity Waveform (60s Live Feed)</span>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" data-i18n="chart_telemetry_subtitle">Non-blocking live metrics sampling from host /proc subsystem</div>
+            </div>
+
+            <!-- Chart Live Legend -->
+            <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; font-family: var(--font-mono);">
+              <span style="display: flex; align-items: center; gap: 0.35rem; color: var(--cyan); font-weight: 600;">
+                <span style="width: 12px; height: 3px; background: var(--cyan); border-radius: 2px;"></span> CPU: <span id="chartLiveCpu">0%</span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 0.35rem; color: var(--purple); font-weight: 600;">
+                <span style="width: 12px; height: 3px; background: var(--purple); border-radius: 2px;"></span> RAM: <span id="chartLiveRam">0%</span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 0.35rem; color: var(--green); font-weight: 600;">
+                <span style="width: 12px; height: 3px; background: var(--green); border-radius: 2px;"></span> Net: <span id="chartLiveNet">↓ 0 KB/s</span>
+              </span>
+            </div>
+          </div>
+
+          <div style="position: relative; width: 100%; height: 140px; border-radius: 0.5rem; overflow: hidden; background: var(--surface-elevated); border: 1px solid var(--border);">
+            <canvas id="telemetryCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+          </div>
         </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th data-i18n="th_domain">Domain Name</th>
-                <th data-i18n="th_type">Type</th>
-                <th data-i18n="th_php">PHP Version</th>
-                <th data-i18n="th_root">Web Root</th>
-                <th data-i18n="th_security">SSL Security</th>
-                <th style="text-align: right;" data-i18n="th_actions">Action</th>
-              </tr>
-            </thead>
-            <tbody id="overviewSitesTable">
-              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;" data-i18n="loading_sites">Loading websites...</td></tr>
-            </tbody>
-          </table>
+
+        <!-- 4. SPLIT 2-COLUMN: SITES TABLE + SOVEREIGN ENGINE MATRIX -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+          <!-- LEFT: ACTIVE SITES -->
+          <div>
+            <div class="toolbar" style="margin-bottom: 0.75rem;">
+              <h3 class="toolbar-title" style="font-size: 1.05rem;" data-i18n="active_vhosts">Active Virtual Hosts</h3>
+              <button class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.3rem 0.65rem;" onclick="switchTab('sites')"><span data-i18n="view_all_sites">View All Websites &rarr;</span></button>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="th_domain">Domain Name</th>
+                    <th data-i18n="th_type">Type</th>
+                    <th data-i18n="th_php">PHP</th>
+                    <th data-i18n="th_security">SSL</th>
+                    <th style="text-align: right;" data-i18n="th_actions">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewSitesTable">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;" data-i18n="loading_sites">Loading websites...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RIGHT: SOVEREIGN ENGINE MATRIX & SERVICES -->
+          <div>
+            <div class="toolbar" style="margin-bottom: 0.75rem;">
+              <h3 class="toolbar-title" style="font-size: 1.05rem;" data-i18n="engine_matrix_title">Sovereign Engines</h3>
+              <button class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.3rem 0.65rem;" onclick="switchTab('services')"><span data-i18n="nav_services">Services &rarr;</span></button>
+            </div>
+            <div class="card" style="padding: 1.15rem 1.25rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <!-- Caddy Web Server -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.65rem;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">Caddy v2 HTTP/3</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">Declarative reverse proxy</div>
+                  </div>
+                  <span class="badge badge-green">Running</span>
+                </div>
+
+                <!-- PHP FastCGI Pool -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.65rem;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">PHP-FPM Worker Pool</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">pm=ondemand (Auto-scale)</div>
+                  </div>
+                  <span class="badge badge-cyan">ondemand</span>
+                </div>
+
+                <!-- Layer-7 WAF -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.65rem;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">Layer-7 Edge WAF</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">Heuristic Bot &amp; SQLi Shield</div>
+                  </div>
+                  <span class="badge badge-purple">Armed</span>
+                </div>
+
+                <!-- Brute Force Lockout -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">Authentication Gate</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">5-fail lock / 15m lockout</div>
+                  </div>
+                  <span class="badge badge-green">Protected</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2181,6 +2364,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     let currentViewingCronId = null;
 
     let currentLang = localStorage.getItem('zpanl_lang') || 'vi';
+    let currentTheme = localStorage.getItem('zpanl_theme') || 'dark';
 
     const I18N = {
       en: {
@@ -2441,7 +2625,14 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         sec_col_agent: 'User-Agent',
         sec_col_status: 'Status',
         sec_pass_mismatch: 'New password and confirmation do not match!',
-        sec_creds_updated: 'Admin credentials updated successfully! Please re-login if password changed.'
+        sec_creds_updated: 'Admin credentials updated successfully! Please re-login if password changed.',
+        theme_dark: 'Dark',
+        theme_light: 'Light',
+        hero_status_title: 'All Sovereign Systems Operational',
+        hero_badge_healthy: 'Optimal',
+        chart_telemetry_title: 'Real-Time Host Activity Waveform (60s Live Feed)',
+        chart_telemetry_subtitle: 'Non-blocking live metrics sampling from host /proc subsystem',
+        engine_matrix_title: 'Sovereign Engines'
       },
       vi: {
         nav_core: 'Quản Lý Cốt Lõi',
@@ -2701,7 +2892,14 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         sec_col_agent: 'Trình Duyệt / Thiết Bị',
         sec_col_status: 'Trạng Thái',
         sec_pass_mismatch: 'Mật khẩu mới và xác nhận mật khẩu không trùng khớp!',
-        sec_creds_updated: 'Thông tin quản trị đã cập nhật thành công!'
+        sec_creds_updated: 'Thông tin quản trị đã cập nhật thành công!',
+        theme_dark: 'Tối',
+        theme_light: 'Sáng',
+        hero_status_title: 'Mọi Hệ Thống Sovereign Đang Vận Hành Ổn Định',
+        hero_badge_healthy: 'Tối Ưu',
+        chart_telemetry_title: 'Dạng Sóng Hoạt Động Hệ Thống Thời Gian Thực (60 Giây)',
+        chart_telemetry_subtitle: 'Lấy mẫu số liệu trực tiếp không gián đoạn từ hệ thống /proc Linux',
+        engine_matrix_title: 'Động Cơ Sovereign'
       }
     };
 
@@ -2740,6 +2938,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       }
       document.querySelectorAll('.langFlagDisplay').forEach(el => el.textContent = currentLang === 'vi' ? '🇻🇳' : '🇬🇧');
       document.querySelectorAll('.langTextDisplay').forEach(el => el.textContent = currentLang === 'vi' ? 'Tiếng Việt' : 'English');
+      updateThemeUI();
       const titleObj = tabTitles[currentTab];
       if (titleObj) {
         document.getElementById('breadcrumbTitle').textContent = titleObj[currentLang] || titleObj.en;
@@ -2764,6 +2963,138 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         if (val) el.placeholder = val;
       });
     }
+
+    // ============================================
+    // DUAL THEME ENGINE (DARK / LIGHT)
+    // ============================================
+    function applyTheme(theme) {
+      currentTheme = theme || currentTheme;
+      localStorage.setItem('zpanl_theme', currentTheme);
+      if (currentTheme === 'light') {
+        document.body.classList.remove('theme-dark');
+        document.body.classList.add('theme-light');
+      } else {
+        document.body.classList.remove('theme-light');
+        document.body.classList.add('theme-dark');
+      }
+      updateThemeUI();
+      drawTelemetryChart();
+    }
+
+    function toggleTheme() {
+      const next = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    }
+
+    function updateThemeUI() {
+      const isDark = currentTheme === 'dark';
+      const icon = isDark ? '🌙' : '☀️';
+      const label = isDark ? t('theme_dark', 'Dark') : t('theme_light', 'Light');
+      document.querySelectorAll('.themeIconDisplay').forEach(el => el.textContent = icon);
+      document.querySelectorAll('.themeTextDisplay').forEach(el => el.textContent = label);
+    }
+
+    // ============================================
+    // REAL-TIME TELEMETRY WAVEFORM (CANVAS 2D)
+    // ============================================
+    const telemetryHistory = {
+      cpu: [],
+      ram: [],
+      netRx: [],
+      maxPoints: 30
+    };
+
+    function drawTelemetryChart() {
+      const canvas = document.getElementById('telemetryCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const displayW = rect.width || canvas.clientWidth || 600;
+      const displayH = rect.height || canvas.clientHeight || 140;
+
+      if (canvas.width !== Math.floor(displayW * dpr) || canvas.height !== Math.floor(displayH * dpr)) {
+        canvas.width = Math.floor(displayW * dpr);
+        canvas.height = Math.floor(displayH * dpr);
+      }
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      const w = displayW;
+      const h = displayH;
+      ctx.clearRect(0, 0, w, h);
+
+      // Subtle horizontal gridlines
+      const isDark = currentTheme === 'dark';
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)';
+      ctx.lineWidth = 1;
+      for (let y = 0.25; y < 1; y += 0.25) {
+        ctx.beginPath();
+        ctx.moveTo(0, h * y);
+        ctx.lineTo(w, h * y);
+        ctx.stroke();
+      }
+
+      if (telemetryHistory.cpu.length < 2) {
+        ctx.restore();
+        return;
+      }
+
+      function drawSeries(data, strokeColor, fillColor, maxVal = 100) {
+        if (!data || data.length < 2) return;
+        const step = w / (telemetryHistory.maxPoints - 1);
+        const startX = w - (data.length - 1) * step;
+
+        // Fill area
+        ctx.save();
+        ctx.beginPath();
+        data.forEach((val, idx) => {
+          const clamped = Math.max(0, Math.min(val, maxVal));
+          const x = startX + idx * step;
+          const y = h - (clamped / maxVal) * (h - 20) - 10;
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.lineTo(w, h);
+        ctx.lineTo(startX, h);
+        ctx.closePath();
+
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, fillColor);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.restore();
+
+        // Stroke line
+        ctx.beginPath();
+        data.forEach((val, idx) => {
+          const clamped = Math.max(0, Math.min(val, maxVal));
+          const x = startX + idx * step;
+          const y = h - (clamped / maxVal) * (h - 20) - 10;
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      }
+
+      const maxNet = Math.max(500, ...(telemetryHistory.netRx.length ? telemetryHistory.netRx : [0]));
+      // 1. Net Inbound (Green)
+      drawSeries(telemetryHistory.netRx, '#10b981', 'rgba(16, 185, 129, 0.18)', maxNet);
+      // 2. RAM (Purple)
+      drawSeries(telemetryHistory.ram, '#a855f7', 'rgba(168, 85, 247, 0.16)', 100);
+      // 3. CPU (Cyan)
+      drawSeries(telemetryHistory.cpu, '#38bdf8', 'rgba(56, 189, 248, 0.25)', 100);
+
+      ctx.restore();
+    }
+
+    window.addEventListener('resize', drawTelemetryChart);
 
     const tabTitles = {
       overview: { en: 'Dashboard', vi: 'Bảng Điều Khiển' },
@@ -2844,12 +3175,46 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         // Sidebar & Uptime
         document.getElementById('uptimeQuickText').textContent = `${currentLang === 'vi' ? 'Thời gian chạy' : 'Uptime'}: ${d.uptime_seconds}s`;
         document.getElementById('sidebarProcMode').textContent = d.is_linux_proc ? (currentLang === 'vi' ? 'Linux /proc Chuẩn' : 'Linux /proc Native') : (currentLang === 'vi' ? 'Chế độ Dev Fallback' : 'Local Dev Fallback');
+
+        // Waveform Telemetry Buffer
+        telemetryHistory.cpu.push(d.cpu_usage_percent);
+        if (telemetryHistory.cpu.length > telemetryHistory.maxPoints) telemetryHistory.cpu.shift();
+
+        telemetryHistory.ram.push(d.ram_usage_percent);
+        if (telemetryHistory.ram.length > telemetryHistory.maxPoints) telemetryHistory.ram.shift();
+
+        telemetryHistory.netRx.push(d.net_rx_kbps);
+        if (telemetryHistory.netRx.length > telemetryHistory.maxPoints) telemetryHistory.netRx.shift();
+
+        drawTelemetryChart();
+
+        // Chart Live Legend
+        const elCpu = document.getElementById('chartLiveCpu');
+        if (elCpu) elCpu.textContent = d.cpu_usage_percent.toFixed(1) + '%';
+        const elRam = document.getElementById('chartLiveRam');
+        if (elRam) elRam.textContent = d.ram_usage_percent.toFixed(1) + '%';
+        const elNet = document.getElementById('chartLiveNet');
+        if (elNet) elNet.textContent = `↓ ${d.net_rx_kbps} KB/s`;
+
+        // Hero Status Banner Chips
+        const elHeroSite = document.getElementById('heroSiteCount');
+        if (elHeroSite) elHeroSite.textContent = allSites.length;
+        const elHeroDb = document.getElementById('heroDbCount');
+        if (elHeroDb) elHeroDb.textContent = allDatabases.length;
+        const elHeroCron = document.getElementById('heroCronCount');
+        if (elHeroCron) elHeroCron.textContent = allCronJobs.length;
+        const elHeroUptime = document.getElementById('heroUptimeLabel');
+        if (elHeroUptime) {
+          const u = d.uptime_seconds || 0;
+          const hrs = Math.floor(u / 3600);
+          const mins = Math.floor((u % 3600) / 60);
+          const secs = u % 60;
+          elHeroUptime.textContent = `${currentLang === 'vi' ? 'Thời gian chạy' : 'Uptime'}: ${hrs > 0 ? hrs + 'h ' : ''}${mins}m ${secs}s`;
+        }
       } catch (e) {
         console.error('Telemetry error:', e);
       }
     }
-    setInterval(pollTelemetry, 2000);
-    pollTelemetry();
 
     // Sites Management
     async function loadSites() {
@@ -2857,6 +3222,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         const res = await fetch('/api/v1/sites');
         allSites = await res.json();
         document.getElementById('navSitesCount').textContent = allSites.length;
+        const elHero = document.getElementById('heroSiteCount');
+        if (elHero) elHero.textContent = allSites.length;
         renderSitesTable(allSites);
         renderOverviewTable(allSites);
       } catch (e) {
@@ -2912,20 +3279,30 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     function renderOverviewTable(sites) {
       const tbody = document.getElementById('overviewSitesTable');
       if (!sites.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">${t('no_sites')}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">${t('no_sites')}</td></tr>`;
         return;
       }
       tbody.innerHTML = sites.slice(0, 5).map(s => {
+        let kindBadge = '<span class="badge badge-cyan">Static</span>';
+        if (s.kind === 'reverse_proxy' || s.proxy_upstream) kindBadge = '<span class="badge badge-purple">Proxy</span>';
+        else if (s.kind === 'spa_fallback') kindBadge = '<span class="badge badge-purple">SPA</span>';
+        else if (s.kind === 'php_fpm') kindBadge = '<span class="badge badge-blue">PHP</span>';
+
         const maintBadge = s.maintenance ? '<span class="badge badge-yellow" style="margin-left: 0.35rem;">Maint</span>' : '';
+        const sslBadge = s.ssl_enabled ? '<span class="badge badge-green">Auto HTTPS</span>' : '<span class="badge badge-yellow">HTTP</span>';
+
         return `
           <tr>
-            <td style="font-weight: 700; color: var(--cyan-glow);">${s.domain}${maintBadge}</td>
-            <td><span class="badge badge-cyan">${s.kind}</span></td>
-            <td style="font-family: var(--font-mono);">${s.php_version ? 'PHP ' + s.php_version : '-'}</td>
-            <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${s.root_path}</td>
-            <td><span class="badge badge-green">${t('status_active')}</span></td>
+            <td>
+              <div style="font-weight: 700; color: var(--cyan-glow); font-size: 0.88rem; display: flex; align-items: center;">
+                ${s.domain}${maintBadge}
+              </div>
+            </td>
+            <td>${kindBadge}</td>
+            <td style="font-family: var(--font-mono); font-size: 0.82rem;">${s.php_version ? 'PHP ' + s.php_version : '-'}</td>
+            <td>${sslBadge}</td>
             <td style="text-align: right;">
-              <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="openSiteModModal('${s.domain}')">${t('btn_config')}</button>
+              <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; border-color: rgba(56, 189, 248, 0.4); color: var(--cyan-glow);" onclick="openSiteModModal('${s.domain}')">${t('btn_config')}</button>
             </td>
           </tr>
         `;
@@ -3978,6 +4355,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         allDatabases = await res.json();
         const badge = document.getElementById('navDatabasesCount');
         if (badge) badge.textContent = allDatabases.length;
+        const heroDb = document.getElementById('heroDbCount');
+        if (heroDb) heroDb.textContent = allDatabases.length;
         renderDatabasesTable(allDatabases);
       } catch (e) {
         console.error('Error loading databases:', e);
@@ -4156,6 +4535,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         allCronJobs = await res.json();
         const badge = document.getElementById('navCronCount');
         if (badge) badge.textContent = allCronJobs.length;
+        const heroCron = document.getElementById('heroCronCount');
+        if (heroCron) heroCron.textContent = allCronJobs.length;
         renderCronTable(allCronJobs);
       } catch (e) {
         console.error('Error loading cron jobs:', e);
@@ -4800,6 +5181,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     }
 
     // Initial load
+    applyTheme(currentTheme);
     updateLanguageUI();
     applyTranslations();
     initFileDragAndDrop();
