@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build Linux Binary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ZPanl
+        uses: actions/checkout@v4
+        with:
+          path: ZeroApps/ZPanl
+
+      - name: Checkout ZeroRust
+        uses: actions/checkout@v4
+        with:
+          repository: kzxl/ZeroRust
+          path: ZeroRust
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Build ZPanl Release
+        working-directory: ZeroApps/ZPanl
+        run: cargo build --release --verbose
+
+      - name: Package Linux Binary
+        working-directory: ZeroApps/ZPanl
+        run: |
+          mkdir -p dist
+          cp target/release/zpanl dist/
+          cd dist
+          tar -czf zpanl-${{ github.ref_name }}-linux-x86_64.tar.gz zpanl
+          sha256sum zpanl-${{ github.ref_name }}-linux-x86_64.tar.gz > zpanl-${{ github.ref_name }}-linux-x86_64.tar.gz.sha256
+
+      - name: Upload Linux Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ZeroApps/ZPanl/dist/zpanl-${{ github.ref_name }}-linux-x86_64.tar.gz
+            ZeroApps/ZPanl/dist/zpanl-${{ github.ref_name }}-linux-x86_64.tar.gz.sha256
