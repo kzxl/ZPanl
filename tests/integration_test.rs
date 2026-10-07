@@ -1,6 +1,7 @@
 use std::fs;
 use zpanl::cron::{CronDatabase, CronJob};
 use zpanl::database::{DatabaseRecord, DatabaseStorage};
+use zpanl::deploy::{DeployConfig, DeployStorage};
 use zpanl::filemgr::FileManager;
 use zpanl::services::ServiceManager;
 use zpanl::site::{SiteDatabase, SiteKind, SiteRecord};
@@ -274,4 +275,114 @@ fn test_cron_manager_workflow() {
     assert!(cron_db.delete("job-1"));
     assert_eq!(cron_db.list().len(), 0);
     assert!(cron_db.get_logs("job-1").is_none());
+}
+
+#[test]
+fn test_waf_caddyfile_generation() {
+    let mut db = SiteDatabase::default();
+
+    let site = SiteRecord {
+        id: "site_waf".to_string(),
+        domain: "shield.example.com".to_string(),
+        root_path: "/var/www/shield".to_string(),
+        kind: SiteKind::Static,
+        ssl_enabled: true,
+        waf_enabled: true,
+        bad_bot_blocking: true,
+        sqli_xss_protection: true,
+        rate_limit_enabled: true,
+        rate_limit_requests: 60,
+        rate_limit_window: "1m".to_string(),
+        custom_blocked_agents: vec!["evil-scanner".to_string(), "bad-python".to_string()],
+        ..Default::default()
+    };
+
+    assert!(db.add(site.clone()).is_ok());
+
+    let caddyfile = db.generate_site_caddyfile(&site);
+
+    // Verify bad bots matcher and reject block
+    assert!(caddyfile.contains("@bad_bots"));
+    assert!(caddyfile.contains("header User-Agent *ByteSpider*"));
+    assert!(caddyfile.contains("respond @bad_bots 403"));
+
+    // Verify custom blocked agents matcher
+    assert!(caddyfile.contains("@custom_bots"));
+    assert!(caddyfile.contains("header User-Agent *evil-scanner*"));
+    assert!(caddyfile.contains("header User-Agent *bad-python*"));
+    assert!(caddyfile.contains("respond @custom_bots 403"));
+
+    // Verify SQLi/XSS exploit pattern matcher
+    assert!(caddyfile.contains("@exploit_patterns"));
+    assert!(caddyfile.contains("query *union*select*"));
+    assert!(caddyfile.contains("respond @exploit_patterns 403"));
+
+    // Verify Rate Limiting directive
+    assert!(caddyfile.contains("rate_limit {"));
+    assert!(caddyfile.contains("remote_ip rate 60 1m"));
+}
+
+#[test]
+fn test_deploy_manager_workflow() {
+    let temp_dir = std::env::temp_dir().join("zpanl_test_deploy");
+    let _ = fs::remove_dir_all(&temp_dir);
+    fs::create_dir_all(&temp_dir).unwrap();
+
+    let site_root = temp_dir.to_string_lossy().to_string();
+    let mut storage = DeployStorage::default();
+
+    // 1. Config CRUD
+    let cfg = DeployConfig {
+        domain: "git.example.com".to_string(),
+        repo_url: "https://github.com/example/repo.git".to_string(),
+        branch: "main".to_string(),
+        webhook_secret: "wh_sec_12345".to_string(),
+        build_script: Some("echo 'Building assets'".to_string()),
+        symlink_deploy: true,
+        auto_deploy: true,
+    };
+    storage.save_config(cfg.clone());
+
+    let fetched = storage.get_config("git.example.com").unwrap();
+    assert_eq!(fetched.domain, "git.example.com");
+    assert_eq!(fetched.webhook_secret, "wh_sec_12345");
+    assert!(fetched.symlink_deploy);
+
+    // 2. Mock releases directory & atomic rollback test
+    let releases_dir = temp_dir.join("releases");
+    let rel1_dir = releases_dir.join("rel_1");
+    let rel2_dir = releases_dir.join("rel_2");
+    fs::create_dir_all(&rel1_dir).unwrap();
+    fs::create_dir_all(&rel2_dir).unwrap();
+    fs::write(rel1_dir.join("index.html"), "Release 1 Content").unwrap();
+    fs::write(rel2_dir.join("index.html"), "Release 2 Content").unwrap();
+
+    // Perform atomic rollback to rel_1
+    let rollback_res = storage.rollback("git.example.com", &site_root, "rel_1");
+    assert!(
+        rollback_res.is_ok(),
+        "rollback_res failed: {:?}",
+        rollback_res.err()
+    );
+    let current_index = temp_dir.join("current").join("index.html");
+    assert!(current_index.exists());
+    let content = fs::read_to_string(&current_index).unwrap();
+    assert_eq!(content, "Release 1 Content");
+
+    // Perform atomic rollback to rel_2
+    let rollback_res2 = storage.rollback("git.example.com", &site_root, "rel_2");
+    assert!(
+        rollback_res2.is_ok(),
+        "rollback_res2 failed: {:?}",
+        rollback_res2.err()
+    );
+    let content2 = fs::read_to_string(&current_index).unwrap();
+    assert_eq!(content2, "Release 2 Content");
+
+    // 3. History listing and rollback history verification
+    let history = storage.list_history("git.example.com");
+    assert_eq!(history.len(), 2);
+    assert_eq!(history[0].triggered_by, "rollback");
+
+    let _ = fs::remove_dir_all(&temp_dir);
 }

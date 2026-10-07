@@ -1230,6 +1230,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <div class="mod-tab-item" id="btn-modtab-hotlink" onclick="switchModTab('hotlink')" data-i18n="mod_tab_hotlink">Hotlink Protection</div>
           <div class="mod-tab-item" id="btn-modtab-maintenance" onclick="switchModTab('maintenance')" data-i18n="mod_tab_maintenance">Maintenance Mode</div>
           <div class="mod-tab-item" id="btn-modtab-log" onclick="switchModTab('log')" data-i18n="mod_tab_log">Response log</div>
+          <div class="mod-tab-item" id="btn-modtab-waf" onclick="switchModTab('waf')" data-i18n="mod_tab_waf">WAF &amp; Shield</div>
+          <div class="mod-tab-item" id="btn-modtab-deploy" onclick="switchModTab('deploy')" data-i18n="mod_tab_deploy">Git-Ops Deploy</div>
           <div class="mod-tab-item" id="btn-modtab-config" onclick="switchModTab('config')" data-i18n="mod_tab_config">Config (Caddy)</div>
         </div>
         <!-- RIGHT SUB-CONTENT -->
@@ -1487,6 +1489,148 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             <pre class="code-block" id="modLogViewer" style="height: 250px; margin: 0; line-height: 1.5; font-size: 0.78rem; overflow-y: auto;"></pre>
           </div>
 
+          <!-- SUB-TAB 13: WAF & SHIELD -->
+          <div id="modtab-waf" class="mod-tab-content">
+            <div class="toggle-row" style="border-left: 4px solid var(--purple);">
+              <label for="modWafToggle">
+                <span data-i18n="waf_master_title">Web Application Firewall (WAF) Master Shield</span>
+                <span class="sub" data-i18n="waf_master_desc">Activate heuristic threat mitigation, layer-7 filter, and bot defense</span>
+              </label>
+              <input type="checkbox" id="modWafToggle" style="accent-color: var(--purple); transform: scale(1.3);">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
+              <div class="card" style="padding: 0.75rem; background: var(--surface-elevated);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label for="modBadBotToggle" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                    <span data-i18n="waf_bad_bots">Bad Bot &amp; Scraper Shield</span>
+                    <span style="display: block; font-size: 0.72rem; color: var(--text-dim);" data-i18n="waf_bad_bots_desc">Block ByteSpider, Ahrefs, Semrush, MJ12bot</span>
+                  </label>
+                  <input type="checkbox" id="modBadBotToggle" checked style="accent-color: var(--cyan); transform: scale(1.2);">
+                </div>
+              </div>
+
+              <div class="card" style="padding: 0.75rem; background: var(--surface-elevated);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label for="modSqliXssToggle" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                    <span data-i18n="waf_sqli_xss">Heuristic SQLi / XSS Filter</span>
+                    <span style="display: block; font-size: 0.72rem; color: var(--text-dim);" data-i18n="waf_sqli_xss_desc">Block query injection, traversal, eval patterns</span>
+                  </label>
+                  <input type="checkbox" id="modSqliXssToggle" checked style="accent-color: var(--cyan); transform: scale(1.2);">
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-row" style="margin-top: 1rem;">
+              <label for="modRateLimitToggle">
+                <span data-i18n="waf_rate_limit_title">Client Request Velocity Limiting</span>
+                <span class="sub" data-i18n="waf_rate_limit_desc">Mitigate DDoS surges and brute-force credential stuffing</span>
+              </label>
+              <input type="checkbox" id="modRateLimitToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="waf_max_reqs">Max Requests per Client</label>
+                <input id="modRateLimitRequests" type="number" class="form-input" value="60" min="5" max="10000">
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="waf_window">Time Window</label>
+                <select id="modRateLimitWindow" class="form-select">
+                  <option value="10s">10 seconds</option>
+                  <option value="30s">30 seconds</option>
+                  <option value="1m" selected>1 minute (Standard)</option>
+                  <option value="5m">5 minutes</option>
+                  <option value="1h">1 hour</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label style="font-size: 0.78rem;" data-i18n="waf_custom_agents">Custom Blocked User-Agents (One per line)</label>
+              <textarea id="modCustomBlockedAgents" class="form-input" style="height: 60px; font-family: var(--font-mono); font-size: 0.8rem;" placeholder="curl&#10;python-requests&#10;Go-http-client"></textarea>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 14: GIT-OPS DEPLOY -->
+          <div id="modtab-deploy" class="mod-tab-content">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="deploy_repo_url">Git Repository URL (HTTPS or SSH)</label>
+                <input id="modDeployRepoUrl" class="form-input" placeholder="https://github.com/org/repo.git" style="font-family: var(--font-mono); font-size: 0.82rem;">
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="deploy_branch">Target Branch</label>
+                <input id="modDeployBranch" class="form-input" value="main" style="font-family: var(--font-mono); font-size: 0.82rem;">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label style="font-size: 0.78rem;" data-i18n="deploy_webhook_label">Automated Webhook Endpoint (GitHub / GitLab / Gitea)</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input id="modDeployWebhookUrl" class="form-input" readonly style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--cyan-glow); background: var(--surface-elevated);">
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="copyWebhookUrl()" data-i18n="copy_caddyfile">Copy</button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
+              <div class="toggle-row" style="padding: 0.5rem 0.75rem;">
+                <label for="modDeploySymlinkToggle">
+                  <span style="font-size: 0.82rem;" data-i18n="deploy_symlink">Zero-Downtime Atomic Symlink</span>
+                  <span class="sub" style="font-size: 0.7rem;" data-i18n="deploy_symlink_desc">Releases /current pattern</span>
+                </label>
+                <input type="checkbox" id="modDeploySymlinkToggle" checked style="accent-color: var(--cyan); transform: scale(1.15);">
+              </div>
+              <div class="toggle-row" style="padding: 0.5rem 0.75rem;">
+                <label for="modDeployAutoToggle">
+                  <span style="font-size: 0.82rem;" data-i18n="deploy_auto">Auto-Deploy on Push</span>
+                  <span class="sub" style="font-size: 0.7rem;" data-i18n="deploy_auto_desc">Webhook triggers build</span>
+                </label>
+                <input type="checkbox" id="modDeployAutoToggle" checked style="accent-color: var(--cyan); transform: scale(1.15);">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.6rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="font-size: 0.78rem;" data-i18n="deploy_build_script">Post-Deploy Hook Command (POSIX Shell / PowerShell)</label>
+                <div style="display: flex; gap: 0.35rem;">
+                  <button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="setDeployPreset('laravel')">Laravel</button>
+                  <button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="setDeployPreset('vite')">Node / Vite</button>
+                  <button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="setDeployPreset('static')">Static</button>
+                </div>
+              </div>
+              <textarea id="modDeployBuildScript" class="form-input" style="height: 65px; font-family: var(--font-mono); font-size: 0.8rem;" placeholder="composer install --no-dev --optimize-autoloader&#10;php artisan migrate --force"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+              <button class="btn btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;" onclick="saveSiteDeployConfig()" data-i18n="save_deploy_cfg">Save Git Config</button>
+              <button class="btn" id="btnTriggerDeploy" style="padding: 0.4rem 1.1rem; font-size: 0.82rem;" onclick="triggerSiteDeploy()">
+                🚀 <span data-i18n="btn_deploy_now">Deploy Now</span>
+              </button>
+            </div>
+
+            <!-- HISTORY TABLE -->
+            <div style="margin-top: 1rem;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="deploy_recent_history">Recent Deployment Releases</div>
+              <div style="border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden; max-height: 140px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
+                      <th style="padding: 0.4rem 0.6rem;">Release</th>
+                      <th style="padding: 0.4rem 0.6rem;">Commit</th>
+                      <th style="padding: 0.4rem 0.6rem;">Status</th>
+                      <th style="padding: 0.4rem 0.6rem;">Time</th>
+                      <th style="padding: 0.4rem 0.6rem; text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modDeployHistoryTableBody">
+                    <tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 1rem;">No deployments yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <!-- SUB-TAB 12: CONFIG (CADDY) -->
           <div id="modtab-config" class="mod-tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
@@ -1676,6 +1820,25 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       <div class="modal-footer" style="display: flex; justify-content: space-between;">
         <button class="btn btn-secondary" onclick="refreshCronLogs()" data-i18n="refresh_btn">Refresh</button>
         <button class="btn" onclick="closeCronLogsModal()" data-i18n="btn_close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DEPLOY LOGS -->
+  <div id="deployLogsModal" class="modal">
+    <div class="modal-box" style="max-width: 760px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: var(--cyan);"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <span data-i18n="modal_deploy_log_title">Deployment Build &amp; Release Log</span>
+        </div>
+        <button class="modal-close" onclick="closeDeployLogsModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <pre id="deployLogContent" class="code-block" style="height: 340px; margin: 0; line-height: 1.5; font-size: 0.8rem; overflow-y: auto;">Loading release logs...</pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeDeployLogsModal()" data-i18n="btn_close">Close</button>
       </div>
     </div>
   </div>
@@ -1889,7 +2052,32 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         confirm_delete_file: "Are you sure you want to delete '{name}'?",
         site_created: "Virtual host '{domain}' created successfully!",
         site_deleted: "Site '{domain}' deleted",
-        site_updated: '✨ Site settings applied & Caddyfile reloaded in < 1ms!'
+        site_updated: '✨ Site settings applied & Caddyfile reloaded in < 1ms!',
+        mod_tab_waf: 'WAF & Limiter',
+        mod_tab_deploy: 'Git-Ops & Deploy',
+        waf_title: 'Web Application Firewall (WAF) & Rate Limiting',
+        waf_desc: 'Active heuristic exploit filtering and client request throttling via native Caddy engine',
+        waf_bad_bots: 'Block Malicious Scrapers & Aggressive Crawlers',
+        waf_bad_bots_desc: 'Heuristically rejects ByteSpider, MJ12bot, PetalBot, Semrush, Ahrefs with HTTP 403',
+        waf_sqli_xss: 'SQL Injection & XSS Attack Shield',
+        waf_sqli_xss_desc: 'Drops suspicious payload strings (UNION SELECT, <script>, eval, base64) at edge',
+        waf_rate_limit: 'Request Velocity Rate Limiter',
+        waf_rate_limit_desc: 'Mitigate brute-force, credential stuffing, and layer-7 denial of service',
+        waf_max_req: 'Max Requests',
+        waf_window: 'Time Window',
+        waf_custom_agents: 'Custom Blocked User-Agents (One per line)',
+        deploy_repo_url: 'Git Repository URL (HTTPS or SSH)',
+        deploy_branch: 'Target Branch',
+        deploy_webhook_label: 'Automated Webhook Endpoint (GitHub / GitLab / Gitea)',
+        deploy_symlink: 'Zero-Downtime Atomic Symlink',
+        deploy_symlink_desc: 'Releases /current pattern',
+        deploy_auto: 'Auto-Deploy on Push',
+        deploy_auto_desc: 'Webhook triggers build',
+        deploy_build_script: 'Post-Deploy Hook Command (POSIX Shell / PowerShell)',
+        save_deploy_cfg: 'Save Git Config',
+        btn_deploy_now: 'Deploy Now',
+        deploy_recent_history: 'Recent Deployment Releases',
+        modal_deploy_log_title: 'Deployment Build & Release Log'
       },
       vi: {
         nav_core: 'Quản Lý Cốt Lõi',
@@ -2084,7 +2272,32 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         confirm_delete_file: "Bạn có chắc muốn xóa '{name}' không?",
         site_created: "Website '{domain}' đã được tạo thành công!",
         site_deleted: "Website '{domain}' đã bị xóa",
-        site_updated: '✨ Cấu hình website đã được áp dụng & nạp lại Caddyfile trong < 1ms!'
+        site_updated: '✨ Cấu hình website đã được áp dụng & nạp lại Caddyfile trong < 1ms!',
+        mod_tab_waf: 'Tường Lửa WAF',
+        mod_tab_deploy: 'Git-Ops & Deploy',
+        waf_title: 'Tường Lửa Ứng Dụng Web (WAF) & Giới Hạn Tốc Độ',
+        waf_desc: 'Lọc tấn công tự động và giới hạn tần suất truy cập qua máy chủ Caddy',
+        waf_bad_bots: 'Chặn Bot Độc Hại & Công Cụ Quét Dữ Liệu',
+        waf_bad_bots_desc: 'Tự động chặn ByteSpider, MJ12bot, PetalBot, Semrush, Ahrefs với mã HTTP 403',
+        waf_sqli_xss: 'Lá Chắn Chống SQL Injection & XSS',
+        waf_sqli_xss_desc: 'Chặn ngay các chuỗi độc hại (UNION SELECT, <script>, eval, base64) từ rìa mạng',
+        waf_rate_limit: 'Bộ Giới Hạn Tần Suất Truy Cập (Rate Limit)',
+        waf_rate_limit_desc: 'Ngăn chặn tấn công dò quét mật khẩu và DoS tầng ứng dụng (Layer 7)',
+        waf_max_req: 'Số Yêu Cầu Tối Đa',
+        waf_window: 'Khung Thời Gian',
+        waf_custom_agents: 'Chặn Thêm User-Agent Tự Chọn (Mỗi dòng một chuỗi)',
+        deploy_repo_url: 'Đường Dẫn Kho Chứa Git (HTTPS hoặc SSH)',
+        deploy_branch: 'Nhánh Cần Triển Khai',
+        deploy_webhook_label: 'Điểm Cuối Webhook Tự Động (GitHub / GitLab / Gitea)',
+        deploy_symlink: 'Triển Khai Atomic Không Gián Đoạn (Symlink)',
+        deploy_symlink_desc: 'Cơ chế thư mục releases /current',
+        deploy_auto: 'Tự Động Triển Khai Khi Có Push',
+        deploy_auto_desc: 'Webhook kích hoạt quy trình build',
+        deploy_build_script: 'Lệnh Hook Sau Triển Khai (Shell / PowerShell)',
+        save_deploy_cfg: 'Lưu Cấu Hình Git',
+        btn_deploy_now: 'Triển Khai Ngay',
+        deploy_recent_history: 'Lịch Sử Triển Khai Gần Đây',
+        modal_deploy_log_title: 'Nhật Ký Triển Khai & Bản Phát Hành'
       }
     };
 
@@ -2714,6 +2927,10 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       if (tabName === 'log' && currentModSite) {
         loadModSiteLogs();
       }
+      if (tabName === 'deploy' && currentModSite) {
+        loadSiteDeployConfig(currentModSite.domain);
+        loadSiteDeployHistory(currentModSite.domain);
+      }
     }
 
     async function openSiteModModal(domain) {
@@ -2785,6 +3002,21 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
         // Tab 12: Config
         loadModCaddyfile(currentModSite.domain);
+
+        // Tab 13: WAF & Rate Limiting
+        document.getElementById('modWafToggle').checked = currentModSite.waf_enabled !== false;
+        document.getElementById('modBadBotToggle').checked = currentModSite.bad_bot_blocking !== false;
+        document.getElementById('modSqliXssToggle').checked = currentModSite.sqli_xss_protection !== false;
+        document.getElementById('modRateLimitToggle').checked = !!currentModSite.rate_limit_enabled;
+        document.getElementById('modRateLimitRequests').value = currentModSite.rate_limit_requests || 100;
+        document.getElementById('modRateLimitWindow').value = currentModSite.rate_limit_window || '1m';
+        document.getElementById('modCustomBlockedAgents').value = (currentModSite.custom_blocked_agents || []).join('\n');
+
+        // Tab 14: Git-Ops Deploy
+        const webhookUrl = `${window.location.origin}/api/v1/deploy/webhook?token=${encodeURIComponent(currentModSite.domain)}`;
+        document.getElementById('modDeployWebhookUrl').value = webhookUrl;
+        loadSiteDeployConfig(currentModSite.domain);
+        loadSiteDeployHistory(currentModSite.domain);
 
         switchModTab('domain');
         document.getElementById('siteModModal').classList.add('active');
@@ -3006,7 +3238,17 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           basic_auth_pass: hasBasicAuth ? document.getElementById('modAuthPass').value.trim() || null : null,
           hotlink_protection: document.getElementById('modHotlinkToggle').checked,
           hotlink_extensions: document.getElementById('modHotlinkExts').value.trim() || null,
-          redirects: currentModSite.redirects || []
+          redirects: currentModSite.redirects || [],
+          waf_enabled: document.getElementById('modWafToggle').checked,
+          bad_bot_blocking: document.getElementById('modBadBotToggle').checked,
+          sqli_xss_protection: document.getElementById('modSqliXssToggle').checked,
+          rate_limit_enabled: document.getElementById('modRateLimitToggle').checked,
+          rate_limit_requests: parseInt(document.getElementById('modRateLimitRequests').value) || 100,
+          rate_limit_window: document.getElementById('modRateLimitWindow').value || '1m',
+          custom_blocked_agents: document.getElementById('modCustomBlockedAgents').value
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s.length > 0)
         };
 
         const res = await fetch('/api/v1/sites/update', {
@@ -3422,6 +3664,197 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     function closeCronLogsModal() {
       document.getElementById('cronLogsModal').classList.remove('active');
       currentViewingCronId = null;
+    }
+
+    // ============================================
+    // GIT-OPS & AUTO-DEPLOY CONTROLLER
+    // ============================================
+    let cachedDeployHistory = [];
+
+    async function loadSiteDeployConfig(domain) {
+      if (!domain) return;
+      try {
+        const res = await fetch(`/api/v1/deploy/config?domain=${encodeURIComponent(domain)}`);
+        if (res.ok) {
+          const cfg = await res.json();
+          document.getElementById('modDeployRepoUrl').value = cfg.repo_url || '';
+          document.getElementById('modDeployBranch').value = cfg.branch || 'main';
+          document.getElementById('modDeploySymlinkToggle').checked = cfg.atomic_symlink !== false;
+          document.getElementById('modDeployAutoToggle').checked = cfg.auto_deploy !== false;
+          document.getElementById('modDeployBuildScript').value = cfg.build_script || '';
+          if (cfg.webhook_secret) {
+            document.getElementById('modDeployWebhookUrl').value = `${window.location.origin}/api/v1/deploy/webhook?token=${encodeURIComponent(cfg.webhook_secret)}`;
+          }
+        }
+      } catch (e) {
+        console.error('Error loading deploy config:', e);
+      }
+    }
+
+    async function saveSiteDeployConfig() {
+      if (!currentModSite) return;
+      const repoUrl = document.getElementById('modDeployRepoUrl').value.trim();
+      const branch = document.getElementById('modDeployBranch').value.trim() || 'main';
+      const atomicSymlink = document.getElementById('modDeploySymlinkToggle').checked;
+      const autoDeploy = document.getElementById('modDeployAutoToggle').checked;
+      const buildScript = document.getElementById('modDeployBuildScript').value.trim() || null;
+
+      const payload = {
+        domain: currentModSite.domain,
+        repo_url: repoUrl,
+        branch: branch,
+        atomic_symlink: atomicSymlink,
+        auto_deploy: autoDeploy,
+        build_script: buildScript
+      };
+
+      try {
+        const res = await fetch('/api/v1/deploy/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          if (updated.webhook_secret) {
+            document.getElementById('modDeployWebhookUrl').value = `${window.location.origin}/api/v1/deploy/webhook?token=${encodeURIComponent(updated.webhook_secret)}`;
+          }
+          showToast(currentLang === 'vi' ? 'Đã lưu cấu hình Git-Ops thành công!' : 'Git-Ops configuration saved successfully!', 'success');
+        } else {
+          showToast('Failed: ' + await res.text(), 'error');
+        }
+      } catch (e) {
+        showToast('Network error: ' + e.message, 'error');
+      }
+    }
+
+    async function triggerSiteDeploy() {
+      if (!currentModSite) return;
+      const btn = document.getElementById('btnTriggerDeploy');
+      const oldHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `⏳ <span>${currentLang === 'vi' ? 'Đang triển khai...' : 'Deploying...'}</span>`;
+
+      try {
+        const res = await fetch('/api/v1/deploy/trigger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: currentModSite.domain })
+        });
+        const result = await res.json();
+        if (res.ok && result.status === 'success') {
+          showToast(currentLang === 'vi' ? `Triển khai bản ${result.release_id} thành công!` : `Release ${result.release_id} deployed successfully!`, 'success');
+        } else {
+          showToast(currentLang === 'vi' ? `Triển khai thất bại: ${result.message || 'Lỗi quy trình'}` : `Deployment failed: ${result.message || 'Build error'}`, 'error');
+        }
+      } catch (e) {
+        showToast('Deploy error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+        loadSiteDeployHistory(currentModSite.domain);
+      }
+    }
+
+    async function loadSiteDeployHistory(domain) {
+      if (!domain) return;
+      const tbody = document.getElementById('modDeployHistoryTableBody');
+      try {
+        const res = await fetch(`/api/v1/deploy/history?domain=${encodeURIComponent(domain)}`);
+        if (!res.ok) return;
+        cachedDeployHistory = await res.json();
+        if (!cachedDeployHistory.length) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 1rem;">${currentLang === 'vi' ? 'Chưa có bản phát hành nào.' : 'No deployments yet.'}</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = cachedDeployHistory.map(rel => {
+          let badge = '<span class="badge badge-green">Success</span>';
+          if (rel.status === 'failed') badge = '<span class="badge badge-red">Failed</span>';
+          else if (rel.status === 'in_progress') badge = '<span class="badge badge-yellow">Building</span>';
+
+          const commitDisplay = rel.commit_hash ? rel.commit_hash.substring(0, 7) : '-';
+          const timeDisplay = new Date((rel.created_at || 0) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+          const rollbackBtn = (rel.status === 'success') ?
+            `<button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="rollbackSiteDeploy('${domain}', '${rel.id}')">Rollback</button>` : '';
+
+          return `
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.4rem 0.6rem; font-family: var(--font-mono); font-weight: 600; color: var(--cyan);">${rel.id}</td>
+              <td style="padding: 0.4rem 0.6rem; font-family: var(--font-mono);">${commitDisplay}</td>
+              <td style="padding: 0.4rem 0.6rem;">${badge}</td>
+              <td style="padding: 0.4rem 0.6rem; color: var(--text-muted);">${timeDisplay}</td>
+              <td style="padding: 0.4rem 0.6rem; text-align: right;">
+                <div style="display: inline-flex; gap: 0.3rem;">
+                  <button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="viewDeployReleaseLog('${rel.id}')">${t('btn_logs')}</button>
+                  ${rollbackBtn}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Error loading deploy history:', e);
+      }
+    }
+
+    async function rollbackSiteDeploy(domain, releaseId) {
+      const msg = currentLang === 'vi' ?
+        `Bạn có chắc chắn muốn hoàn tác website '${domain}' về bản phát hành ${releaseId}?` :
+        `Are you sure you want to rollback website '${domain}' to release ${releaseId}?`;
+      if (!confirm(msg)) return;
+
+      try {
+        const res = await fetch('/api/v1/deploy/rollback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: domain, release_id: releaseId })
+        });
+        const result = await res.json();
+        if (res.ok && result.status === 'success') {
+          showToast(currentLang === 'vi' ? `Hoàn tác về bản ${releaseId} hoàn tất trong < 1ms!` : `Rolled back to release ${releaseId} in < 1ms!`, 'success');
+          loadSiteDeployHistory(domain);
+        } else {
+          showToast('Rollback failed: ' + (result.message || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        showToast('Rollback network error: ' + e.message, 'error');
+      }
+    }
+
+    function viewDeployReleaseLog(releaseId) {
+      const rel = cachedDeployHistory.find(r => r.id === releaseId);
+      const pre = document.getElementById('deployLogContent');
+      if (rel && rel.output_log) {
+        pre.textContent = rel.output_log;
+      } else {
+        pre.textContent = 'No logs available for this release.';
+      }
+      document.getElementById('deployLogsModal').classList.add('active');
+    }
+
+    function closeDeployLogsModal() {
+      document.getElementById('deployLogsModal').classList.remove('active');
+    }
+
+    function copyWebhookUrl() {
+      const input = document.getElementById('modDeployWebhookUrl');
+      if (input && input.value) {
+        navigator.clipboard.writeText(input.value);
+        showToast(currentLang === 'vi' ? 'Đã sao chép Webhook URL vào bộ nhớ đệm!' : 'Webhook URL copied to clipboard!', 'info');
+      }
+    }
+
+    function setDeployPreset(preset) {
+      const area = document.getElementById('modDeployBuildScript');
+      if (preset === 'laravel') {
+        area.value = "composer install --no-dev --optimize-autoloader\nphp artisan config:cache\nphp artisan route:cache\nphp artisan view:cache\nphp artisan migrate --force";
+      } else if (preset === 'vite') {
+        area.value = "npm ci\nnpm run build";
+      } else if (preset === 'static') {
+        area.value = 'echo "Static assets synced."';
+      }
     }
 
     // Initial load

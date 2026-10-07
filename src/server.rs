@@ -1,5 +1,6 @@
 use crate::cron::{CronDatabase, CronJob};
 use crate::database::{DatabaseRecord, DatabaseStorage};
+use crate::deploy::DeployStorage;
 use crate::filemgr::FileManager;
 use crate::services::ServiceManager;
 use crate::site::{SiteDatabase, SiteKind, SiteRecord};
@@ -21,6 +22,8 @@ pub struct HttpServer {
     cron_db_path: String,
     database_db: Arc<Mutex<DatabaseStorage>>,
     database_db_path: String,
+    deploy_db: Arc<Mutex<DeployStorage>>,
+    deploy_db_path: String,
     telemetry: Arc<TelemetryCollector>,
 }
 
@@ -59,6 +62,13 @@ struct UpdateSitePayload {
     hotlink_protection: Option<bool>,
     hotlink_extensions: Option<String>,
     redirects: Option<Vec<crate::site::RedirectRule>>,
+    waf_enabled: Option<bool>,
+    bad_bot_blocking: Option<bool>,
+    sqli_xss_protection: Option<bool>,
+    rate_limit_enabled: Option<bool>,
+    rate_limit_requests: Option<u32>,
+    rate_limit_window: Option<String>,
+    custom_blocked_agents: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -111,13 +121,26 @@ struct CreateDatabasePayload {
     site: Option<String>,
 }
 
+#[derive(Deserialize)]
+struct TriggerDeployPayload {
+    domain: String,
+}
+
+#[derive(Deserialize)]
+struct RollbackDeployPayload {
+    domain: String,
+    release_id: String,
+}
+
 impl HttpServer {
     pub fn new(bind_addr: &str, db_path: &str) -> Self {
         let db = SiteDatabase::load_or_default(db_path);
         let cron_path = format!("{}_cron.json", db_path.trim_end_matches(".json"));
         let database_path = format!("{}_databases.json", db_path.trim_end_matches(".json"));
+        let deploy_path = format!("{}_deploy.json", db_path.trim_end_matches(".json"));
         let cron_db = CronDatabase::load_or_default(&cron_path);
         let database_db = DatabaseStorage::load_or_default(&database_path);
+        let deploy_db = DeployStorage::load_or_default(&deploy_path);
 
         Self {
             bind_addr: bind_addr.to_string(),
@@ -127,6 +150,8 @@ impl HttpServer {
             cron_db_path: cron_path,
             database_db: Arc::new(Mutex::new(database_db)),
             database_db_path: database_path,
+            deploy_db: Arc::new(Mutex::new(deploy_db)),
+            deploy_db_path: deploy_path,
             telemetry: Arc::new(TelemetryCollector::new()),
         }
     }
@@ -144,6 +169,8 @@ impl HttpServer {
                     let cron_db_path = self.cron_db_path.clone();
                     let database_db = Arc::clone(&self.database_db);
                     let database_db_path = self.database_db_path.clone();
+                    let deploy_db = Arc::clone(&self.deploy_db);
+                    let deploy_db_path = self.deploy_db_path.clone();
                     let telemetry = Arc::clone(&self.telemetry);
 
                     thread::spawn(move || {
@@ -155,6 +182,8 @@ impl HttpServer {
                             &cron_db_path,
                             database_db,
                             &database_db_path,
+                            deploy_db,
+                            &deploy_db_path,
                             telemetry,
                         ) {
                             eprintln!("Error handling connection: {e}");
@@ -178,6 +207,8 @@ fn handle_connection(
     cron_db_path: &str,
     database_db: Arc<Mutex<DatabaseStorage>>,
     database_db_path: &str,
+    deploy_db: Arc<Mutex<DeployStorage>>,
+    deploy_db_path: &str,
     telemetry: Arc<TelemetryCollector>,
 ) -> std::io::Result<()> {
     let mut reader = BufReader::new(&stream);
@@ -389,6 +420,27 @@ fn handle_connection(
             }
             if let Some(redirects) = payload.redirects {
                 record.redirects = redirects;
+            }
+            if let Some(waf) = payload.waf_enabled {
+                record.waf_enabled = waf;
+            }
+            if let Some(bot) = payload.bad_bot_blocking {
+                record.bad_bot_blocking = bot;
+            }
+            if let Some(sqli) = payload.sqli_xss_protection {
+                record.sqli_xss_protection = sqli;
+            }
+            if let Some(rate) = payload.rate_limit_enabled {
+                record.rate_limit_enabled = rate;
+            }
+            if let Some(reqs) = payload.rate_limit_requests {
+                record.rate_limit_requests = reqs;
+            }
+            if let Some(win) = payload.rate_limit_window {
+                record.rate_limit_window = win;
+            }
+            if let Some(agents) = payload.custom_blocked_agents {
+                record.custom_blocked_agents = agents;
             }
 
             let domain = payload.domain.clone();
@@ -914,6 +966,136 @@ fn handle_connection(
                     dump.as_bytes(),
                 ),
                 Err(err) => send_response(&mut stream, 404, "text/plain", err.as_bytes()),
+            }
+        }
+
+        // --- GIT-OPS DEPLOYMENT ROUTES ---
+        ("GET", "/api/v1/deploy/config") => {
+            let domain = parse_query_param(query, "domain").unwrap_or_default();
+            let guard = deploy_db.lock().unwrap();
+            let cfg =
+                guard
+                    .get_config(&domain)
+                    .cloned()
+                    .unwrap_or_else(|| crate::deploy::DeployConfig {
+                        domain: domain.clone(),
+                        ..Default::default()
+                    });
+            let json = serde_json::to_vec(&cfg).unwrap_or_default();
+            send_response(&mut stream, 200, "application/json", &json)
+        }
+
+        ("POST", "/api/v1/deploy/config") => {
+            let config: crate::deploy::DeployConfig = match serde_json::from_slice(&body) {
+                Ok(c) => c,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let mut guard = deploy_db.lock().unwrap();
+            guard.save_config(config);
+            let _ = guard.save(deploy_db_path);
+            send_response(
+                &mut stream,
+                200,
+                "application/json",
+                b"{\"status\":\"saved\"}",
+            )
+        }
+
+        ("POST", "/api/v1/deploy/trigger") => {
+            let payload: TriggerDeployPayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let site_root = {
+                let guard = db.lock().unwrap();
+                match guard.find_by_domain(&payload.domain) {
+                    Some(s) => s.root_path.clone(),
+                    None => {
+                        return send_response(&mut stream, 404, "text/plain", b"Site not found")
+                    }
+                }
+            };
+
+            let mut guard = deploy_db.lock().unwrap();
+            match guard.trigger_deploy(&payload.domain, &site_root, "manual") {
+                Ok(release) => {
+                    let _ = guard.save(deploy_db_path);
+                    let json = serde_json::to_vec(&release).unwrap_or_default();
+                    send_response(&mut stream, 200, "application/json", &json)
+                }
+                Err(err) => {
+                    let _ = guard.save(deploy_db_path);
+                    send_response(&mut stream, 500, "text/plain", err.as_bytes())
+                }
+            }
+        }
+
+        ("GET", "/api/v1/deploy/history") => {
+            let domain = parse_query_param(query, "domain").unwrap_or_default();
+            let guard = deploy_db.lock().unwrap();
+            let history = guard.list_history(&domain);
+            let json = serde_json::to_vec(&history).unwrap_or_default();
+            send_response(&mut stream, 200, "application/json", &json)
+        }
+
+        ("POST", "/api/v1/deploy/rollback") => {
+            let payload: RollbackDeployPayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let site_root = {
+                let guard = db.lock().unwrap();
+                match guard.find_by_domain(&payload.domain) {
+                    Some(s) => s.root_path.clone(),
+                    None => {
+                        return send_response(&mut stream, 404, "text/plain", b"Site not found")
+                    }
+                }
+            };
+
+            let mut guard = deploy_db.lock().unwrap();
+            match guard.rollback(&payload.domain, &site_root, &payload.release_id) {
+                Ok(release) => {
+                    let _ = guard.save(deploy_db_path);
+                    let json = serde_json::to_vec(&release).unwrap_or_default();
+                    send_response(&mut stream, 200, "application/json", &json)
+                }
+                Err(err) => send_response(&mut stream, 500, "text/plain", err.as_bytes()),
+            }
+        }
+
+        ("POST", "/api/v1/deploy/webhook") => {
+            let domain = parse_query_param(query, "domain").unwrap_or_default();
+            let site_root = {
+                let guard = db.lock().unwrap();
+                match guard.find_by_domain(&domain) {
+                    Some(s) => s.root_path.clone(),
+                    None => {
+                        return send_response(&mut stream, 404, "text/plain", b"Site not found")
+                    }
+                }
+            };
+
+            let mut guard = deploy_db.lock().unwrap();
+            match guard.trigger_deploy(&domain, &site_root, "webhook") {
+                Ok(release) => {
+                    let _ = guard.save(deploy_db_path);
+                    let json = serde_json::to_vec(&release).unwrap_or_default();
+                    send_response(&mut stream, 200, "application/json", &json)
+                }
+                Err(err) => {
+                    let _ = guard.save(deploy_db_path);
+                    send_response(&mut stream, 500, "text/plain", err.as_bytes())
+                }
             }
         }
 

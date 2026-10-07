@@ -5,6 +5,7 @@
 pub mod cli;
 pub mod cron;
 pub mod database;
+pub mod deploy;
 pub mod filemgr;
 pub mod server;
 pub mod services;

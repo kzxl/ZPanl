@@ -25,6 +25,14 @@ fn default_redirect_code() -> u16 {
     301
 }
 
+fn default_rate_limit_requests() -> u32 {
+    60
+}
+
+fn default_rate_limit_window() -> String {
+    "1m".to_string()
+}
+
 /// URL Redirect mapping rule.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RedirectRule {
@@ -70,6 +78,20 @@ pub struct SiteRecord {
     pub hotlink_extensions: Option<String>,
     #[serde(default)]
     pub redirects: Vec<RedirectRule>,
+    #[serde(default)]
+    pub waf_enabled: bool,
+    #[serde(default)]
+    pub bad_bot_blocking: bool,
+    #[serde(default)]
+    pub sqli_xss_protection: bool,
+    #[serde(default)]
+    pub rate_limit_enabled: bool,
+    #[serde(default = "default_rate_limit_requests")]
+    pub rate_limit_requests: u32,
+    #[serde(default = "default_rate_limit_window")]
+    pub rate_limit_window: String,
+    #[serde(default)]
+    pub custom_blocked_agents: Vec<String>,
     pub created_at: u64,
 }
 
@@ -95,6 +117,13 @@ impl Default for SiteRecord {
             hotlink_protection: false,
             hotlink_extensions: None,
             redirects: Vec::new(),
+            waf_enabled: false,
+            bad_bot_blocking: false,
+            sqli_xss_protection: false,
+            rate_limit_enabled: false,
+            rate_limit_requests: 60,
+            rate_limit_window: "1m".to_string(),
+            custom_blocked_agents: Vec::new(),
             created_at: 0,
         }
     }
@@ -275,6 +304,61 @@ impl SiteDatabase {
             out.push_str(&format!(
                 "    @hotlink {{\n        path {exts}\n        not header Referer *{}*\n        not header Referer \"\"\n    }}\n    respond @hotlink 403\n",
                 site.domain
+            ));
+        }
+
+        // WAF: Known Scrapers & Bad Bot Blocker
+        if site.waf_enabled || site.bad_bot_blocking {
+            out.push_str("    # WAF: Known Scrapers & Bad Bot Blocker\n");
+            out.push_str("    @bad_bots {\n");
+            out.push_str("        header User-Agent *AhrefsBot*\n");
+            out.push_str("        header User-Agent *SemrushBot*\n");
+            out.push_str("        header User-Agent *ByteSpider*\n");
+            out.push_str("        header User-Agent *MJ12bot*\n");
+            out.push_str("        header User-Agent *DotBot*\n");
+            out.push_str("        header User-Agent *PetalBot*\n");
+            out.push_str("    }\n");
+            out.push_str("    respond @bad_bots 403\n");
+        }
+
+        // WAF: Custom Blocked User Agents
+        let valid_custom_bots: Vec<&str> = site
+            .custom_blocked_agents
+            .iter()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect();
+        if !valid_custom_bots.is_empty() {
+            out.push_str("    # WAF: Custom Blocked User Agents\n");
+            out.push_str("    @custom_bots {\n");
+            for agent in valid_custom_bots {
+                out.push_str(&format!("        header User-Agent *{agent}*\n"));
+            }
+            out.push_str("    }\n");
+            out.push_str("    respond @custom_bots 403\n");
+        }
+
+        // WAF: Heuristic SQLi / XSS Attack Shield
+        if site.waf_enabled || site.sqli_xss_protection {
+            out.push_str("    # WAF: Heuristic SQLi & XSS Exploit Shield\n");
+            out.push_str("    @exploit_patterns {\n");
+            out.push_str("        query *union*select*\n");
+            out.push_str("        query *information_schema*\n");
+            out.push_str("        query *<script*\n");
+            out.push_str("        query *base64_*\n");
+            out.push_str(
+                "        path_regexp exploit (?i)(\\.\\./|etc/passwd|/proc/self|eval\\(|eval\\=)\n",
+            );
+            out.push_str("    }\n");
+            out.push_str("    respond @exploit_patterns 403\n");
+        }
+
+        // WAF: Rate Limiting Throttler
+        if site.waf_enabled || site.rate_limit_enabled {
+            out.push_str("    # WAF: Request Velocity Rate Limiter\n");
+            out.push_str(&format!(
+                "    rate_limit {{\n        remote_ip rate {} {}\n    }}\n",
+                site.rate_limit_requests, site.rate_limit_window
             ));
         }
 
