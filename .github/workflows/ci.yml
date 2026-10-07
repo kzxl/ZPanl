@@ -1,0 +1,48 @@
+name: ZPanl CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Build & Test (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ZPanl
+        uses: actions/checkout@v4
+        with:
+          path: ZeroApps/ZPanl
+
+      - name: Checkout ZeroRust
+        uses: actions/checkout@v4
+        with:
+          repository: kzxl/ZeroRust
+          path: ZeroRust
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: Check Formatting
+        working-directory: ZeroApps/ZPanl
+        run: cargo fmt --all -- --check
+
+      - name: Build ZPanl
+        working-directory: ZeroApps/ZPanl
+        run: cargo build --verbose
+
+      - name: Run Integration Tests
+        working-directory: ZeroApps/ZPanl
+        run: cargo test --verbose
+
+      - name: Clippy Linter
+        working-directory: ZeroApps/ZPanl
+        run: cargo clippy --all-targets -- -D warnings
