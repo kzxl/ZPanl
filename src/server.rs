@@ -1,3 +1,5 @@
+use crate::cron::{CronDatabase, CronJob};
+use crate::database::{DatabaseRecord, DatabaseStorage};
 use crate::filemgr::FileManager;
 use crate::services::ServiceManager;
 use crate::site::{SiteDatabase, SiteKind, SiteRecord};
@@ -15,6 +17,10 @@ pub struct HttpServer {
     bind_addr: String,
     db: Arc<Mutex<SiteDatabase>>,
     db_path: String,
+    cron_db: Arc<Mutex<CronDatabase>>,
+    cron_db_path: String,
+    database_db: Arc<Mutex<DatabaseStorage>>,
+    database_db_path: String,
     telemetry: Arc<TelemetryCollector>,
 }
 
@@ -81,13 +87,46 @@ struct FileCreatePayload {
     is_dir: bool,
 }
 
+#[derive(Deserialize)]
+struct CreateCronPayload {
+    name: String,
+    schedule: String,
+    command: String,
+    site: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct CronActionPayload {
+    id: String,
+}
+
+#[derive(Deserialize)]
+struct CreateDatabasePayload {
+    name: String,
+    engine: Option<String>,
+    username: Option<String>,
+    password: Option<String>,
+    host: Option<String>,
+    collation: Option<String>,
+    site: Option<String>,
+}
+
 impl HttpServer {
     pub fn new(bind_addr: &str, db_path: &str) -> Self {
         let db = SiteDatabase::load_or_default(db_path);
+        let cron_path = format!("{}_cron.json", db_path.trim_end_matches(".json"));
+        let database_path = format!("{}_databases.json", db_path.trim_end_matches(".json"));
+        let cron_db = CronDatabase::load_or_default(&cron_path);
+        let database_db = DatabaseStorage::load_or_default(&database_path);
+
         Self {
             bind_addr: bind_addr.to_string(),
             db: Arc::new(Mutex::new(db)),
             db_path: db_path.to_string(),
+            cron_db: Arc::new(Mutex::new(cron_db)),
+            cron_db_path: cron_path,
+            database_db: Arc::new(Mutex::new(database_db)),
+            database_db_path: database_path,
             telemetry: Arc::new(TelemetryCollector::new()),
         }
     }
@@ -101,10 +140,23 @@ impl HttpServer {
                 Ok(stream) => {
                     let db = Arc::clone(&self.db);
                     let db_path = self.db_path.clone();
+                    let cron_db = Arc::clone(&self.cron_db);
+                    let cron_db_path = self.cron_db_path.clone();
+                    let database_db = Arc::clone(&self.database_db);
+                    let database_db_path = self.database_db_path.clone();
                     let telemetry = Arc::clone(&self.telemetry);
 
                     thread::spawn(move || {
-                        if let Err(e) = handle_connection(stream, db, &db_path, telemetry) {
+                        if let Err(e) = handle_connection(
+                            stream,
+                            db,
+                            &db_path,
+                            cron_db,
+                            &cron_db_path,
+                            database_db,
+                            &database_db_path,
+                            telemetry,
+                        ) {
                             eprintln!("Error handling connection: {e}");
                         }
                     });
@@ -117,10 +169,15 @@ impl HttpServer {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn handle_connection(
     mut stream: TcpStream,
     db: Arc<Mutex<SiteDatabase>>,
     db_path: &str,
+    cron_db: Arc<Mutex<CronDatabase>>,
+    cron_db_path: &str,
+    database_db: Arc<Mutex<DatabaseStorage>>,
+    database_db_path: &str,
     telemetry: Arc<TelemetryCollector>,
 ) -> std::io::Result<()> {
     let mut reader = BufReader::new(&stream);
@@ -614,6 +671,249 @@ fn handle_connection(
                     b"{\"status\":\"created\"}",
                 ),
                 Err(err) => send_response(&mut stream, 400, "text/plain", err.as_bytes()),
+            }
+        }
+
+        // --- CRON JOB ROUTES ---
+        ("GET", "/api/v1/cron") => {
+            let guard = cron_db.lock().unwrap();
+            let json = serde_json::to_vec(guard.list()).unwrap_or_default();
+            send_response(&mut stream, 200, "application/json", &json)
+        }
+
+        ("POST", "/api/v1/cron") => {
+            let payload: CreateCronPayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let now = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0);
+
+            let job = CronJob {
+                id: format!("cron_{}", now),
+                name: payload.name,
+                schedule: payload.schedule,
+                command: payload.command,
+                site: payload.site,
+                enabled: true,
+                created_at: now,
+                last_run_at: None,
+                last_status: None,
+                last_output: None,
+            };
+
+            let mut guard = cron_db.lock().unwrap();
+            match guard.add(job) {
+                Ok(()) => {
+                    let _ = guard.save(cron_db_path);
+                    send_response(
+                        &mut stream,
+                        200,
+                        "application/json",
+                        b"{\"status\":\"created\"}",
+                    )
+                }
+                Err(err) => send_response(&mut stream, 400, "text/plain", err.as_bytes()),
+            }
+        }
+
+        ("POST", "/api/v1/cron/run") => {
+            let payload: CronActionPayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let mut guard = cron_db.lock().unwrap();
+            match guard.execute_job(&payload.id) {
+                Ok(output) => {
+                    let _ = guard.save(cron_db_path);
+                    let resp = serde_json::json!({
+                        "status": "success",
+                        "output": output
+                    });
+                    let json = serde_json::to_vec(&resp).unwrap_or_default();
+                    send_response(&mut stream, 200, "application/json", &json)
+                }
+                Err(err) => {
+                    let _ = guard.save(cron_db_path);
+                    send_response(&mut stream, 500, "text/plain", err.as_bytes())
+                }
+            }
+        }
+
+        ("POST", "/api/v1/cron/toggle") => {
+            let payload: CronActionPayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let mut guard = cron_db.lock().unwrap();
+            match guard.toggle(&payload.id) {
+                Some(enabled) => {
+                    let _ = guard.save(cron_db_path);
+                    let resp = serde_json::json!({ "enabled": enabled });
+                    let json = serde_json::to_vec(&resp).unwrap_or_default();
+                    send_response(&mut stream, 200, "application/json", &json)
+                }
+                None => send_response(&mut stream, 404, "text/plain", b"Job not found"),
+            }
+        }
+
+        ("DELETE", "/api/v1/cron") => {
+            let id = match parse_query_param(query, "id") {
+                Some(i) => i,
+                None => {
+                    return send_response(&mut stream, 400, "text/plain", b"Missing 'id' parameter")
+                }
+            };
+
+            let mut guard = cron_db.lock().unwrap();
+            if guard.delete(&id) {
+                let _ = guard.save(cron_db_path);
+                send_response(
+                    &mut stream,
+                    200,
+                    "application/json",
+                    b"{\"status\":\"deleted\"}",
+                )
+            } else {
+                send_response(&mut stream, 404, "text/plain", b"Job not found")
+            }
+        }
+
+        ("GET", "/api/v1/cron/logs") => {
+            let id = match parse_query_param(query, "id") {
+                Some(i) => i,
+                None => {
+                    return send_response(&mut stream, 400, "text/plain", b"Missing 'id' parameter")
+                }
+            };
+
+            let guard = cron_db.lock().unwrap();
+            match guard.get_logs(&id) {
+                Some(logs) => send_response(
+                    &mut stream,
+                    200,
+                    "text/plain; charset=utf-8",
+                    logs.as_bytes(),
+                ),
+                None => send_response(
+                    &mut stream,
+                    200,
+                    "text/plain; charset=utf-8",
+                    b"No logs recorded yet for this task.",
+                ),
+            }
+        }
+
+        // --- DATABASE ROUTES ---
+        ("GET", "/api/v1/databases") => {
+            let guard = database_db.lock().unwrap();
+            let json = serde_json::to_vec(guard.list()).unwrap_or_default();
+            send_response(&mut stream, 200, "application/json", &json)
+        }
+
+        ("POST", "/api/v1/databases") => {
+            let payload: CreateDatabasePayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let now = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0);
+
+            let record = DatabaseRecord {
+                id: format!("db_{}", now),
+                name: payload.name,
+                engine: payload.engine.unwrap_or_else(|| "mysql".to_string()),
+                username: payload.username.unwrap_or_else(|| "root".to_string()),
+                password: payload.password,
+                host: payload.host.unwrap_or_else(|| "127.0.0.1".to_string()),
+                collation: payload
+                    .collation
+                    .unwrap_or_else(|| "utf8mb4_unicode_ci".to_string()),
+                site: payload.site,
+                size_bytes: 1024 * 16,
+                created_at: now,
+            };
+
+            let mut guard = database_db.lock().unwrap();
+            match guard.add(record) {
+                Ok(()) => {
+                    let _ = guard.save(database_db_path);
+                    send_response(
+                        &mut stream,
+                        200,
+                        "application/json",
+                        b"{\"status\":\"created\"}",
+                    )
+                }
+                Err(err) => send_response(&mut stream, 400, "text/plain", err.as_bytes()),
+            }
+        }
+
+        ("DELETE", "/api/v1/databases") => {
+            let name = match parse_query_param(query, "name") {
+                Some(n) => n,
+                None => {
+                    return send_response(
+                        &mut stream,
+                        400,
+                        "text/plain",
+                        b"Missing 'name' parameter",
+                    )
+                }
+            };
+
+            let mut guard = database_db.lock().unwrap();
+            if guard.delete(&name) {
+                let _ = guard.save(database_db_path);
+                send_response(
+                    &mut stream,
+                    200,
+                    "application/json",
+                    b"{\"status\":\"deleted\"}",
+                )
+            } else {
+                send_response(&mut stream, 404, "text/plain", b"Database not found")
+            }
+        }
+
+        ("GET", "/api/v1/databases/backup") => {
+            let name = match parse_query_param(query, "name") {
+                Some(n) => n,
+                None => {
+                    return send_response(
+                        &mut stream,
+                        400,
+                        "text/plain",
+                        b"Missing 'name' parameter",
+                    )
+                }
+            };
+
+            let guard = database_db.lock().unwrap();
+            match guard.generate_dump(&name) {
+                Ok(dump) => send_response(
+                    &mut stream,
+                    200,
+                    "application/sql; charset=utf-8",
+                    dump.as_bytes(),
+                ),
+                Err(err) => send_response(&mut stream, 404, "text/plain", err.as_bytes()),
             }
         }
 

@@ -780,6 +780,27 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           </li>
         </ul>
       </div>
+
+      <!-- DATA & AUTOMATION -->
+      <div>
+        <div class="nav-group-title" data-i18n="nav_data_group">Data &amp; Automation</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button onclick="switchTab('databases')">
+              <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zm6 5.27c-.72.48-1.89.96-3.4 1.25-.8.15-1.68.23-2.6.23s-1.8-.08-2.6-.23c-1.51-.29-2.68-.77-3.4-1.25V9.4c1.19.86 3.39 1.35 6 1.35s4.81-.49 6-1.35v1.87zm0 5c-.72.48-1.89.96-3.4 1.25-.8.15-1.68.23-2.6.23s-1.8-.08-2.6-.23c-1.51-.29-2.68-.77-3.4-1.25v-1.87c1.19.86 3.39 1.35 6 1.35s4.81-.49 6-1.35v1.87z"/></svg>
+              <span data-i18n="nav_databases">Databases</span>
+              <span class="nav-badge" id="navDatabasesCount">0</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('cron')">
+              <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+              <span data-i18n="nav_cron">Cron Tasks</span>
+              <span class="nav-badge" id="navCronCount">0</span>
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- SIDEBAR FOOTER -->
@@ -1067,6 +1088,74 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           </div>
         </div>
         <pre class="code-block" id="phpPoolConfigContent">Select a PHP website above to inspect its pool.d/*.conf configuration.</pre>
+      </div>
+
+      <!-- TAB 7: DATABASES -->
+      <div id="tab-databases" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="databases_title">Database Management</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="databases_subtitle">Managed relational databases with one-click SQL dumps and access credentials</div>
+          </div>
+          <div class="toolbar-actions">
+            <input type="text" id="dbSearchInput" class="search-input" placeholder="Search database..." data-i18n-placeholder="search_db_placeholder" oninput="filterDatabasesTable()">
+            <button class="btn" onclick="openAddDatabaseModal()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span data-i18n="add_db_btn">Add Database</span>
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_db_name">Database Name</th>
+                <th data-i18n="th_db_engine">Engine</th>
+                <th data-i18n="th_db_user">Username</th>
+                <th data-i18n="th_db_host">Access Host</th>
+                <th data-i18n="th_db_site">Linked Site</th>
+                <th data-i18n="th_db_size">Size</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="databasesTableBody">
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="loading_databases">Loading databases...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 8: CRON TASKS -->
+      <div id="tab-cron" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="cron_title">Scheduled Tasks &amp; Crontab</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="cron_subtitle">Precision recurring background automation, shell maintenance, and framework schedules</div>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn" onclick="openAddCronModal()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span data-i18n="add_cron_btn">Add Cron Job</span>
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_cron_name">Task Name</th>
+                <th data-i18n="th_cron_schedule">Schedule</th>
+                <th data-i18n="th_cron_command">Command</th>
+                <th data-i18n="th_cron_status">Last Status</th>
+                <th data-i18n="th_cron_last_run">Last Executed</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cronTableBody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="loading_cron">Loading scheduled tasks...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   </div>
@@ -1463,6 +1552,134 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- MODAL: ADD DATABASE -->
+  <div id="addDatabaseModal" class="modal">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 data-i18n="modal_add_db_title">Create Relational Database</h3>
+        <button class="modal-close" onclick="closeAddDatabaseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="modal_db_name">Database Name</label>
+          <input id="newDbName" class="form-input" placeholder="e.g. blog_db">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label data-i18n="modal_db_engine">Database Engine</label>
+            <select id="newDbEngine" class="form-select">
+              <option value="mysql">MySQL 8.0</option>
+              <option value="mariadb">MariaDB 10.11 LTS</option>
+              <option value="sqlite">SQLite 3 (Embedded)</option>
+              <option value="postgres">PostgreSQL 16</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-i18n="modal_db_collation">Collation</label>
+            <select id="newDbCollation" class="form-select">
+              <option value="utf8mb4_unicode_ci" selected>utf8mb4_unicode_ci</option>
+              <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
+              <option value="utf8_general_ci">utf8_general_ci</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_db_user">Username</label>
+          <input id="newDbUser" class="form-input" value="root">
+        </div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label data-i18n="modal_db_pass">Password</label>
+            <a href="javascript:void(0)" style="font-size: 0.75rem; color: var(--cyan);" onclick="generateRandomPassword()" data-i18n="btn_generate_pass">Generate 16-char Key</a>
+          </div>
+          <input id="newDbPass" class="form-input" placeholder="••••••••••••••••">
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_db_host">Access Permission</label>
+          <select id="newDbHost" class="form-select">
+            <option value="127.0.0.1" selected>127.0.0.1 (Localhost only - Secure)</option>
+            <option value="%">% (Any remote host / External clients)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_db_site">Linked Website (Optional)</label>
+          <select id="newDbSite" class="form-select"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddDatabaseModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateDatabase()" data-i18n="btn_create_db">Create Database</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD CRON JOB -->
+  <div id="addCronModal" class="modal">
+    <div class="modal-box" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 data-i18n="modal_add_cron_title">Schedule Recurring Task</h3>
+        <button class="modal-close" onclick="closeAddCronModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="modal_cron_name">Task Name</label>
+          <input id="newCronName" class="form-input" placeholder="e.g. Laravel Schedule Worker">
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_preset">Schedule Preset</label>
+          <select id="newCronPreset" class="form-select" onchange="onCronPresetChange()">
+            <option value="* * * * *">Every Minute (* * * * *)</option>
+            <option value="0 * * * *">Every Hour (0 * * * *)</option>
+            <option value="0 0 * * *">Daily at Midnight (0 0 * * *)</option>
+            <option value="0 0 * * 0">Weekly on Sunday (0 0 * * 0)</option>
+            <option value="0 0 1 * *">Monthly on the 1st (0 0 1 * *)</option>
+            <option value="*/15 * * * *">WordPress Cron (Every 15 mins)</option>
+            <option value="custom">Custom Expression...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_expr">Cron Expression (Min Hour Day Month Week)</label>
+          <input id="newCronSchedule" class="form-input" value="* * * * *" style="font-family: var(--font-mono); color: var(--cyan-glow);">
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_cmd">Execute Command</label>
+          <textarea id="newCronCommand" class="form-input" style="height: 75px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="php /var/www/site/artisan schedule:run >> /dev/null 2>&1"></textarea>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="cron_cmd_hint">
+            Standard POSIX shell command executed directly on host environment.
+          </div>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_site">Associated Website (Optional)</label>
+          <select id="newCronSite" class="form-select"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddCronModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateCronJob()" data-i18n="btn_create_cron">Add Scheduled Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CRON LOGS -->
+  <div id="cronLogsModal" class="modal">
+    <div class="modal-box" style="max-width: 720px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: var(--cyan);"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <span data-i18n="modal_cron_log_title">Task Execution Output Log</span>
+        </div>
+        <button class="modal-close" onclick="closeCronLogsModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <pre id="cronLogContent" class="code-block" style="height: 320px; margin: 0; line-height: 1.5; font-size: 0.8rem; overflow-y: auto;">Loading logs...</pre>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button class="btn btn-secondary" onclick="refreshCronLogs()" data-i18n="refresh_btn">Refresh</button>
+        <button class="btn" onclick="closeCronLogsModal()" data-i18n="btn_close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -1472,6 +1689,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     let isCreatingDir = false;
     let editingRelPath = '';
     let allSites = [];
+    let allDatabases = [];
+    let allCronJobs = [];
+    let currentViewingCronId = null;
 
     let currentLang = localStorage.getItem('zpanl_lang') || 'vi';
 
@@ -1485,6 +1705,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         nav_services: 'Services',
         nav_caddyfile: 'Caddyfile',
         nav_php_pools: 'PHP-FPM Pools',
+        nav_data_group: 'Data & Automation',
+        nav_databases: 'Databases',
+        nav_cron: 'Cron Tasks',
         nav_online: 'Linux /proc Native',
         nav_footprint: 'Footprint: &lt; 10 MB RAM',
         deploy_site: 'Deploy Site',
@@ -1525,6 +1748,60 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         php_subtitle: 'Isolated on-demand fastcgi worker pools generated by zero-fastcgi',
         select_site_php: 'Select Site to Inspect PHP Pool Configuration',
         view_pool_ini: 'View Pool INI',
+        databases_title: 'Database Management',
+        databases_subtitle: 'Managed relational databases with one-click SQL dumps and access credentials',
+        search_db_placeholder: 'Search database...',
+        add_db_btn: 'Add Database',
+        loading_databases: 'Loading databases...',
+        no_databases: 'No databases created yet. Click "+ Add Database" to create one!',
+        th_db_name: 'Database Name',
+        th_db_engine: 'Engine',
+        th_db_user: 'Username',
+        th_db_host: 'Access Host',
+        th_db_site: 'Linked Site',
+        th_db_size: 'Size',
+        modal_add_db_title: 'Create Relational Database',
+        modal_db_name: 'Database Name',
+        modal_db_engine: 'Database Engine',
+        modal_db_collation: 'Collation',
+        modal_db_user: 'Username',
+        modal_db_pass: 'Password',
+        btn_generate_pass: 'Generate 16-char Key',
+        modal_db_host: 'Access Permission',
+        modal_db_site: 'Linked Website (Optional)',
+        btn_create_db: 'Create Database',
+        btn_backup: 'Backup SQL',
+        confirm_delete_db: "Are you sure you want to drop database '{name}'? This action cannot be undone.",
+        db_created: "Database '{name}' created successfully!",
+        db_deleted: "Database '{name}' deleted",
+        db_backup_success: "SQL dump for '{name}' downloaded successfully",
+        cron_title: 'Scheduled Tasks & Crontab',
+        cron_subtitle: 'Precision recurring background automation, shell maintenance, and framework schedules',
+        add_cron_btn: 'Add Cron Job',
+        loading_cron: 'Loading scheduled tasks...',
+        no_cron: 'No scheduled tasks registered. Click "+ Add Cron Job" to create one!',
+        th_cron_name: 'Task Name',
+        th_cron_schedule: 'Schedule',
+        th_cron_command: 'Command',
+        th_cron_status: 'Last Status',
+        th_cron_last_run: 'Last Executed',
+        modal_add_cron_title: 'Schedule Recurring Task',
+        modal_cron_name: 'Task Name',
+        modal_cron_preset: 'Schedule Preset',
+        modal_cron_expr: 'Cron Expression (Min Hour Day Month Week)',
+        modal_cron_cmd: 'Execute Command',
+        cron_cmd_hint: 'Standard POSIX shell command executed directly on host environment.',
+        modal_cron_site: 'Associated Website (Optional)',
+        btn_create_cron: 'Add Scheduled Task',
+        modal_cron_log_title: 'Task Execution Output Log',
+        btn_run_now: 'Run Now',
+        btn_logs: 'Logs',
+        btn_enable: 'Enable',
+        btn_disable: 'Disable',
+        confirm_delete_cron: "Are you sure you want to delete task '{name}'?",
+        cron_created: "Task '{name}' scheduled successfully!",
+        cron_deleted: "Task '{name}' deleted",
+        cron_triggered: "Task triggered! Check logs for real-time output.",
         modal_add_title: 'Deploy New Virtual Host',
         modal_domain_label: 'Fully Qualified Domain Name',
         modal_app_type: 'Application Type',
@@ -1623,6 +1900,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         nav_services: 'Dịch Vụ',
         nav_caddyfile: 'Cấu Hình Caddy',
         nav_php_pools: 'Cụm Worker PHP',
+        nav_data_group: 'Dữ Liệu & Tự Động Hóa',
+        nav_databases: 'Cơ Sở Dữ Liệu',
+        nav_cron: 'Tác Vụ Định Kỳ',
         nav_online: 'Linux /proc Chuẩn',
         nav_footprint: 'Dung lượng: &lt; 10 MB RAM',
         deploy_site: 'Thêm Website',
@@ -1663,6 +1943,60 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         php_subtitle: 'Các worker FastCGI theo yêu cầu tách biệt tạo bởi zero-fastcgi',
         select_site_php: 'Chọn Website Để Xem Cấu Hình PHP Pool',
         view_pool_ini: 'Xem Cấu Hình INI',
+        databases_title: 'Quản Lý Cơ Sở Dữ Liệu',
+        databases_subtitle: 'Quản lý cơ sở dữ liệu quan hệ, sao lưu .SQL 1-click và thông tin truy cập',
+        search_db_placeholder: 'Tìm kiếm cơ sở dữ liệu...',
+        add_db_btn: 'Thêm Cơ Sở Dữ Liệu',
+        loading_databases: 'Đang tải danh sách CSDL...',
+        no_databases: 'Chưa có CSDL nào được tạo. Bấm "+ Thêm Cơ Sở Dữ Liệu" để bắt đầu!',
+        th_db_name: 'Tên CSDL',
+        th_db_engine: 'Động Cơ',
+        th_db_user: 'Tài Khoản',
+        th_db_host: 'Quyền Truy Cập',
+        th_db_site: 'Website Liên Kết',
+        th_db_size: 'Dung Lượng',
+        modal_add_db_title: 'Khởi Tạo Cơ Sở Dữ Liệu',
+        modal_db_name: 'Tên Cơ Sở Dữ Liệu',
+        modal_db_engine: 'Loại Động Cơ CSDL',
+        modal_db_collation: 'Bảng Mã (Collation)',
+        modal_db_user: 'Tài Khoản Người Dùng',
+        modal_db_pass: 'Mật Khẩu',
+        btn_generate_pass: 'Tạo ngẫu nhiên 16 ký tự',
+        modal_db_host: 'Phạm Vi Truy Cập',
+        modal_db_site: 'Website Liên Kết (Tùy chọn)',
+        btn_create_db: 'Tạo CSDL',
+        btn_backup: 'Sao Lưu SQL',
+        confirm_delete_db: "Bạn có chắc chắn muốn xóa CSDL '{name}' không? Hành động này không thể hoàn tác.",
+        db_created: "Cơ sở dữ liệu '{name}' đã được tạo thành công!",
+        db_deleted: "Cơ sở dữ liệu '{name}' đã bị xóa",
+        db_backup_success: "Đã tải xuống bản sao lưu SQL cho '{name}'",
+        cron_title: 'Lập Lịch Tác Vụ & Crontab',
+        cron_subtitle: 'Tự động hóa tác vụ nền định kỳ, bảo trì hệ thống và lịch chạy framework',
+        add_cron_btn: 'Thêm Tác Vụ',
+        loading_cron: 'Đang tải danh sách tác vụ...',
+        no_cron: 'Chưa có tác vụ định kỳ nào. Bấm "+ Thêm Tác Vụ" để bắt đầu!',
+        th_cron_name: 'Tên Tác Vụ',
+        th_cron_schedule: 'Lịch Chạy',
+        th_cron_command: 'Lệnh Thực Thi',
+        th_cron_status: 'Trạng Thái Cuối',
+        th_cron_last_run: 'Lần Chạy Cuối',
+        modal_add_cron_title: 'Lập Lịch Tác Vụ Mới',
+        modal_cron_name: 'Tên Tác Vụ',
+        modal_cron_preset: 'Mẫu Định Kỳ Thường Dùng',
+        modal_cron_expr: 'Biểu Thức Cron (Phút Giờ Ngày Tháng Thứ)',
+        modal_cron_cmd: 'Câu Lệnh Thực Thi',
+        cron_cmd_hint: 'Câu lệnh shell chuẩn được thực thi trực tiếp trên môi trường máy chủ.',
+        modal_cron_site: 'Website Liên Kết (Tùy chọn)',
+        btn_create_cron: 'Thêm Tác Vụ Định Kỳ',
+        modal_cron_log_title: 'Nhật Ký Thực Thi Tác Vụ',
+        btn_run_now: 'Chạy Ngay',
+        btn_logs: 'Nhật Ký',
+        btn_enable: 'Bật',
+        btn_disable: 'Tắt',
+        confirm_delete_cron: "Bạn có chắc chắn muốn xóa tác vụ '{name}' không?",
+        cron_created: "Tác vụ '{name}' đã được thêm vào lịch trình!",
+        cron_deleted: "Tác vụ '{name}' đã bị xóa",
+        cron_triggered: "Tác vụ đã được kích hoạt! Kiểm tra nhật ký để xem kết quả.",
         modal_add_title: 'Khởi Tạo Website Mới',
         modal_domain_label: 'Tên Miền Đầy Đủ (FQDN)',
         modal_app_type: 'Thể Loại Ứng Dụng',
@@ -1773,6 +2107,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       if (currentTab === 'overview') renderOverviewTable(allSites);
       if (currentTab === 'files') loadSiteFiles();
       if (currentTab === 'services') loadServices();
+      if (currentTab === 'databases') renderDatabasesTable(allDatabases);
+      if (currentTab === 'cron') renderCronTable(allCronJobs);
     }
 
     function updateLanguageUI() {
@@ -1816,7 +2152,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       files: { en: 'File Manager', vi: 'Quản Lý Tệp Tin' },
       services: { en: 'Systemd Services', vi: 'Dịch Vụ Hệ Thống' },
       caddy: { en: 'Reverse Proxy Caddyfile', vi: 'Cấu Hình Caddyfile' },
-      php: { en: 'PHP-FPM Worker Pools', vi: 'Cụm Worker PHP-FPM' }
+      php: { en: 'PHP-FPM Worker Pools', vi: 'Cụm Worker PHP-FPM' },
+      databases: { en: 'Database Management', vi: 'Quản Lý Cơ Sở Dữ Liệu' },
+      cron: { en: 'Scheduled Tasks & Crontab', vi: 'Lập Lịch Tác Vụ & Crontab' }
     };
 
     function showToast(message, type = 'info') {
@@ -1851,6 +2189,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       if (tab === 'services') loadServices();
       if (tab === 'caddy') loadCaddyfile();
       if (tab === 'php') initPhpTab();
+      if (tab === 'databases') loadDatabases();
+      if (tab === 'cron') loadCronJobs();
     }
 
     // Telemetry Polling & Radial Gauges
@@ -2689,10 +3029,407 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       }
     }
 
+    // ============================================
+    // DATABASE MANAGEMENT CONTROLLER
+    // ============================================
+    async function loadDatabases() {
+      try {
+        const res = await fetch('/api/v1/databases');
+        if (!res.ok) return;
+        allDatabases = await res.json();
+        const badge = document.getElementById('navDatabasesCount');
+        if (badge) badge.textContent = allDatabases.length;
+        renderDatabasesTable(allDatabases);
+      } catch (e) {
+        console.error('Error loading databases:', e);
+      }
+    }
+
+    function renderDatabasesTable(dbs) {
+      const tbody = document.getElementById('databasesTableBody');
+      if (!tbody) return;
+      if (!dbs || !dbs.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">${t('no_databases')}</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = dbs.map(d => {
+        let engineBadge = '<span class="badge badge-cyan">MySQL</span>';
+        if (d.engine === 'mariadb') engineBadge = '<span class="badge badge-purple">MariaDB</span>';
+        else if (d.engine === 'sqlite') engineBadge = '<span class="badge badge-yellow">SQLite</span>';
+        else if (d.engine === 'postgres') engineBadge = '<span class="badge badge-blue">PostgreSQL</span>';
+
+        const siteName = d.site || d.linked_site;
+        const siteLabel = siteName ? `<span style="font-weight: 600; color: var(--cyan);">${siteName}</span>` : '<span style="color: var(--text-dim);">-</span>';
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--cyan-glow); font-size: 0.95rem;">${d.name}</div>
+              <div style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);">${d.collation || d.character_set || ''}</div>
+            </td>
+            <td>${engineBadge}</td>
+            <td style="font-family: var(--font-mono);">${d.username}</td>
+            <td style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted);">${d.host || d.access_host || ''}</td>
+            <td>${siteLabel}</td>
+            <td style="font-family: var(--font-mono); font-size: 0.85rem;">${formatBytes(d.size_bytes)}</td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 0.35rem;">
+                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="backupDatabase('${d.name}')">
+                  <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: currentColor; margin-right: 0.25rem;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                  ${t('btn_backup')}
+                </button>
+                <button class="btn btn-danger" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="deleteDatabase('${d.name}')">${t('btn_delete')}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterDatabasesTable() {
+      const q = (document.getElementById('dbSearchInput').value || '').toLowerCase();
+      const filtered = allDatabases.filter(d => 
+        d.name.toLowerCase().includes(q) || 
+        d.username.toLowerCase().includes(q) || 
+        ((d.site || d.linked_site) && (d.site || d.linked_site).toLowerCase().includes(q))
+      );
+      renderDatabasesTable(filtered);
+    }
+
+    async function openAddDatabaseModal() {
+      document.getElementById('newDbName').value = '';
+      document.getElementById('newDbUser').value = 'root';
+      document.getElementById('newDbPass').value = '';
+      document.getElementById('newDbHost').value = '127.0.0.1';
+
+      // Populate site options
+      const sel = document.getElementById('newDbSite');
+      sel.innerHTML = '<option value="">-- ' + (currentLang === 'vi' ? 'Không liên kết' : 'None') + ' --</option>';
+      allSites.forEach(s => {
+        sel.innerHTML += `<option value="${s.domain}">${s.domain}</option>`;
+      });
+
+      generateRandomPassword();
+      document.getElementById('addDatabaseModal').classList.add('active');
+    }
+
+    function closeAddDatabaseModal() {
+      document.getElementById('addDatabaseModal').classList.remove('active');
+    }
+
+    function generateRandomPassword() {
+      const chars = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
+      let pass = '';
+      for (let i = 0; i < 16; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('newDbPass').value = pass;
+    }
+
+    async function submitCreateDatabase() {
+      const name = document.getElementById('newDbName').value.trim();
+      const engine = document.getElementById('newDbEngine').value;
+      const character_set = document.getElementById('newDbCollation').value;
+      const username = document.getElementById('newDbUser').value.trim() || 'root';
+      const password = document.getElementById('newDbPass').value.trim();
+      const access_host = document.getElementById('newDbHost').value;
+      const linked_site = document.getElementById('newDbSite').value.trim() || null;
+
+      if (!name) {
+        showToast(currentLang === 'vi' ? 'Vui lòng nhập tên CSDL' : 'Database name is required', 'error');
+        return;
+      }
+
+      const payload = {
+        name,
+        engine,
+        collation: character_set,
+        username,
+        password: password || null,
+        host: access_host,
+        site: linked_site
+      };
+
+      try {
+        const res = await fetch('/api/v1/databases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          closeAddDatabaseModal();
+          showToast(t('db_created').replace('{name}', name), 'success');
+          loadDatabases();
+        } else {
+          showToast('Failed: ' + await res.text(), 'error');
+        }
+      } catch (e) {
+        showToast('Network error: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteDatabase(name) {
+      if (!confirm(t('confirm_delete_db').replace('{name}', name))) return;
+      try {
+        const res = await fetch(`/api/v1/databases?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast(t('db_deleted').replace('{name}', name), 'success');
+          loadDatabases();
+        } else {
+          showToast('Failed: ' + await res.text(), 'error');
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+      }
+    }
+
+    async function backupDatabase(name) {
+      try {
+        const res = await fetch(`/api/v1/databases/backup?name=${encodeURIComponent(name)}`);
+        if (!res.ok) {
+          showToast('Backup error: ' + await res.text(), 'error');
+          return;
+        }
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${name}_backup.sql`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        showToast(t('db_backup_success').replace('{name}', name), 'success');
+      } catch (e) {
+        showToast('Backup download failed: ' + e.message, 'error');
+      }
+    }
+
+    // ============================================
+    // CRON JOB MANAGER CONTROLLER
+    // ============================================
+    async function loadCronJobs() {
+      try {
+        const res = await fetch('/api/v1/cron');
+        if (!res.ok) return;
+        allCronJobs = await res.json();
+        const badge = document.getElementById('navCronCount');
+        if (badge) badge.textContent = allCronJobs.length;
+        renderCronTable(allCronJobs);
+      } catch (e) {
+        console.error('Error loading cron jobs:', e);
+      }
+    }
+
+    function renderCronTable(jobs) {
+      const tbody = document.getElementById('cronTableBody');
+      if (!tbody) return;
+      if (!jobs || !jobs.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">${t('no_cron')}</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = jobs.map(j => {
+        let statusBadge = '<span class="badge badge-yellow">Pending</span>';
+        if (j.last_status && (j.last_status.toLowerCase() === 'success' || j.last_status === '0')) {
+          statusBadge = '<span class="badge badge-green">Success (0)</span>';
+        } else if (j.last_status) {
+          statusBadge = `<span class="badge badge-red">${j.last_status}</span>`;
+        }
+
+        const runTimestamp = j.last_run_at || j.last_run;
+        const lastRunStr = runTimestamp 
+          ? new Date(runTimestamp * 1000).toISOString().replace('T', ' ').substring(0, 19)
+          : '<span style="color: var(--text-dim);">-</span>';
+
+        const toggleBtnLabel = j.enabled ? t('btn_disable') : t('btn_enable');
+        const toggleBtnClass = j.enabled ? 'btn-secondary' : 'btn-success';
+        const siteName = j.site || j.linked_site;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--cyan-glow); font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span class="pulse-dot" style="background: ${j.enabled ? 'var(--green)' : 'var(--text-dim)'}; box-shadow: 0 0 6px ${j.enabled ? 'var(--green)' : 'transparent'}"></span>
+                ${j.name}
+              </div>
+              ${siteName ? `<div style="font-size: 0.72rem; color: var(--text-dim);">Site: ${siteName}</div>` : ''}
+            </td>
+            <td>
+              <code style="font-size: 0.82rem; color: var(--purple-glow); background: rgba(168, 85, 247, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px;">
+                ${j.schedule}
+              </code>
+            </td>
+            <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${j.command}">
+              ${j.command}
+            </td>
+            <td>${statusBadge}</td>
+            <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">${lastRunStr}</td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 0.35rem;">
+                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: var(--cyan-glow);" onclick="runCronJob('${j.id}')">
+                  ▶ ${t('btn_run_now')}
+                </button>
+                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="viewCronLogs('${j.id}')">
+                  📜 ${t('btn_logs')}
+                </button>
+                <button class="btn ${toggleBtnClass}" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="toggleCronJob('${j.id}')">
+                  ${toggleBtnLabel}
+                </button>
+                <button class="btn btn-danger" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="deleteCronJob('${j.id}', '${j.name}')">
+                  ${t('btn_delete')}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openAddCronModal() {
+      document.getElementById('newCronName').value = '';
+      document.getElementById('newCronPreset').value = '* * * * *';
+      document.getElementById('newCronSchedule').value = '* * * * *';
+      document.getElementById('newCronCommand').value = '';
+
+      // Populate site options
+      const sel = document.getElementById('newCronSite');
+      sel.innerHTML = '<option value="">-- ' + (currentLang === 'vi' ? 'Không liên kết' : 'None') + ' --</option>';
+      allSites.forEach(s => {
+        sel.innerHTML += `<option value="${s.domain}">${s.domain}</option>`;
+      });
+
+      document.getElementById('addCronModal').classList.add('active');
+    }
+
+    function closeAddCronModal() {
+      document.getElementById('addCronModal').classList.remove('active');
+    }
+
+    function onCronPresetChange() {
+      const preset = document.getElementById('newCronPreset').value;
+      if (preset !== 'custom') {
+        document.getElementById('newCronSchedule').value = preset;
+      }
+    }
+
+    async function submitCreateCronJob() {
+      const name = document.getElementById('newCronName').value.trim();
+      const schedule = document.getElementById('newCronSchedule').value.trim();
+      const command = document.getElementById('newCronCommand').value.trim();
+      const linked_site = document.getElementById('newCronSite').value.trim() || null;
+
+      if (!name || !schedule || !command) {
+        showToast(currentLang === 'vi' ? 'Vui lòng điền đủ tên, chu kỳ và câu lệnh' : 'Name, schedule and command are required', 'error');
+        return;
+      }
+
+      const payload = {
+        name,
+        schedule,
+        command,
+        enabled: true,
+        site: linked_site
+      };
+
+      try {
+        const res = await fetch('/api/v1/cron', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          closeAddCronModal();
+          showToast(t('cron_created').replace('{name}', name), 'success');
+          loadCronJobs();
+        } else {
+          showToast('Failed: ' + await res.text(), 'error');
+        }
+      } catch (e) {
+        showToast('Network error: ' + e.message, 'error');
+      }
+    }
+
+    async function runCronJob(id) {
+      try {
+        showToast(t('cron_triggered'), 'info');
+        const res = await fetch(`/api/v1/cron/run?id=${encodeURIComponent(id)}`, { method: 'POST' });
+        if (res.ok) {
+          loadCronJobs();
+          viewCronLogs(id);
+        } else {
+          showToast('Failed: ' + await res.text(), 'error');
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+      }
+    }
+
+    async function toggleCronJob(id) {
+      try {
+        const res = await fetch(`/api/v1/cron/toggle?id=${encodeURIComponent(id)}`, { method: 'POST' });
+        if (res.ok) {
+          loadCronJobs();
+        } else {
+          showToast('Failed: ' + await res.text(), 'error');
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteCronJob(id, name) {
+      if (!confirm(t('confirm_delete_cron').replace('{name}', name))) return;
+      try {
+        const res = await fetch(`/api/v1/cron?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast(t('cron_deleted').replace('{name}', name), 'success');
+          loadCronJobs();
+        } else {
+          showToast('Failed: ' + await res.text(), 'error');
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+      }
+    }
+
+    async function viewCronLogs(id) {
+      currentViewingCronId = id;
+      const pre = document.getElementById('cronLogContent');
+      pre.textContent = 'Loading logs...';
+      document.getElementById('cronLogsModal').classList.add('active');
+      await refreshCronLogs();
+    }
+
+    async function refreshCronLogs() {
+      if (!currentViewingCronId) return;
+      const pre = document.getElementById('cronLogContent');
+      try {
+        const res = await fetch(`/api/v1/cron/logs?id=${encodeURIComponent(currentViewingCronId)}`);
+        if (res.ok) {
+          pre.textContent = await res.text();
+          pre.scrollTop = pre.scrollHeight;
+        } else {
+          pre.textContent = 'Could not load log: ' + await res.text();
+        }
+      } catch (e) {
+        pre.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    function closeCronLogsModal() {
+      document.getElementById('cronLogsModal').classList.remove('active');
+      currentViewingCronId = null;
+    }
+
     // Initial load
     updateLanguageUI();
     applyTranslations();
     loadSites();
+    loadDatabases();
+    loadCronJobs();
   </script>
 </body>
 </html>

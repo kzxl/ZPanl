@@ -4,6 +4,8 @@
 //! Powered 100% by the ZeroRust ecosystem (`zero-sys`, `zero-fastcgi`, `zero-caddy`, `zero-vfs`).
 
 pub mod cli;
+pub mod cron;
+pub mod database;
 pub mod filemgr;
 pub mod server;
 pub mod services;

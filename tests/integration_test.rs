@@ -1,4 +1,6 @@
 use std::fs;
+use zpanl::cron::{CronDatabase, CronJob};
+use zpanl::database::{DatabaseRecord, DatabaseStorage};
 use zpanl::filemgr::FileManager;
 use zpanl::services::ServiceManager;
 use zpanl::site::{SiteDatabase, SiteKind, SiteRecord};
@@ -174,4 +176,102 @@ fn test_site_modification_and_advanced_features() {
     assert!(updated_caddy.contains("@hotlink"));
     assert!(updated_caddy.contains("redir /old /new 301"));
     assert!(updated_caddy.contains("log {"));
+}
+
+#[test]
+fn test_database_manager_workflow() {
+    let mut storage = DatabaseStorage::default();
+
+    let db1 = DatabaseRecord {
+        id: "db-1".to_string(),
+        name: "wordpress_prod".to_string(),
+        engine: "mysql".to_string(),
+        collation: "utf8mb4_unicode_ci".to_string(),
+        username: "wp_user".to_string(),
+        password: Some("secret_password".to_string()),
+        host: "127.0.0.1".to_string(),
+        site: Some("wp.example.com".to_string()),
+        size_bytes: 1048576,
+        created_at: 1700000000,
+    };
+
+    let db2 = DatabaseRecord {
+        id: "db-2".to_string(),
+        name: "analytics_db".to_string(),
+        engine: "postgres".to_string(),
+        collation: "utf8".to_string(),
+        username: "pg_admin".to_string(),
+        password: Some("pg_password".to_string()),
+        host: "%".to_string(),
+        site: None,
+        size_bytes: 5242880,
+        created_at: 1700001000,
+    };
+
+    assert!(storage.add(db1.clone()).is_ok());
+    assert!(storage.add(db2.clone()).is_ok());
+    assert_eq!(storage.list().len(), 2);
+
+    // Duplicate rejection
+    assert!(storage.add(db1.clone()).is_err());
+
+    // SQL dump generation
+    let dump = storage.generate_dump("wordpress_prod").unwrap();
+    assert!(dump.contains("ZPanl Sovereign Database Dump"));
+    assert!(dump.contains("wordpress_prod"));
+    assert!(dump.contains("CREATE DATABASE IF NOT EXISTS `wordpress_prod`"));
+
+    // Find and Deletion
+    assert!(storage.find("wordpress_prod").is_some());
+    assert!(storage.delete("wordpress_prod"));
+    assert_eq!(storage.list().len(), 1);
+    assert!(storage.generate_dump("wordpress_prod").is_err());
+    assert!(storage.find("wordpress_prod").is_none());
+}
+
+#[test]
+fn test_cron_manager_workflow() {
+    let mut cron_db = CronDatabase::default();
+
+    let job1 = CronJob {
+        id: "job-1".to_string(),
+        name: "Echo Test Task".to_string(),
+        schedule: "* * * * *".to_string(),
+        command: "echo 'ZPanl Cron Test'".to_string(),
+        enabled: true,
+        site: Some("app.example.com".to_string()),
+        created_at: 1700000000,
+        last_run_at: None,
+        last_status: None,
+        last_output: None,
+    };
+
+    assert!(cron_db.add(job1).is_ok());
+    assert_eq!(cron_db.list().len(), 1);
+
+    // Toggle job
+    assert_eq!(cron_db.toggle("job-1"), Some(false));
+    assert!(!cron_db.find("job-1").unwrap().enabled);
+    assert_eq!(cron_db.toggle("job-1"), Some(true));
+    assert!(cron_db.find("job-1").unwrap().enabled);
+
+    // Execute job synchronously
+    let result = cron_db.execute_job("job-1");
+    assert!(result.is_ok());
+    let output = result.unwrap();
+    assert!(output.contains("ZPanl Cron Test"));
+
+    let job_after = cron_db.find("job-1").unwrap();
+    assert!(job_after.last_run_at.is_some());
+    assert_eq!(job_after.last_status.as_deref(), Some("success"));
+
+    // Check logs retrieval
+    let logs = cron_db.get_logs("job-1");
+    assert!(logs.is_some());
+    assert!(logs.unwrap().contains("ZPanl Cron Test"));
+
+    // Delete job
+    assert!(cron_db.delete("job-1"));
+    assert_eq!(cron_db.list().len(), 0);
+    assert!(cron_db.get_logs("job-1").is_none());
 }
