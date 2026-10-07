@@ -247,6 +247,14 @@ fn handle_connection(
     }
 
     // Read body
+    if content_length > 100 * 1024 * 1024 {
+        return send_response(
+            &mut stream,
+            413,
+            "text/plain",
+            b"Payload Too Large (Max 100MB)",
+        );
+    }
     let mut body = vec![0u8; content_length];
     if content_length > 0 {
         reader.read_exact(&mut body)?;
@@ -722,6 +730,61 @@ fn handle_connection(
                     "application/json",
                     b"{\"status\":\"created\"}",
                 ),
+                Err(err) => send_response(&mut stream, 400, "text/plain", err.as_bytes()),
+            }
+        }
+
+        ("POST", "/api/v1/files/upload") => {
+            let site_domain = match parse_query_param(query, "site") {
+                Some(s) if !s.trim().is_empty() => s,
+                _ => {
+                    return send_response(
+                        &mut stream,
+                        400,
+                        "text/plain",
+                        b"Missing 'site' parameter",
+                    )
+                }
+            };
+            let filename = match parse_query_param(query, "filename") {
+                Some(f) if !f.trim().is_empty() => f,
+                _ => {
+                    return send_response(
+                        &mut stream,
+                        400,
+                        "text/plain",
+                        b"Missing 'filename' parameter",
+                    )
+                }
+            };
+            let subpath = parse_query_param(query, "path").unwrap_or_default();
+
+            let guard = db.lock().unwrap();
+            let site = match guard.find_by_domain(&site_domain) {
+                Some(s) => s,
+                None => return send_response(&mut stream, 404, "text/plain", b"Site not found"),
+            };
+            let root = site.root_path.clone();
+            drop(guard);
+
+            let clean_subpath = subpath.trim().trim_matches('/');
+            let clean_filename = filename.trim().trim_matches('/');
+            let full_rel_path = if clean_subpath.is_empty() {
+                clean_filename.to_string()
+            } else {
+                format!("{clean_subpath}/{clean_filename}")
+            };
+
+            match FileManager::write_file_bytes(&root, &full_rel_path, &body) {
+                Ok(()) => {
+                    let resp = serde_json::json!({
+                        "status": "uploaded",
+                        "path": full_rel_path,
+                        "bytes": body.len()
+                    });
+                    let json = serde_json::to_vec(&resp).unwrap_or_default();
+                    send_response(&mut stream, 200, "application/json", &json)
+                }
                 Err(err) => send_response(&mut stream, 400, "text/plain", err.as_bytes()),
             }
         }

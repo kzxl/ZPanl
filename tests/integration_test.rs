@@ -101,7 +101,16 @@ fn test_filemgr_security_and_operations() {
     assert!(FileManager::list_dir(&root_str, "../..").is_err());
     assert!(FileManager::save_file(&root_str, "css/../../evil.sh", "#!/bin/sh").is_err());
 
-    // 6. Delete
+    // 6. Binary file upload & nested directory creation
+    let raw_png = vec![0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    assert!(FileManager::write_file_bytes(&root_str, "images/flags/vietnam.png", &raw_png).is_ok());
+    let flag_path = temp_root.join("images").join("flags").join("vietnam.png");
+    assert!(flag_path.exists());
+    assert_eq!(fs::read(&flag_path).unwrap(), raw_png);
+    assert!(FileManager::write_file_bytes(&root_str, "../../etc/shadow", b"hacked").is_err());
+
+    // 7. Delete
+    assert!(FileManager::delete_entry(&root_str, "images/flags/vietnam.png").is_ok());
     assert!(FileManager::delete_entry(&root_str, "css/main.css").is_ok());
     assert!(FileManager::delete_entry(&root_str, "css").is_ok());
     assert!(FileManager::delete_entry(&root_str, "index.php").is_ok());

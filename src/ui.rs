@@ -538,6 +538,25 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       gap: 0.75rem;
     }
 
+    .file-drop-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 15, 29, 0.92);
+      backdrop-filter: blur(4px);
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed var(--cyan);
+      border-radius: 0.5rem;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+    .file-drop-box {
+      text-align: center;
+      pointer-events: none;
+    }
+
     .form-group { margin-bottom: 1.25rem; }
     .form-group label {
       display: block;
@@ -1008,6 +1027,11 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </div>
           </div>
           <div class="toolbar-actions">
+            <button class="btn btn-secondary" onclick="openFilePicker()">
+              <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+              <span data-i18n="upload_btn">Upload</span>
+            </button>
+            <input type="file" id="filePickerInput" multiple style="display:none" onchange="handlePickedFiles(event)">
             <button class="btn btn-secondary" onclick="openNewEntryModal(false)">
               <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
               <span data-i18n="new_file_btn">New File</span>
@@ -1022,7 +1046,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             </button>
           </div>
         </div>
-        <div class="table-container">
+        <div class="table-container" id="filesDropZone" style="position: relative; min-height: 280px;">
+          <!-- DRAG & DROP OVERLAY -->
+          <div id="fileDropOverlay" class="file-drop-overlay" style="display: none;">
+            <div class="file-drop-box">
+              <svg viewBox="0 0 24 24" style="width: 52px; height: 52px; fill: var(--cyan); margin-bottom: 0.6rem;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+              <div style="font-size: 1.15rem; font-weight: 700; color: var(--cyan-glow);" data-i18n="upload_drop_hint">Drop files or folders here to upload</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.35rem;" id="dropZoneTargetSubpath">Target: /</div>
+            </div>
+          </div>
           <table>
             <thead>
               <tr>
@@ -1843,6 +1875,54 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- MODAL: UPLOAD FILES (AAPANEL STYLE DRAG & DROP QUEUE) -->
+  <div id="uploadFilesModal" class="modal">
+    <div class="modal-box" style="max-width: 820px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--cyan);"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+          <span data-i18n="upload_modal_title">Upload File</span>
+        </div>
+        <button class="modal-close" onclick="closeUploadFilesModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1rem 1.25rem;">
+        <!-- Top Green Summary Banner -->
+        <div style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35); border-radius: 9999px; padding: 0.55rem 1.25rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; font-weight: 600; color: #4ade80; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <span><span data-i18n="upload_size">Upload Size</span>: <span id="uploadSummarySize" style="font-family: var(--font-mono);">0 B / 0 B</span></span>
+          <span><span data-i18n="avg_speed">Average Speed</span>: <span id="uploadSummarySpeed" style="font-family: var(--font-mono);">0 KB/s</span></span>
+          <span><span data-i18n="upload_success">Upload Success</span>: <span id="uploadSummaryCount" style="font-family: var(--font-mono);">0 / 0</span></span>
+        </div>
+
+        <!-- Files Queue Table -->
+        <div style="border: 1px solid var(--border); border-radius: 0.45rem; overflow: hidden; max-height: 320px; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.25); color: var(--text-dim); text-align: left;">
+                <th style="padding: 0.5rem 0.75rem;" data-i18n="th_file_name">File Name</th>
+                <th style="padding: 0.5rem 0.75rem; width: 110px;" data-i18n="th_file_size">File Size</th>
+                <th style="padding: 0.5rem 0.75rem; width: 150px;" data-i18n="th_upload_status">Upload Status</th>
+                <th style="padding: 0.5rem 0.75rem; width: 90px; text-align: right;" data-i18n="th_operate">Operation</th>
+              </tr>
+            </thead>
+            <tbody id="uploadQueueTableBody">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-dim); padding: 2rem;" data-i18n="upload_empty_queue">No files in queue. Drag &amp; drop files here or click Add Files.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-secondary" onclick="openFilePicker()" style="font-size: 0.8rem;">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor; margin-right: 0.3rem;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          <span data-i18n="btn_add_files">+ Add More Files</span>
+        </button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary" onclick="closeUploadFilesModal()" data-i18n="btn_close">Close</button>
+          <button class="btn" id="btnContinueUpload" onclick="startUploadQueue()" style="background: #16a34a; border-color: #22c55e; color: #fff; font-weight: 600;" data-i18n="btn_continue_upload">Continue Upload</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -2077,7 +2157,22 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         save_deploy_cfg: 'Save Git Config',
         btn_deploy_now: 'Deploy Now',
         deploy_recent_history: 'Recent Deployment Releases',
-        modal_deploy_log_title: 'Deployment Build & Release Log'
+        modal_deploy_log_title: 'Deployment Build & Release Log',
+        upload_btn: 'Upload',
+        upload_modal_title: 'Upload File',
+        upload_drop_hint: 'Drop files or folders here to upload',
+        upload_size: 'Upload Size',
+        avg_speed: 'Average Speed',
+        upload_success: 'Upload Success',
+        th_upload_status: 'Upload Status',
+        btn_add_files: '+ Add More Files',
+        btn_continue_upload: 'Continue Upload',
+        upload_waiting: 'Waiting',
+        upload_uploading: 'Uploading...',
+        upload_completed: 'Completed',
+        upload_failed: 'Failed',
+        upload_empty_queue: 'No files in queue. Drag & drop files here or click Add Files.',
+        upload_all_done: 'All file(s) uploaded successfully!'
       },
       vi: {
         nav_core: 'Quản Lý Cốt Lõi',
@@ -2297,7 +2392,22 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         save_deploy_cfg: 'Lưu Cấu Hình Git',
         btn_deploy_now: 'Triển Khai Ngay',
         deploy_recent_history: 'Lịch Sử Triển Khai Gần Đây',
-        modal_deploy_log_title: 'Nhật Ký Triển Khai & Bản Phát Hành'
+        modal_deploy_log_title: 'Nhật Ký Triển Khai & Bản Phát Hành',
+        upload_btn: 'Tải Lên',
+        upload_modal_title: 'Tải Lên Tệp Tin',
+        upload_drop_hint: 'Kéo thả tệp tin hoặc thư mục vào đây để tải lên',
+        upload_size: 'Dung Lượng',
+        avg_speed: 'Tốc Độ TB',
+        upload_success: 'Thành Công',
+        th_upload_status: 'Trạng Thái',
+        btn_add_files: '+ Thêm Tệp Tin',
+        btn_continue_upload: 'Tiếp Tục Tải Lên',
+        upload_waiting: 'Đang chờ',
+        upload_uploading: 'Đang tải lên...',
+        upload_completed: 'Hoàn thành',
+        upload_failed: 'Thất bại',
+        upload_empty_queue: 'Chưa có tệp nào trong hàng đợi. Kéo thả tệp vào đây hoặc bấm Thêm Tệp.',
+        upload_all_done: 'Đã tải lên tất cả tệp tin thành công!'
       }
     };
 
@@ -2613,6 +2723,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       sel.innerHTML = sites.map(s => `<option value="${s.domain}">🌐 ${s.domain} (${s.root_path})</option>`).join('');
       currentSubpath = '';
       if (sites.length) loadSiteFiles();
+      initFileDragAndDrop();
     }
 
     function openSiteInFiles(domain) {
@@ -2745,8 +2856,298 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         closeEditorModal();
         closeAddSiteModal();
         closeNewEntryModal();
+        closeUploadFilesModal();
       }
     });
+
+    // ============================================
+    // FILE MANAGER DRAG & DROP AND UPLOAD QUEUE
+    // ============================================
+    let uploadQueue = []; // array of { id, file, relPath, size, status: 'waiting'|'uploading'|'completed'|'failed', progress: 0, error: null }
+    let isUploading = false;
+    let uploadStartTime = 0;
+
+    function openFilePicker() {
+      const picker = document.getElementById('filePickerInput');
+      if (picker) {
+        picker.value = '';
+        picker.click();
+      }
+    }
+
+    async function handlePickedFiles(event) {
+      const files = event.target.files;
+      if (!files || !files.length) return;
+      const fileList = [];
+      for (let i = 0; i < files.length; i++) {
+        fileList.push({ file: files[i], relPath: files[i].name });
+      }
+      enqueueFilesForUpload(fileList);
+    }
+
+    let dragDropInitialized = false;
+    function initFileDragAndDrop() {
+      if (dragDropInitialized) return;
+      const dropZone = document.getElementById('filesDropZone');
+      const overlay = document.getElementById('fileDropOverlay');
+      if (!dropZone || !overlay) return;
+
+      let dragCounter = 0;
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        window.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      window.addEventListener('dragenter', (e) => {
+        if (currentTab !== 'files') return;
+        dragCounter++;
+        const targetSub = currentSubpath ? `/${currentSubpath}` : '/';
+        const subLabel = document.getElementById('dropZoneTargetSubpath');
+        if (subLabel) subLabel.textContent = `Target: ${targetSub}`;
+        overlay.style.display = 'flex';
+      });
+
+      window.addEventListener('dragover', (e) => {
+        if (currentTab !== 'files') return;
+        overlay.style.display = 'flex';
+      });
+
+      window.addEventListener('dragleave', (e) => {
+        if (currentTab !== 'files') return;
+        dragCounter--;
+        if (dragCounter <= 0) {
+          dragCounter = 0;
+          overlay.style.display = 'none';
+        }
+      });
+
+      window.addEventListener('drop', async (e) => {
+        if (currentTab !== 'files') return;
+        dragCounter = 0;
+        overlay.style.display = 'none';
+        const fileList = await getFilesFromDataTransfer(e.dataTransfer);
+        if (fileList && fileList.length) {
+          enqueueFilesForUpload(fileList);
+        }
+      });
+
+      dragDropInitialized = true;
+    }
+
+    async function getFilesFromDataTransfer(dataTransfer) {
+      const files = [];
+      const items = dataTransfer.items;
+      if (items && items.length > 0 && items[0].webkitGetAsEntry) {
+        const queue = [];
+        for (let i = 0; i < items.length; i++) {
+          const entry = items[i].webkitGetAsEntry();
+          if (entry) queue.push(traverseEntry(entry, ''));
+        }
+        await Promise.all(queue);
+      } else if (dataTransfer.files) {
+        for (let i = 0; i < dataTransfer.files.length; i++) {
+          const f = dataTransfer.files[i];
+          files.push({ file: f, relPath: f.name });
+        }
+      }
+
+      async function traverseEntry(entry, path) {
+        if (entry.isFile) {
+          const f = await new Promise(resolve => entry.file(resolve));
+          files.push({ file: f, relPath: path ? `${path}/${f.name}` : f.name });
+        } else if (entry.isDirectory) {
+          const dirReader = entry.createReader();
+          const entries = await new Promise(resolve => dirReader.readEntries(resolve));
+          for (const child of entries) {
+            await traverseEntry(child, path ? `${path}/${entry.name}` : entry.name);
+          }
+        }
+      }
+
+      return files;
+    }
+
+    function enqueueFilesForUpload(fileList) {
+      fileList.forEach(item => {
+        uploadQueue.push({
+          id: 'up_' + Math.random().toString(36).substring(2, 9),
+          file: item.file,
+          relPath: item.relPath,
+          size: item.file.size,
+          status: 'waiting',
+          progress: 0,
+          error: null
+        });
+      });
+
+      renderUploadQueue();
+      openUploadFilesModal();
+      if (!isUploading) {
+        startUploadQueue();
+      }
+    }
+
+    function openUploadFilesModal() {
+      document.getElementById('uploadFilesModal').classList.add('active');
+    }
+
+    function closeUploadFilesModal() {
+      document.getElementById('uploadFilesModal').classList.remove('active');
+      loadSiteFiles();
+    }
+
+    function renderUploadQueue() {
+      const tbody = document.getElementById('uploadQueueTableBody');
+      if (!uploadQueue.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-dim); padding: 2rem;">${t('upload_empty_queue')}</td></tr>`;
+        updateUploadSummary();
+        return;
+      }
+
+      tbody.innerHTML = uploadQueue.map(item => {
+        let statusBadge = `<span class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-dim);">${t('upload_waiting')}</span>`;
+        if (item.status === 'completed') {
+          statusBadge = `<span class="badge badge-green">${t('upload_completed')}</span>`;
+        } else if (item.status === 'uploading') {
+          statusBadge = `
+            <div style="width: 100%;">
+              <div style="font-size: 0.72rem; color: var(--cyan); margin-bottom: 2px;">${item.progress}%</div>
+              <div style="width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                <div style="width: ${item.progress}%; height: 100%; background: var(--cyan); transition: width 0.1s;"></div>
+              </div>
+            </div>
+          `;
+        } else if (item.status === 'failed') {
+          statusBadge = `<span class="badge badge-red" title="${item.error || ''}">${t('upload_failed')}</span>`;
+        }
+
+        const opBtn = item.status === 'failed' 
+          ? `<button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="retryUploadItem('${item.id}')">Retry</button>`
+          : (item.status === 'waiting' ? `<button class="btn btn-danger" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="removeUploadItem('${item.id}')">&times;</button>` : '-');
+
+        return `
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 0.5rem 0.75rem; font-family: var(--font-mono); font-size: 0.78rem;">
+              <span style="color: var(--cyan);">${item.relPath}</span>
+            </td>
+            <td style="padding: 0.5rem 0.75rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">${formatBytes(item.size)}</td>
+            <td style="padding: 0.5rem 0.75rem;">${statusBadge}</td>
+            <td style="padding: 0.5rem 0.75rem; text-align: right;">${opBtn}</td>
+          </tr>
+        `;
+      }).join('');
+
+      updateUploadSummary();
+    }
+
+    function updateUploadSummary() {
+      const totalBytes = uploadQueue.reduce((acc, cur) => acc + cur.size, 0);
+      const completedItems = uploadQueue.filter(i => i.status === 'completed');
+      const completedBytes = completedItems.reduce((acc, cur) => acc + cur.size, 0);
+
+      const sizeSpan = document.getElementById('uploadSummarySize');
+      if (sizeSpan) sizeSpan.textContent = `${formatBytes(completedBytes)} / ${formatBytes(totalBytes)}`;
+      const countSpan = document.getElementById('uploadSummaryCount');
+      if (countSpan) countSpan.textContent = `${completedItems.length} / ${uploadQueue.length}`;
+
+      const speedSpan = document.getElementById('uploadSummarySpeed');
+      if (speedSpan) {
+        if (isUploading && uploadStartTime > 0) {
+          const elapsedSec = (Date.now() - uploadStartTime) / 1000;
+          if (elapsedSec > 0.2) {
+            const speedBps = completedBytes / elapsedSec;
+            speedSpan.textContent = `${formatBytes(speedBps)}/s`;
+          }
+        } else {
+          speedSpan.textContent = '0 KB/s';
+        }
+      }
+    }
+
+    async function startUploadQueue() {
+      if (isUploading) return;
+      const domain = document.getElementById('fileSiteSelect').value;
+      if (!domain) {
+        showToast('Please select a website before uploading files', 'error');
+        return;
+      }
+
+      isUploading = true;
+      uploadStartTime = Date.now();
+      const btn = document.getElementById('btnContinueUpload');
+      if (btn) btn.disabled = true;
+
+      while (true) {
+        const nextItem = uploadQueue.find(i => i.status === 'waiting');
+        if (!nextItem) break;
+
+        nextItem.status = 'uploading';
+        renderUploadQueue();
+
+        try {
+          await uploadSingleFile(domain, currentSubpath, nextItem);
+          nextItem.status = 'completed';
+        } catch (e) {
+          nextItem.status = 'failed';
+          nextItem.error = e.message;
+        }
+
+        renderUploadQueue();
+      }
+
+      isUploading = false;
+      if (btn) btn.disabled = false;
+      updateUploadSummary();
+      loadSiteFiles();
+      showToast(t('upload_all_done'), 'success');
+    }
+
+    function uploadSingleFile(domain, subpath, item) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const url = `/api/v1/files/upload?site=${encodeURIComponent(domain)}&path=${encodeURIComponent(subpath)}&filename=${encodeURIComponent(item.relPath)}`;
+        xhr.open('POST', url, true);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            item.progress = Math.round((e.loaded / e.total) * 100);
+            renderUploadQueue();
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error during file upload'));
+        xhr.send(item.file);
+      });
+    }
+
+    function retryUploadItem(id) {
+      const item = uploadQueue.find(i => i.id === id);
+      if (item) {
+        item.status = 'waiting';
+        item.progress = 0;
+        item.error = null;
+        renderUploadQueue();
+        if (!isUploading) startUploadQueue();
+      }
+    }
+
+    function removeUploadItem(id) {
+      uploadQueue = uploadQueue.filter(i => i.id !== id);
+      renderUploadQueue();
+    }
 
     async function deleteFileItem(relPath) {
       if (!confirm(t('confirm_delete_file').replace('{name}', relPath))) return;
@@ -3863,6 +4264,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     loadSites();
     loadDatabases();
     loadCronJobs();
+    initFileDragAndDrop();
   </script>
 </body>
 </html>

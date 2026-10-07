@@ -175,6 +175,33 @@ impl FileManager {
         Ok(())
     }
 
+    /// Saves binary content safely into a file within the jail sandbox using atomic rename.
+    pub fn write_file_bytes(jail_root: &str, rel_path: &str, data: &[u8]) -> Result<(), String> {
+        let sandbox = JailSandbox::new(jail_root).map_err(|e| e.to_string())?;
+        let abs_file = sandbox.resolve(rel_path).map_err(|e| e.to_string())?;
+
+        let builder = AtomicPathBuilder::new(&abs_file).map_err(|e| e.to_string())?;
+        let temp_path = builder.temp_path();
+
+        // Ensure parent directory exists
+        if let Some(parent) = Path::new(&abs_file).parent() {
+            fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create parent directory: {e}"))?;
+        }
+
+        // 1. Write to sibling temporary file
+        fs::write(&temp_path, data)
+            .map_err(|e| format!("Failed to write to temporary file: {e}"))?;
+
+        // 2. Atomic rename
+        if let Err(e) = fs::rename(&temp_path, &abs_file) {
+            let _ = fs::remove_file(&temp_path);
+            return Err(format!("Atomic rename failed for {abs_file}: {e}"));
+        }
+
+        Ok(())
+    }
+
     /// Deletes a file or directory safely confined within jail sandbox.
     pub fn delete_entry(jail_root: &str, rel_path: &str) -> Result<(), String> {
         let sandbox = JailSandbox::new(jail_root).map_err(|e| e.to_string())?;
