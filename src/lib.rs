@@ -13,3 +13,4 @@ pub mod services;
 pub mod site;
 pub mod telemetry;
 pub mod ui;
+pub mod waf;

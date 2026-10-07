@@ -90,6 +90,20 @@
         </ul>
       </div>
 
+      <!-- SECURITY & INTELLIGENCE -->
+      <div>
+        <div class="nav-group-title" data-i18n="nav_security_group">Security &amp; WAF</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button onclick="switchTab('waf')">
+              <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+              <span data-i18n="nav_waf">WAF Shield</span>
+              <span class="nav-badge" id="navWafBadge" style="background: rgba(244, 63, 94, 0.18); color: var(--red); border: 1px solid rgba(244, 63, 94, 0.35);">23</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
       <!-- SYSTEM & SERVERS -->
       <div>
         <div class="nav-group-title" data-i18n="nav_services_group">Services & Engines</div>
@@ -644,6 +658,392 @@
             </tbody>
           </table>
         </div>
+      </div>
+
+      <!-- TAB 9: LAYER-7 WAF & THREAT INTELLIGENCE CENTER -->
+      <div id="tab-waf" class="tab-content">
+        <!-- WAF SUBNAV -->
+        <div class="waf-subnav">
+          <button class="waf-subnav-btn active" id="wafSubnavOverview" onclick="switchWafSubnav('overview')">Overview</button>
+          <button class="waf-subnav-btn" id="wafSubnavWebsite" onclick="switchWafSubnav('website')">WebSite</button>
+          <button class="waf-subnav-btn" id="wafSubnavBlockade" onclick="switchWafSubnav('blockade')">Blockade</button>
+          <button class="waf-subnav-btn" id="wafSubnavIpRules" onclick="switchWafSubnav('ip_rules')">Black/White list</button>
+          <button class="waf-subnav-btn" id="wafSubnavRegion" onclick="switchWafSubnav('region')">Region</button>
+          <button class="waf-subnav-btn" id="wafSubnavTrafficLimit" onclick="switchWafSubnav('traffic_limit')">Traffic Limit</button>
+          <button class="waf-subnav-btn" id="wafSubnavCustomRules" onclick="switchWafSubnav('custom_rules')">Custom rules</button>
+          <button class="waf-subnav-btn" id="wafSubnavAttackMap" onclick="switchWafSubnav('attack_map')">Attack Map</button>
+          <button class="waf-subnav-btn" id="wafSubnavReport" onclick="switchWafSubnav('report')">Report</button>
+          <button class="waf-subnav-btn" id="wafSubnavGlobal" onclick="switchWafSubnav('global')">Global</button>
+        </div>
+
+        <!-- FILTER & STATUS BAR -->
+        <div class="waf-filter-row">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="waf-btn-group">
+              <button class="waf-btn-toggle" onclick="setWafDateFilter('yesterday', this)">Yesterday</button>
+              <button class="waf-btn-toggle active" onclick="setWafDateFilter('today', this)">Today</button>
+            </div>
+            <button class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.4rem 0.75rem;" onclick="promptWafDate()">
+              📅 <span id="wafDateLabel">2026-10-07 ~ 2026-10-07</span>
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="server-status-pill" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+              <span class="pulse-dot"></span>
+              <span>L7 Sovereign WAF Active</span>
+            </div>
+            <button class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.4rem 0.75rem;" onclick="loadWafDashboard()">
+              🔄 <span data-i18n="refresh_btn">Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VIEW 1: OVERVIEW DASHBOARD -->
+        <div id="wafViewOverview">
+          <!-- TOP METRICS CARDS -->
+          <div class="waf-metrics-grid">
+            <!-- TODAY REQUEST -->
+            <div class="waf-metric-card">
+              <div class="waf-metric-icon req">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              </div>
+              <div class="waf-metric-body">
+                <div class="waf-metric-label">Today request</div>
+                <div class="waf-metric-value-row">
+                  <span class="waf-metric-val" id="wafTodayRequests">765</span>
+                  <span class="waf-trend-badge waf-trend-down">↓ -76.68%</span>
+                </div>
+                <div class="waf-metric-sub">Yesterday <span id="wafYesterdayRequests">3280</span></div>
+              </div>
+            </div>
+
+            <!-- MALICIOUS REQUEST -->
+            <div class="waf-metric-card alert">
+              <div class="waf-metric-icon mal">
+                <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v6h-2V7zm0 8h2v2h-2v-2z"/></svg>
+              </div>
+              <div class="waf-metric-body">
+                <div class="waf-metric-label">Malicious request</div>
+                <div class="waf-metric-value-row">
+                  <span class="waf-metric-val" style="color: var(--red);" id="wafMaliciousRequests">23</span>
+                  <span class="waf-trend-badge waf-trend-down threat">↓ -64.62%</span>
+                </div>
+                <div class="waf-metric-sub">Yesterday <span id="wafYesterdayMalicious">65</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TRAFFIC FILTERING CHART & REAL-TIME GAUGES ROW -->
+          <div class="waf-charts-grid">
+            <!-- TRAFFIC CHART -->
+            <div class="waf-card">
+              <div class="waf-card-header">
+                <div class="waf-card-title">
+                  <span>Traffic filtering request chart</span>
+                </div>
+                <div class="waf-legend">
+                  <div class="waf-legend-item">
+                    <span class="waf-legend-dot" style="background: var(--cyan);"></span>
+                    <span>Total request: <strong id="legTotalReq">765</strong></span>
+                  </div>
+                  <div class="waf-legend-item">
+                    <span class="waf-legend-dot" style="background: var(--red);"></span>
+                    <span>Filtered request: <strong id="legFilteredReq">23</strong></span>
+                  </div>
+                  <div class="waf-legend-item">
+                    <span class="waf-legend-dot" style="background: var(--purple);"></span>
+                    <span>Traffic: <strong id="legTraffic">14.5MB</strong></span>
+                  </div>
+                  <div class="waf-legend-item">
+                    <span class="waf-legend-dot" style="background: var(--green);"></span>
+                    <span>IP: <strong id="legIp">142</strong></span>
+                  </div>
+                </div>
+              </div>
+              <div style="width: 100%; height: 230px; position: relative;">
+                <canvas id="wafTrafficCanvas" height="230"></canvas>
+              </div>
+            </div>
+
+            <!-- REAL-TIME GAUGES -->
+            <div class="waf-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <!-- REAL-TIME QPS -->
+              <div class="waf-gauge-box">
+                <div class="waf-gauge-header">
+                  <span class="waf-gauge-title">Real-time QPS</span>
+                  <span style="font-size: 0.72rem; color: var(--text-dim);">Peak: 42/s &bull; Avg: 6/s</span>
+                </div>
+                <div style="display: flex; align-items: baseline; margin-bottom: 0.4rem;">
+                  <span class="waf-gauge-value" id="wafGaugeQps">0</span>
+                  <span class="waf-gauge-unit">/s</span>
+                </div>
+                <div style="height: 70px; width: 100%;">
+                  <canvas id="wafQpsCanvas" height="70"></canvas>
+                </div>
+              </div>
+
+              <!-- REAL-TIME ORIGIN RESPONSE -->
+              <div class="waf-gauge-box">
+                <div class="waf-gauge-header">
+                  <span class="waf-gauge-title">Real-time origin response</span>
+                  <span style="font-size: 0.72rem; color: var(--text-dim);">Min: 2ms &bull; Max: 48ms</span>
+                </div>
+                <div style="display: flex; align-items: baseline; margin-bottom: 0.4rem;">
+                  <span class="waf-gauge-value" id="wafGaugeLatency" style="color: var(--green);">12</span>
+                  <span class="waf-gauge-unit">ms</span>
+                </div>
+                <div style="height: 70px; width: 100%;">
+                  <canvas id="wafLatencyCanvas" height="70"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCESS / BLOCK MAP & ATTACK IP TABLE ROW -->
+          <div class="waf-card">
+            <div class="waf-card-header">
+              <div class="waf-card-title">
+                <span>Access/Block Map</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="waf-btn-group">
+                  <button class="waf-btn-toggle active" id="btnMap2D" onclick="setMapDimension('2D')">2D</button>
+                  <button class="waf-btn-toggle" id="btnMap3D" onclick="setMapDimension('3D')">3D</button>
+                </div>
+                <div class="waf-btn-group">
+                  <button class="waf-btn-toggle active" id="btnMapReq" onclick="setMapMetric('requests')">Requests</button>
+                  <button class="waf-btn-toggle" id="btnMapBlock" onclick="setMapMetric('blocks')">Blocks</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-dim);">
+                  <span>Low</span>
+                  <span class="waf-heat-bar"></span>
+                  <span>High</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="waf-map-grid">
+              <!-- VECTOR WORLD MAP CANVAS -->
+              <div class="waf-map-container">
+                <canvas id="wafWorldCanvas" height="340"></canvas>
+              </div>
+
+              <!-- SIDE ATTACK IP TABLE -->
+              <div>
+                <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                  <span>Top Attack Sources</span>
+                  <span class="stat-pill" style="font-size: 0.7rem; color: var(--red);">Live Interception</span>
+                </div>
+                <div class="waf-table-wrapper">
+                  <table class="waf-table">
+                    <thead>
+                      <tr>
+                        <th>Attack IP</th>
+                        <th>Attack times</th>
+                        <th>IP attribution</th>
+                        <th style="text-align: right;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="wafAttackIpTableBody">
+                      <tr><td colspan="4" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">Loading threat intelligence...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTTOM TOP 10 BREAKDOWN CARDS -->
+          <div class="waf-top10-grid">
+            <!-- CARD 1: ATTACKED DOMAINS TOP10 -->
+            <div class="waf-card">
+              <div class="waf-card-header">
+                <div class="waf-card-title">Attacked domains TOP10</div>
+              </div>
+              <div class="waf-table-wrapper" style="border: none;">
+                <table class="waf-table">
+                  <thead>
+                    <tr>
+                      <th>Domain</th>
+                      <th>Attack times</th>
+                      <th style="text-align: right;">Proportion</th>
+                    </tr>
+                  </thead>
+                  <tbody id="wafTopAttackedDomains">
+                    <tr><td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--text-dim);">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- CARD 2: TRAFFIC RANKING TOP10 -->
+            <div class="waf-card">
+              <div class="waf-card-header">
+                <div class="waf-card-title">Traffic ranking TOP10</div>
+              </div>
+              <div class="waf-table-wrapper" style="border: none;">
+                <table class="waf-table">
+                  <thead>
+                    <tr>
+                      <th>Domain</th>
+                      <th>Traffic</th>
+                      <th style="text-align: right;">Proportion</th>
+                    </tr>
+                  </thead>
+                  <tbody id="wafTopTrafficDomains">
+                    <tr><td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--text-dim);">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- CARD 3: VISITED PAGES TOP10 -->
+            <div class="waf-card">
+              <div class="waf-card-header">
+                <div class="waf-card-title">Visited pages TOP10</div>
+              </div>
+              <div class="waf-table-wrapper" style="border: none;">
+                <table class="waf-table">
+                  <thead>
+                    <tr>
+                      <th>URL Path</th>
+                      <th>Requests</th>
+                      <th style="text-align: right;">Proportion</th>
+                    </tr>
+                  </thead>
+                  <tbody id="wafTopVisitedPages">
+                    <tr><td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--text-dim);">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div> <!-- /#wafViewOverview -->
+
+        <!-- VIEW 2: BLACK / WHITE LIST MANAGEMENT -->
+        <div id="wafViewIpRules" style="display: none;">
+          <div class="waf-card">
+            <div class="waf-card-header">
+              <div class="waf-card-title">IP Access Control (Black/White List)</div>
+              <div style="font-size: 0.8rem; color: var(--text-dim);">Instantly block or allow specific IP addresses or CIDR ranges</div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+              <input id="wafNewIpInput" type="text" class="form-input" style="max-width: 280px;" placeholder="e.g. 192.168.1.100">
+              <select id="wafNewIpType" class="form-input" style="max-width: 160px;">
+                <option value="black">Blacklist (Block)</option>
+                <option value="white">Whitelist (Allow)</option>
+              </select>
+              <button class="btn" onclick="submitWafIpRule('add')">+ Add IP Rule</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+              <div>
+                <h4 style="color: var(--red); margin-bottom: 0.5rem; font-size: 0.9rem;">🚫 Blacklisted IPs (Drop Connections)</h4>
+                <div class="waf-table-wrapper">
+                  <table class="waf-table">
+                    <thead>
+                      <tr><th>IP Address</th><th style="text-align: right;">Action</th></tr>
+                    </thead>
+                    <tbody id="wafBlacklistTableBody">
+                      <tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--text-dim);">No blacklisted IPs</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <h4 style="color: var(--green); margin-bottom: 0.5rem; font-size: 0.9rem;">🛡️ Whitelisted IPs (Bypass All Rules)</h4>
+                <div class="waf-table-wrapper">
+                  <table class="waf-table">
+                    <thead>
+                      <tr><th>IP Address</th><th style="text-align: right;">Action</th></tr>
+                    </thead>
+                    <tbody id="wafWhitelistTableBody">
+                      <tr><td colspan="2" style="text-align: center; padding: 1rem; color: var(--text-dim);">No whitelisted IPs</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> <!-- /#wafViewIpRules -->
+
+        <!-- VIEW 3: REGION / GEO BLOCKING -->
+        <div id="wafViewRegion" style="display: none;">
+          <div class="waf-card">
+            <div class="waf-card-header">
+              <div class="waf-card-title">Geographical Access Restriction</div>
+              <div style="font-size: 0.8rem; color: var(--text-dim);">Toggle country-level blocking at Layer-7 perimeter</div>
+            </div>
+            <div id="wafCountryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem;">
+              <!-- Country cards rendered dynamically -->
+            </div>
+          </div>
+        </div> <!-- /#wafViewRegion -->
+
+        <!-- VIEW 4: CUSTOM RULES -->
+        <div id="wafViewCustomRules" style="display: none;">
+          <div class="waf-card">
+            <div class="waf-card-header">
+              <div class="waf-card-title">Custom WAF Inspection Rules</div>
+              <div style="font-size: 0.8rem; color: var(--text-dim);">Declarative regex and header matching filters</div>
+            </div>
+            <div style="background: var(--surface-elevated); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border); margin-bottom: 1.25rem;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">Rule Name</label>
+                  <input id="wafCustomRuleName" class="form-input" placeholder="e.g. Block SQLi Union">
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">Match Target</label>
+                  <select id="wafCustomRuleTarget" class="form-input">
+                    <option value="URI">URI Path / Query</option>
+                    <option value="Header">Request Header</option>
+                    <option value="User-Agent">User-Agent</option>
+                    <option value="IP">Client IP</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">Operator</label>
+                  <select id="wafCustomRuleOp" class="form-input">
+                    <option value="contains">Contains</option>
+                    <option value="regex">Regex Match</option>
+                    <option value="equals">Exact Equals</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">Action</label>
+                  <select id="wafCustomRuleAction" class="form-input">
+                    <option value="block">Drop (403 Forbidden)</option>
+                    <option value="challenge">JS Challenge</option>
+                    <option value="log">Monitor &amp; Log Only</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.75rem;">
+                <input id="wafCustomRulePattern" class="form-input" style="flex: 1;" placeholder="Pattern or regex (e.g. (?i)(select|union|insert).+from)">
+                <button class="btn" onclick="submitWafCustomRule()">+ Create Rule</button>
+              </div>
+            </div>
+
+            <div class="waf-table-wrapper">
+              <table class="waf-table">
+                <thead>
+                  <tr>
+                    <th>Rule Name</th>
+                    <th>Target</th>
+                    <th>Operator</th>
+                    <th>Pattern</th>
+                    <th>Action</th>
+                    <th style="text-align: right;">Delete</th>
+                  </tr>
+                </thead>
+                <tbody id="wafCustomRulesTableBody">
+                  <tr><td colspan="6" style="text-align: center; padding: 1.5rem; color: var(--text-dim);">Loading custom rules...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div> <!-- /#wafViewCustomRules -->
       </div>
     </main>
   </div>

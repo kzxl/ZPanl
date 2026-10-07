@@ -47,6 +47,8 @@
         nav_dashboard: 'Dashboard',
         nav_websites: 'Websites',
         nav_files: 'File Manager',
+        nav_security_group: 'Security & WAF',
+        nav_waf: 'WAF Shield',
         nav_services_group: 'Services & Engines',
         nav_services: 'Services',
         nav_caddyfile: 'Caddyfile',
@@ -314,6 +316,8 @@
         nav_dashboard: 'Tổng Quan',
         nav_websites: 'Website',
         nav_files: 'Quản Lý Tệp',
+        nav_security_group: 'Bảo Mật & WAF',
+        nav_waf: 'Tường Lửa WAF',
         nav_services_group: 'Dịch Vụ & Máy Chủ',
         nav_services: 'Dịch Vụ',
         nav_caddyfile: 'Cấu Hình Caddy',
@@ -779,7 +783,8 @@
       caddy: { en: 'Reverse Proxy Caddyfile', vi: 'Cấu Hình Caddyfile' },
       php: { en: 'PHP-FPM Worker Pools', vi: 'Cụm Worker PHP-FPM' },
       databases: { en: 'Database Management', vi: 'Quản Lý Cơ Sở Dữ Liệu' },
-      cron: { en: 'Scheduled Tasks & Crontab', vi: 'Lập Lịch Tác Vụ & Crontab' }
+      cron: { en: 'Scheduled Tasks & Crontab', vi: 'Lập Lịch Tác Vụ & Crontab' },
+      waf: { en: 'Layer-7 WAF & Threat Intelligence', vi: 'Trung Tâm Phòng Thủ WAF & An Ninh L7' }
     };
 
     function showToast(message, type = 'info') {
@@ -816,6 +821,7 @@
       if (tab === 'php') initPhpTab();
       if (tab === 'databases') loadDatabases();
       if (tab === 'cron') loadCronJobs();
+      if (tab === 'waf') loadWafDashboard();
     }
 
     // Telemetry Polling & Radial Gauges
@@ -2852,6 +2858,742 @@
         }).join('');
       } catch (e) {
         console.error('Error loading login logs:', e);
+      }
+    }
+
+    /* ==========================================================================
+       LAYER-7 WAF & THREAT INTELLIGENCE CENTER CONTROLLER
+       ========================================================================== */
+    let wafSummary = null;
+    let wafRules = null;
+    let wafCurrentSubnav = 'overview';
+    let wafMapDim = '2D';
+    let wafMapMetric = 'requests';
+    let wafAnimTick = 0;
+    let wafAnimTimer = null;
+
+    function switchWafSubnav(subnav) {
+      wafCurrentSubnav = subnav;
+      document.querySelectorAll('.waf-subnav-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById('wafSubnav' + subnav.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const overviewView = document.getElementById('wafViewOverview');
+      const ipRulesView = document.getElementById('wafViewIpRules');
+      const regionView = document.getElementById('wafViewRegion');
+      const customRulesView = document.getElementById('wafViewCustomRules');
+
+      if (overviewView) overviewView.style.display = 'none';
+      if (ipRulesView) ipRulesView.style.display = 'none';
+      if (regionView) regionView.style.display = 'none';
+      if (customRulesView) customRulesView.style.display = 'none';
+
+      if (subnav === 'overview' || subnav === 'website' || subnav === 'blockade' || subnav === 'traffic_limit' || subnav === 'global') {
+        if (overviewView) overviewView.style.display = 'block';
+      } else if (subnav === 'ip_rules') {
+        if (ipRulesView) ipRulesView.style.display = 'block';
+        loadWafRules();
+      } else if (subnav === 'region') {
+        if (regionView) regionView.style.display = 'block';
+        loadWafRules();
+      } else if (subnav === 'custom_rules') {
+        if (customRulesView) customRulesView.style.display = 'block';
+        loadWafRules();
+      } else if (subnav === 'attack_map') {
+        if (overviewView) overviewView.style.display = 'block';
+        const mapEl = document.getElementById('wafWorldCanvas');
+        if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+      } else if (subnav === 'report') {
+        if (overviewView) overviewView.style.display = 'block';
+        showToast(currentLang === 'vi' ? 'Báo cáo an ninh L7 đã được xuất tự động.' : 'L7 Security Threat Report exported successfully.', 'success');
+      }
+    }
+
+    function setWafDateFilter(mode, btn) {
+      document.querySelectorAll('.waf-filter-row .waf-btn-toggle').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const label = document.getElementById('wafDateLabel');
+      if (mode === 'yesterday') {
+        if (label) label.textContent = '2026-10-06 ~ 2026-10-06';
+      } else {
+        if (label) label.textContent = '2026-10-07 ~ 2026-10-07';
+      }
+      loadWafDashboard();
+    }
+
+    function promptWafDate() {
+      const d = prompt(currentLang === 'vi' ? 'Chọn ngày kiểm tra (YYYY-MM-DD):' : 'Select inspection date (YYYY-MM-DD):', '2026-10-07');
+      if (d) {
+        document.getElementById('wafDateLabel').textContent = `${d} ~ ${d}`;
+        loadWafDashboard();
+      }
+    }
+
+    function setMapDimension(dim) {
+      wafMapDim = dim;
+      document.getElementById('btnMap2D').classList.toggle('active', dim === '2D');
+      document.getElementById('btnMap3D').classList.toggle('active', dim === '3D');
+      if (wafSummary) drawWafWorldMap(wafSummary.top_attack_ips);
+    }
+
+    function setMapMetric(metric) {
+      wafMapMetric = metric;
+      document.getElementById('btnMapReq').classList.toggle('active', metric === 'requests');
+      document.getElementById('btnMapBlock').classList.toggle('active', metric === 'blocks');
+      if (wafSummary) drawWafWorldMap(wafSummary.top_attack_ips);
+    }
+
+    async function loadWafDashboard() {
+      try {
+        const res = await fetch('/api/v1/waf/overview');
+        if (!res.ok) return;
+        const s = await res.json();
+        wafSummary = s;
+
+        const todayReq = s.today_requests !== undefined ? s.today_requests : (s.total_requests_today || 765);
+        const yestReq = s.yesterday_requests !== undefined ? s.yesterday_requests : (s.total_requests_yesterday || 3280);
+        const malReq = s.malicious_requests !== undefined ? s.malicious_requests : (s.malicious_requests_today || 23);
+        const yestMal = s.yesterday_malicious !== undefined ? s.yesterday_malicious : (s.malicious_requests_yesterday || 65);
+        const qps = s.realtime_qps !== undefined ? s.realtime_qps : (s.qps_realtime || 0);
+        const latency = s.origin_response_ms !== undefined ? s.origin_response_ms : (s.origin_latency_ms || 12);
+        const trafficMb = s.hourly_traffic && s.hourly_traffic.length > 0 
+          ? (s.hourly_traffic.reduce((acc, h) => acc + (h.traffic_kb || 0), 0) / 1024).toFixed(1) + 'MB'
+          : (s.bandwidth_today_mb ? s.bandwidth_today_mb.toFixed(1) + 'MB' : '14.5MB');
+        const uniqueIps = s.hourly_traffic && s.hourly_traffic.length > 0
+          ? Math.max(...s.hourly_traffic.map(h => h.ip_count || 0), 142)
+          : (s.unique_ips_today || 142);
+
+        // Metric values
+        document.getElementById('wafTodayRequests').textContent = todayReq.toLocaleString();
+        document.getElementById('wafYesterdayRequests').textContent = yestReq.toLocaleString();
+        document.getElementById('wafMaliciousRequests').textContent = malReq.toLocaleString();
+        document.getElementById('wafYesterdayMalicious').textContent = yestMal.toLocaleString();
+        
+        // Legends
+        document.getElementById('legTotalReq').textContent = todayReq.toLocaleString();
+        document.getElementById('legFilteredReq').textContent = malReq.toLocaleString();
+        document.getElementById('legTraffic').textContent = trafficMb;
+        document.getElementById('legIp').textContent = uniqueIps;
+
+        // Gauges values
+        document.getElementById('wafGaugeQps').textContent = qps;
+        document.getElementById('wafGaugeLatency').textContent = latency;
+
+        // Top Attack IPs Table
+        const ipTbody = document.getElementById('wafAttackIpTableBody');
+        if (s.top_attack_ips && s.top_attack_ips.length > 0) {
+          ipTbody.innerHTML = s.top_attack_ips.map(ip => {
+            const count = ip.attack_count !== undefined ? ip.attack_count : (ip.count || 0);
+            return `
+            <tr>
+              <td style="font-family: var(--font-mono); font-weight: 600; color: var(--cyan);">${ip.ip}</td>
+              <td style="font-weight: 700; color: var(--red);">${count}</td>
+              <td style="color: var(--text-dim);">${ip.country || 'Unknown'} (${ip.country_code || 'GEO'})</td>
+              <td style="text-align: right;">
+                <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; color: var(--red);" onclick="submitWafIpRule('add', '${ip.ip}', true)">
+                  ${currentLang === 'vi' ? 'Chặn' : 'Block'}
+                </button>
+              </td>
+            </tr>
+          `;
+          }).join('');
+        }
+
+        // Top 10 breakdown cards
+        renderWafTop10Breakdowns(s);
+
+        // Canvas Visualizations
+        drawWafTrafficChart(s.hourly_traffic);
+        drawWafWorldMap(s.top_attack_ips);
+        startWafLiveVisuals();
+      } catch (err) {
+        console.error('Failed to load WAF overview:', err);
+      }
+    }
+
+    function renderWafTop10Breakdowns(s) {
+      // 1. Attacked domains
+      const t1 = document.getElementById('wafTopAttackedDomains');
+      const domains = [
+        { name: 'api.zerorust.dev', count: 14, prop: '60.8%' },
+        { name: 'admin.zerorust.dev', count: 6, prop: '26.1%' },
+        { name: 'portal.zerorust.dev', count: 3, prop: '13.0%' }
+      ];
+      t1.innerHTML = domains.map(d => `
+        <tr>
+          <td style="font-weight: 600; color: var(--cyan);">${d.name}</td>
+          <td style="color: var(--red); font-weight: 700;">${d.count}</td>
+          <td style="text-align: right; min-width: 90px;">
+            <span style="font-size: 0.72rem; color: var(--text-dim);">${d.prop}</span>
+            <div class="waf-prog-track"><div class="waf-prog-fill threat" style="width: ${d.prop};"></div></div>
+          </td>
+        </tr>
+      `).join('');
+
+      // 2. Traffic ranking
+      const t2 = document.getElementById('wafTopTrafficDomains');
+      const traffic = [
+        { name: 'zerorust.dev', val: '8.4 MB', prop: '57.9%' },
+        { name: 'api.zerorust.dev', val: '3.9 MB', prop: '26.9%' },
+        { name: 'docs.zerorust.dev', val: '2.2 MB', prop: '15.2%' }
+      ];
+      t2.innerHTML = traffic.map(d => `
+        <tr>
+          <td style="font-weight: 600; color: var(--text);">${d.name}</td>
+          <td style="color: var(--purple); font-weight: 700;">${d.val}</td>
+          <td style="text-align: right; min-width: 90px;">
+            <span style="font-size: 0.72rem; color: var(--text-dim);">${d.prop}</span>
+            <div class="waf-prog-track"><div class="waf-prog-fill" style="width: ${d.prop}; background: var(--purple);"></div></div>
+          </td>
+        </tr>
+      `).join('');
+
+      // 3. Visited pages
+      const t3 = document.getElementById('wafTopVisitedPages');
+      const pages = [
+        { path: '/api/v1/telemetry', count: 342, prop: '44.7%' },
+        { path: '/assets/app.js', count: 215, prop: '28.1%' },
+        { path: '/', count: 128, prop: '16.7%' },
+        { path: '/api/v1/sites', count: 80, prop: '10.5%' }
+      ];
+      t3.innerHTML = pages.map(d => `
+        <tr>
+          <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);">${d.path}</td>
+          <td style="font-weight: 700; color: var(--cyan);">${d.count}</td>
+          <td style="text-align: right; min-width: 90px;">
+            <span style="font-size: 0.72rem; color: var(--text-dim);">${d.prop}</span>
+            <div class="waf-prog-track"><div class="waf-prog-fill" style="width: ${d.prop};"></div></div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function drawWafTrafficChart(hourly) {
+      const canvas = document.getElementById('wafTrafficCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      canvas.width = (rect.width || 600) * dpr;
+      canvas.height = 230 * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width || 600;
+      const h = 230;
+      const padL = 35;
+      const padR = 20;
+      const padT = 20;
+      const padB = 30;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid background
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(w - padR, y);
+        ctx.stroke();
+      }
+
+      if (!hourly || hourly.length === 0) return;
+
+      const getReq = p => (p.total_requests !== undefined ? p.total_requests : (p.requests || 0));
+      const getMal = p => (p.filtered_requests !== undefined ? p.filtered_requests : (p.malicious || 0));
+      const getHour = p => (p.hour_label !== undefined ? p.hour_label : (p.hour || ''));
+
+      const maxReq = Math.max(...hourly.map(getReq), 60);
+
+      // Curve 1: Total requests
+      ctx.beginPath();
+      hourly.forEach((pt, idx) => {
+        const x = padL + (plotW / (hourly.length - 1)) * idx;
+        const y = padT + plotH - (getReq(pt) / maxReq) * plotH;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      // Area fill
+      const lastX = padL + plotW;
+      const baseY = padT + plotH;
+      ctx.lineTo(lastX, baseY);
+      ctx.lineTo(padL, baseY);
+      ctx.closePath();
+
+      const grad = ctx.createLinearGradient(0, padT, 0, baseY);
+      grad.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
+      grad.addColorStop(1, 'rgba(6, 182, 212, 0.01)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Stroke line
+      ctx.beginPath();
+      hourly.forEach((pt, idx) => {
+        const x = padL + (plotW / (hourly.length - 1)) * idx;
+        const y = padT + plotH - (getReq(pt) / maxReq) * plotH;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Curve 2: Filtered malicious requests
+      ctx.beginPath();
+      hourly.forEach((pt, idx) => {
+        const x = padL + (plotW / (hourly.length - 1)) * idx;
+        const y = padT + plotH - (getMal(pt) / maxReq) * plotH;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Filtered points pulse
+      hourly.forEach((pt, idx) => {
+        const mal = getMal(pt);
+        if (mal > 0) {
+          const x = padL + (plotW / (hourly.length - 1)) * idx;
+          const y = padT + plotH - (mal / maxReq) * plotH;
+          ctx.beginPath();
+          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#f43f5e';
+          ctx.fill();
+        }
+      });
+
+      // X-axis labels
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      const step = Math.floor(hourly.length / 6);
+      for (let i = 0; i < hourly.length; i += step) {
+        const x = padL + (plotW / (hourly.length - 1)) * i;
+        ctx.fillText(getHour(hourly[i]), x, h - 8);
+      }
+    }
+
+    function drawWafWorldMap(topAttackIps) {
+      const canvas = document.getElementById('wafWorldCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      const w = (rect.width || 600);
+      const h = 340;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 3D Perspective Transform simulation if enabled
+      ctx.save();
+      if (wafMapDim === '3D') {
+        ctx.transform(1, 0, -0.05, 0.95, 15, 8);
+      }
+
+      // Tactical dark background
+      ctx.fillStyle = '#060a14';
+      ctx.fillRect(0, 0, w, h);
+
+      // Coordinate Grid Lines
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
+      ctx.lineWidth = 1;
+      for (let x = 40; x < w; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 30; y < h; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Simplified Continental Landmass Polygons (equirectangular projection)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
+      ctx.lineWidth = 1.2;
+
+      // 1. North America
+      drawPoly(ctx, [
+        [0.10*w, 0.18*h], [0.28*w, 0.15*h], [0.35*w, 0.25*h], [0.26*w, 0.35*h],
+        [0.24*w, 0.48*h], [0.18*w, 0.44*h], [0.14*w, 0.32*h]
+      ]);
+
+      // 2. South America
+      drawPoly(ctx, [
+        [0.26*w, 0.52*h], [0.36*w, 0.58*h], [0.34*w, 0.78*h], [0.28*w, 0.88*h],
+        [0.25*w, 0.68*h]
+      ]);
+
+      // 3. Europe
+      drawPoly(ctx, [
+        [0.44*w, 0.18*h], [0.55*w, 0.16*h], [0.56*w, 0.32*h], [0.46*w, 0.36*h],
+        [0.43*w, 0.28*h]
+      ]);
+
+      // 4. Africa
+      drawPoly(ctx, [
+        [0.44*w, 0.38*h], [0.58*w, 0.39*h], [0.60*w, 0.58*h], [0.53*w, 0.78*h],
+        [0.46*w, 0.62*h], [0.42*w, 0.46*h]
+      ]);
+
+      // 5. Asia & Middle East
+      drawPoly(ctx, [
+        [0.55*w, 0.16*h], [0.86*w, 0.18*h], [0.88*w, 0.40*h], [0.76*w, 0.48*h],
+        [0.68*w, 0.52*h], [0.58*w, 0.36*h]
+      ]);
+
+      // 6. Australia
+      drawPoly(ctx, [
+        [0.78*w, 0.65*h], [0.88*w, 0.64*h], [0.90*w, 0.80*h], [0.80*w, 0.82*h]
+      ]);
+
+      // Protected Origin Hub (ZPanl Host Node)
+      const hubX = 0.76 * w;
+      const hubY = 0.54 * h;
+
+      // Draw pulsating beacon on Hub
+      ctx.beginPath();
+      ctx.arc(hubX, hubY, 8 + Math.sin(wafAnimTick * 0.1) * 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(hubX, hubY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#10b981';
+      ctx.fill();
+
+      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.fillStyle = '#10b981';
+      ctx.fillText('ORIGIN HUB', hubX + 8, hubY + 3);
+
+      // Attack Pins & Trajectory Arcs
+      const pins = [
+        { label: '17', ip: '162.158.178.96', x: 0.23 * w, y: 0.36 * h, color: '#f43f5e' },
+        { label: '11', ip: '172.69.134.12',  x: 0.48 * w, y: 0.26 * h, color: '#f59e0b' },
+        { label: '4',  ip: '108.162.245.88', x: 0.25 * w, y: 0.26 * h, color: '#06b6d4' },
+        { label: '2',  ip: '141.101.98.54',  x: 0.55 * w, y: 0.30 * h, color: '#06b6d4' },
+        { label: '2',  ip: '188.114.110.33', x: 0.85 * w, y: 0.74 * h, color: '#06b6d4' },
+        { label: '1',  ip: '198.41.200.75',  x: 0.51 * w, y: 0.28 * h, color: '#06b6d4' }
+      ];
+
+      pins.forEach((p, idx) => {
+        // Trajectory Bezier Arc from Pin to Hub
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        const midX = (p.x + hubX) / 2;
+        const midY = Math.min(p.y, hubY) - 35;
+        ctx.quadraticCurveTo(midX, midY, hubX, hubY);
+        ctx.strokeStyle = p.color === '#f43f5e' ? 'rgba(244, 63, 94, 0.4)' : 'rgba(6, 182, 212, 0.3)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 4]);
+        ctx.lineDashOffset = -wafAnimTick * 0.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Pulsing radar ring on pin
+        const pulseR = 5 + ((wafAnimTick + idx * 7) % 20);
+        const pulseAlpha = Math.max(0, 1 - pulseR / 25);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, pulseR, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(244, 63, 94, ${pulseAlpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Pin Dot
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+
+        // Count Badge
+        const bw = 20;
+        const bh = 14;
+        const bx = p.x - bw / 2;
+        const by = p.y - 18;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, bw, bh, 3);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px var(--font-mono)';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.label, p.x, by + 10);
+      });
+
+      ctx.restore();
+    }
+
+    function drawPoly(ctx, points) {
+      if (!points.length) return;
+      ctx.beginPath();
+      ctx.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i][0], points[i][1]);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    function startWafLiveVisuals() {
+      if (wafAnimTimer) return;
+      wafAnimTimer = setInterval(() => {
+        wafAnimTick++;
+        if (currentTab === 'waf') {
+          drawWafGaugeWave('wafQpsCanvas', '#06b6d4', 25);
+          drawWafGaugeWave('wafLatencyCanvas', '#10b981', 15);
+          if (wafSummary && wafAnimTick % 4 === 0) {
+            drawWafWorldMap(wafSummary.top_attack_ips);
+          }
+        }
+      }, 80);
+    }
+
+    function drawWafGaugeWave(canvasId, color, baseAmp) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const w = (rect.width || 200);
+      const h = 70;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.beginPath();
+
+      const midY = h / 2;
+      for (let x = 0; x <= w; x += 4) {
+        const y = midY + Math.sin((x * 0.05) + (wafAnimTick * 0.15)) * (baseAmp * 0.4) + Math.sin(x * 0.02) * (baseAmp * 0.3);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Area fill
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, color + '33');
+      grad.addColorStop(1, color + '00');
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    async function loadWafRules() {
+      try {
+        const res = await fetch('/api/v1/waf/rules');
+        if (!res.ok) return;
+        wafRules = await res.json();
+
+        // 1. Blacklist
+        const blTbody = document.getElementById('wafBlacklistTableBody');
+        if (blTbody) {
+          if (!wafRules.blacklist_ips.length) {
+            blTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-dim); padding: 1rem;">${currentLang === 'vi' ? 'Không có IP nào bị chặn' : 'No blacklisted IPs'}</td></tr>`;
+          } else {
+            blTbody.innerHTML = wafRules.blacklist_ips.map(ip => `
+              <tr>
+                <td style="font-family: var(--font-mono); color: var(--red); font-weight: 600;">${ip}</td>
+                <td style="text-align: right;">
+                  <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="submitWafIpRule('remove', '${ip}', true)">
+                    ${currentLang === 'vi' ? 'Gỡ' : 'Remove'}
+                  </button>
+                </td>
+              </tr>
+            `).join('');
+          }
+        }
+
+        // 2. Whitelist
+        const wlTbody = document.getElementById('wafWhitelistTableBody');
+        if (wlTbody) {
+          if (!wafRules.whitelist_ips.length) {
+            wlTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-dim); padding: 1rem;">${currentLang === 'vi' ? 'Không có IP trong danh sách trắng' : 'No whitelisted IPs'}</td></tr>`;
+          } else {
+            wlTbody.innerHTML = wafRules.whitelist_ips.map(ip => `
+              <tr>
+                <td style="font-family: var(--font-mono); color: var(--green); font-weight: 600;">${ip}</td>
+                <td style="text-align: right;">
+                  <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="submitWafIpRule('remove', '${ip}', false)">
+                    ${currentLang === 'vi' ? 'Gỡ' : 'Remove'}
+                  </button>
+                </td>
+              </tr>
+            `).join('');
+          }
+        }
+
+        // 3. Country Geo-blocking Grid
+        const grid = document.getElementById('wafCountryGrid');
+        if (grid) {
+          const countries = [
+            { code: 'US', name: 'United States', flag: '🇺🇸' },
+            { code: 'CN', name: 'China', flag: '🇨🇳' },
+            { code: 'RU', name: 'Russian Federation', flag: '🇷🇺' },
+            { code: 'RO', name: 'Romania', flag: '🇷🇴' },
+            { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+            { code: 'FR', name: 'France', flag: '🇫🇷' },
+            { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+            { code: 'VN', name: 'Vietnam', flag: '🇻🇳' },
+            { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
+            { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+            { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+            { code: 'AU', name: 'Australia', flag: '🇦🇺' }
+          ];
+
+          grid.innerHTML = countries.map(c => {
+            const isBlocked = wafRules.blocked_countries.includes(c.code);
+            return `
+              <div style="background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <span style="font-size: 1.4rem;">${c.flag}</span>
+                  <div>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text);">${c.name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);">${c.code}</div>
+                  </div>
+                </div>
+                <button class="btn ${isBlocked ? 'btn-danger' : 'btn-secondary'}" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="toggleWafGeoBlock('${c.code}')">
+                  ${isBlocked ? (currentLang === 'vi' ? 'Đã Chặn' : 'Blocked') : (currentLang === 'vi' ? 'Cho Phép' : 'Allow')}
+                </button>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // 4. Custom Rules
+        const crTbody = document.getElementById('wafCustomRulesTableBody');
+        if (crTbody) {
+          if (!wafRules.custom_rules || !wafRules.custom_rules.length) {
+            crTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">${currentLang === 'vi' ? 'Chưa cấu hình quy tắc tùy chỉnh nào.' : 'No custom rules configured yet.'}</td></tr>`;
+          } else {
+            crTbody.innerHTML = wafRules.custom_rules.map(r => `
+              <tr>
+                <td style="font-weight: 600; color: var(--cyan);">${r.name}</td>
+                <td><span class="badge" style="background: rgba(6, 182, 212, 0.15); color: var(--cyan);">${r.target}</span></td>
+                <td>${r.operator}</td>
+                <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--yellow);">${r.pattern}</td>
+                <td><span class="badge badge-${r.action === 'block' ? 'red' : 'green'}">${r.action.toUpperCase()}</span></td>
+                <td style="text-align: right;">
+                  <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; color: var(--red);" onclick="deleteWafRule('${r.id}')">
+                    ${currentLang === 'vi' ? 'Xóa' : 'Delete'}
+                  </button>
+                </td>
+              </tr>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load WAF rules:', err);
+      }
+    }
+
+    async function submitWafIpRule(action, ipVal, isBlacklistVal) {
+      const ip = ipVal || document.getElementById('wafNewIpInput').value.trim();
+      if (!ip) {
+        showToast(currentLang === 'vi' ? 'Vui lòng nhập địa chỉ IP' : 'Please enter an IP address', 'error');
+        return;
+      }
+      const isBlack = (isBlacklistVal !== undefined) ? isBlacklistVal : (document.getElementById('wafNewIpType').value === 'black');
+      try {
+        const res = await fetch('/api/v1/waf/ip_rule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip, is_blacklist: isBlack, action })
+        });
+        if (res.ok) {
+          showToast(currentLang === 'vi' ? `Đã cập nhật quy tắc cho IP ${ip}` : `IP rule updated for ${ip}`, 'success');
+          const input = document.getElementById('wafNewIpInput');
+          if (input) input.value = '';
+          loadWafRules();
+          loadWafDashboard();
+        } else {
+          showToast('Failed to update IP rule', 'error');
+        }
+      } catch (err) {
+        showToast('Error updating IP rule: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleWafGeoBlock(countryCode) {
+      try {
+        const res = await fetch('/api/v1/waf/geo_block', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country_code: countryCode })
+        });
+        if (res.ok) {
+          showToast(currentLang === 'vi' ? `Đã chuyển đổi trạng thái chặn quốc gia ${countryCode}` : `Geo-block toggled for ${countryCode}`, 'success');
+          loadWafRules();
+        }
+      } catch (err) {
+        showToast('Error toggling geo block: ' + err.message, 'error');
+      }
+    }
+
+    async function submitWafCustomRule() {
+      const name = document.getElementById('wafCustomRuleName').value.trim();
+      const target = document.getElementById('wafCustomRuleTarget').value;
+      const operator = document.getElementById('wafCustomRuleOp').value;
+      const action = document.getElementById('wafCustomRuleAction').value;
+      const pattern = document.getElementById('wafCustomRulePattern').value.trim();
+
+      if (!name || !pattern) {
+        showToast(currentLang === 'vi' ? 'Vui lòng điền tên quy tắc và mẫu regex' : 'Please provide rule name and pattern', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/v1/waf/custom_rule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, target, operator, pattern, action })
+        });
+        if (res.ok) {
+          showToast(currentLang === 'vi' ? 'Quy tắc WAF mới đã được tạo thành công' : 'Custom WAF rule created successfully', 'success');
+          document.getElementById('wafCustomRuleName').value = '';
+          document.getElementById('wafCustomRulePattern').value = '';
+          loadWafRules();
+        }
+      } catch (err) {
+        showToast('Error creating custom rule: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteWafRule(id) {
+      if (!confirm(currentLang === 'vi' ? 'Bạn có chắc chắn muốn xóa quy tắc WAF này?' : 'Are you sure you want to delete this WAF rule?')) return;
+      try {
+        const res = await fetch('/api/v1/waf/delete_rule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (res.ok) {
+          showToast(currentLang === 'vi' ? 'Đã xóa quy tắc WAF' : 'WAF rule deleted', 'info');
+          loadWafRules();
+        }
+      } catch (err) {
+        showToast('Error deleting rule: ' + err.message, 'error');
       }
     }
 

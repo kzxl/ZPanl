@@ -13,6 +13,7 @@ use crate::deploy::DeployStorage;
 use crate::site::SiteDatabase;
 use crate::telemetry::TelemetryCollector;
 use crate::ui::{APP_JS, INDEX_HTML, STYLE_CSS};
+use crate::waf::WafStorage;
 use response::{send_cached_response, send_response};
 use std::io::{BufRead, BufReader, Read};
 use std::net::{TcpListener, TcpStream};
@@ -31,6 +32,8 @@ pub struct HttpServer {
     deploy_db_path: String,
     auth_db: Arc<Mutex<AuthStorage>>,
     auth_db_path: String,
+    waf_db: Arc<Mutex<WafStorage>>,
+    waf_db_path: String,
     telemetry: Arc<TelemetryCollector>,
 }
 
@@ -41,10 +44,12 @@ impl HttpServer {
         let database_path = format!("{}_databases.json", db_path.trim_end_matches(".json"));
         let deploy_path = format!("{}_deploy.json", db_path.trim_end_matches(".json"));
         let auth_path = format!("{}_auth.json", db_path.trim_end_matches(".json"));
+        let waf_path = format!("{}_waf.json", db_path.trim_end_matches(".json"));
         let cron_db = CronDatabase::load_or_default(&cron_path);
         let database_db = DatabaseStorage::load_or_default(&database_path);
         let deploy_db = DeployStorage::load_or_default(&deploy_path);
         let (auth_db, _initial_pass) = AuthStorage::load_or_init(&auth_path);
+        let waf_db = WafStorage::load_or_init(&waf_path);
 
         Self {
             bind_addr: bind_addr.to_string(),
@@ -58,6 +63,8 @@ impl HttpServer {
             deploy_db_path: deploy_path,
             auth_db: Arc::new(Mutex::new(auth_db)),
             auth_db_path: auth_path,
+            waf_db: Arc::new(Mutex::new(waf_db)),
+            waf_db_path: waf_path,
             telemetry: Arc::new(TelemetryCollector::new()),
         }
     }
@@ -82,6 +89,8 @@ impl HttpServer {
                     let deploy_db_path = self.deploy_db_path.clone();
                     let auth_db = Arc::clone(&self.auth_db);
                     let auth_db_path = self.auth_db_path.clone();
+                    let waf_db = Arc::clone(&self.waf_db);
+                    let waf_db_path = self.waf_db_path.clone();
                     let telemetry = Arc::clone(&self.telemetry);
 
                     thread::spawn(move || {
@@ -97,6 +106,8 @@ impl HttpServer {
                             &deploy_db_path,
                             auth_db,
                             &auth_db_path,
+                            waf_db,
+                            &waf_db_path,
                             telemetry,
                         ) {
                             eprintln!("Error handling connection: {e}");
@@ -124,6 +135,8 @@ fn handle_connection(
     deploy_db_path: &str,
     auth_db: Arc<Mutex<AuthStorage>>,
     auth_db_path: &str,
+    waf_db: Arc<Mutex<WafStorage>>,
+    waf_db_path: &str,
     telemetry: Arc<TelemetryCollector>,
 ) -> std::io::Result<()> {
     let mut reader = BufReader::new(&stream);
@@ -399,6 +412,22 @@ fn handle_connection(
             &deploy_db,
             deploy_db_path,
         ),
+
+        // --- WAF & THREAT INTELLIGENCE ---
+        ("GET", "/api/v1/waf/overview") => handlers::waf::handle_waf_overview(&mut stream, &waf_db),
+        ("GET", "/api/v1/waf/rules") => handlers::waf::handle_waf_rules(&mut stream, &waf_db),
+        ("POST", "/api/v1/waf/ip_rule") => {
+            handlers::waf::handle_waf_ip_rule(&mut stream, &body, &waf_db, waf_db_path)
+        }
+        ("POST", "/api/v1/waf/geo_block") => {
+            handlers::waf::handle_waf_geo_block(&mut stream, &body, &waf_db, waf_db_path)
+        }
+        ("POST", "/api/v1/waf/custom_rule") => {
+            handlers::waf::handle_waf_custom_rule(&mut stream, &body, &waf_db, waf_db_path)
+        }
+        ("POST", "/api/v1/waf/delete_rule") => {
+            handlers::waf::handle_waf_delete_rule(&mut stream, &body, &waf_db, waf_db_path)
+        }
 
         _ => send_response(&mut stream, 404, "text/plain", b"Not Found"),
     }

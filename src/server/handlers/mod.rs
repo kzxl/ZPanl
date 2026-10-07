@@ -9,3 +9,4 @@ pub mod files;
 pub mod services;
 pub mod sites;
 pub mod telemetry;
+pub mod waf;
