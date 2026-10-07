@@ -9,18 +9,41 @@
 
 ---
 
+![ZPanl Modern Dashboard](docs/screenshots/dashboard_overview.png)
+
+---
+
 ## 🌟 Overview
 
-**ZPanl** is a sovereign alternative to heavy, monolithic hosting panels (aaPanel, cPanel, Plesk) engineered specifically for **static websites, modern SPAs, and dynamic PHP-FPM applications**.
+**ZPanl** is a sovereign alternative to heavy, monolithic hosting panels (aaPanel, cPanel, Plesk) engineered specifically for **static websites, modern SPAs, reverse proxies, and dynamic PHP-FPM applications**.
 
 Where traditional panels consume 500 MB – 1 GB of RAM running Python/Node/PHP daemon stacks, **ZPanl** compiles into a **single, self-contained binary (< 5 MB)** that consumes **under 10 MB of RAM** while providing:
 
 - 📊 **Zero-Alloc Linux Telemetry**: Real-time CPU, RAM, and Network traffic parsed directly from `/proc/stat`, `/proc/meminfo`, and `/proc/net/dev`.
+- 📈 **60s Real-Time Activity Waveform**: Hardware-accelerated HTML5 `<canvas>` 2D live telemetry chart tracking rolling CPU, Memory, and Network bandwidth curves with zero external dependencies.
 - 🌐 **Automated Caddy v2 Integration**: Automatic Let's Encrypt / ZeroSSL HTTPS, HTTP/3, and reverse proxy routing without manual config editing.
-- 🐘 **Multi-Version PHP-FPM Engine**: Isolated worker pools (`pool.d/*.conf`) for PHP 8.1, 8.2, and 8.3 via fast Unix domain sockets.
-- 📁 **Jailed Web File Manager**: Path Traversal attack prevention (`../../etc/passwd` rejection) with in-browser text editing and atomic file staging (`.tmp` + rename).
-- ⚙️ **Direct Systemd Management**: Inspect, reload, and restart `caddy`, `php-fpm`, and `mariadb` services.
-- 🖥️ **Embedded Single-Page Web UI**: High-speed, responsive Dark Theme dashboard embedded directly inside the binary (`0` external CDN or runtime dependencies).
+- 🛡️ **Layer-7 Edge WAF & Security Gate**: Heuristic bot blocking (ByteSpider, PetalBot, Semrush), SQLi/XSS filtering, IP blacklists, and salted SHA-256 key-stretched brute-force lockouts.
+- 🐘 **Multi-Version PHP-FPM Engine**: Isolated on-demand worker pools (`pm = ondemand`) for PHP 8.1, 8.2, and 8.3 via fast Unix domain sockets.
+- 📁 **Jailed Web File Manager**: Drag-and-drop file/folder uploads, Path Traversal jail sandbox (`../../etc/passwd` rejection), and atomic file staging (`.tmp` + rename).
+- 🗄️ **Database & Scheduled Crontab**: Relational database management with 1-click `.SQL` backup downloads and automated cron execution schedules.
+- 🚀 **Zero-Downtime Git-Ops**: Atomic symlink releases (`releases/` & `current`) with automated GitHub/GitLab webhook triggers.
+- 🌓 **Dual Theme Engine (Dark / Light)**: 1-click theme switching between high-tech Dark Mode and clean Light Mode, persisted in local storage.
+- 🇻🇳 🇬🇧 **Full Multilingual I18N**: Seamless live switching between English and Vietnamese.
+- 🖥️ **Embedded Sovereign Single-Binary UI**: Fast, responsive SPA embedded directly inside the binary via `include_str!` (`0` external CDN or runtime dependencies).
+
+---
+
+## 📸 UI Showcase & Screenshots
+
+### High-Tech Real-Time Dashboard
+Modern sovereign control center featuring rolling 60-second host telemetry waveforms, core radial utilization dials, health status indicator, active virtual hosts table, and engine daemon matrix:
+
+![ZPanl Modern Dashboard Overview](docs/screenshots/dashboard_overview.png)
+
+### Virtual Host Provisioning Modal
+Instant 1-click deployment modal supporting Static sites, Single-Page Applications (SPA fallback), Reverse Proxies, and PHP-FPM worker runtimes with automatic SSL certificates:
+
+![Deploy New Virtual Host Modal](docs/screenshots/deploy_virtual_host.png)
 
 ---
 
@@ -29,9 +52,9 @@ Where traditional panels consume 500 MB – 1 GB of RAM running Python/Node/PHP 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                          Browser Client                                │
-│        Embedded Dark Glassmorphism SPA (HTML5 / CSS / Vanilla JS)      │
+│       Embedded Modern High-Tech SPA (HTML5 / CSS / Canvas / JS)        │
 └───────────────────────────────────▲────────────────────────────────────┘
-                                    │ HTTP/1.1 REST & Static Assets
+                                    │ HTTP/1.1 REST & Embedded Assets
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │                         ZPanl Daemon (`zpanl`)                         │
