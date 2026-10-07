@@ -2,4 +2,4 @@
 **/*.rs.bk
 *.tmp
 *.bak
-zpanl_sites.json
+zpanl_sites*.json

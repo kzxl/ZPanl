@@ -14,7 +14,7 @@ use crate::site::SiteDatabase;
 use crate::telemetry::TelemetryCollector;
 use crate::ui::{APP_JS, INDEX_HTML, STYLE_CSS};
 use crate::waf::WafStorage;
-use response::{send_cached_response, send_response};
+use response::{send_response, send_response_with_headers};
 use std::io::{BufRead, BufReader, Read};
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
@@ -255,19 +255,19 @@ fn handle_connection(
             "text/html; charset=utf-8",
             INDEX_HTML.as_bytes(),
         ),
-        ("GET", "/assets/style.css") => send_cached_response(
+        ("GET", "/assets/style.css") => send_response_with_headers(
             &mut stream,
             200,
             "text/css; charset=utf-8",
             STYLE_CSS.as_bytes(),
-            86400,
+            &["Cache-Control: no-cache, must-revalidate"],
         ),
-        ("GET", "/assets/app.js") => send_cached_response(
+        ("GET", "/assets/app.js") => send_response_with_headers(
             &mut stream,
             200,
             "application/javascript; charset=utf-8",
             APP_JS.as_bytes(),
-            86400,
+            &["Cache-Control: no-cache, must-revalidate"],
         ),
 
         // --- AUTHENTICATION ---
