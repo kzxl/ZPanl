@@ -628,6 +628,92 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       from { transform: translateX(50px); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
+
+    /* AAPANEL STYLE SITE MODIFICATION MODAL */
+    .btn-success {
+      background: #10b981;
+      color: #fff;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    }
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+    .mod-sidebar {
+      width: 190px;
+      background: #0a0e1a;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      padding: 0.5rem 0;
+    }
+    .mod-tab-item {
+      padding: 0.8rem 1.25rem;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      border-left: 3px solid transparent;
+      user-select: none;
+    }
+    .mod-tab-item:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+    .mod-tab-item.active {
+      background: #141c2e;
+      color: var(--cyan-glow);
+      border-left-color: var(--cyan);
+      font-weight: 600;
+    }
+    .mod-content {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      background: var(--surface);
+    }
+    .mod-tab-content {
+      display: none;
+    }
+    .mod-tab-content.active {
+      display: block;
+    }
+    .mod-hint-box {
+      background: #090e1b;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 0.5rem;
+      padding: 0.85rem 1.15rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+    .toggle-row label {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .toggle-row label span.sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
   </style>
 </head>
 <body>
@@ -1027,6 +1113,198 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- MODAL: SITE MODIFICATION (aaPanel Style) -->
+  <div id="siteModModal" class="modal">
+    <div class="modal-box" style="max-width: 860px; width: 95%; height: 580px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="padding: 0.85rem 1.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600;">
+          <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: var(--cyan);"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span>Site modification [<span id="modSiteDomainTitle" style="color: var(--cyan-glow);">domain.com</span>] -- Time added [<span id="modSiteTimeTitle" style="color: var(--text-dim); font-size: 0.8rem;">2026-10-07</span>]</span>
+        </div>
+        <button class="modal-close" onclick="closeSiteModModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0; display: flex; flex: 1; overflow: hidden;">
+        <!-- LEFT SUB-SIDEBAR -->
+        <div class="mod-sidebar">
+          <div class="mod-tab-item active" id="btn-modtab-domain" onclick="switchModTab('domain')">Domain Manager</div>
+          <div class="mod-tab-item" id="btn-modtab-directory" onclick="switchModTab('directory')">Directory</div>
+          <div class="mod-tab-item" id="btn-modtab-rewrite" onclick="switchModTab('rewrite')">URL rewrite</div>
+          <div class="mod-tab-item" id="btn-modtab-php" onclick="switchModTab('php')">PHP version</div>
+          <div class="mod-tab-item" id="btn-modtab-proxy" onclick="switchModTab('proxy')">Reverse proxy</div>
+          <div class="mod-tab-item" id="btn-modtab-ssl" onclick="switchModTab('ssl')">SSL</div>
+          <div class="mod-tab-item" id="btn-modtab-maintenance" onclick="switchModTab('maintenance')">Maintenance Mode</div>
+          <div class="mod-tab-item" id="btn-modtab-config" onclick="switchModTab('config')">Config (Caddy)</div>
+        </div>
+        <!-- RIGHT SUB-CONTENT -->
+        <div class="mod-content">
+          <!-- SUB-TAB 1: DOMAIN MANAGER -->
+          <div id="modtab-domain" class="mod-tab-content active">
+            <div class="mod-hint-box">
+              A domain per line, the default port is 80.<br>
+              Wildcard domain format: *.domain.com<br>
+              To add another port, the format is www.domain.com:88
+            </div>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+              <textarea id="modNewAliases" class="form-input" style="flex: 1; height: 75px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="alias1.domain.com&#10;alias2.domain.com:8080"></textarea>
+              <button class="btn btn-success" style="align-self: flex-start; padding: 0.6rem 1.25rem;" onclick="addDomainAliases()">Add</button>
+            </div>
+            <div style="margin-top: 1.25rem; border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
+                    <th style="padding: 0.5rem 0.75rem;">Domain name</th>
+                    <th style="padding: 0.5rem 0.75rem; width: 80px;">Port</th>
+                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 100px;">Operate</th>
+                  </tr>
+                </thead>
+                <tbody id="modDomainTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 2: DIRECTORY -->
+          <div id="modtab-directory" class="mod-tab-content">
+            <div class="form-group">
+              <label>Site Base Directory</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input id="modRootPath" class="form-input" style="font-family: var(--font-mono);" placeholder="/var/www/domain.com">
+                <button class="btn btn-secondary" onclick="openModSiteInFileManager()">Files &rarr;</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Running Directory (Sub-path / Web Root)</label>
+              <select id="modRunningDir" class="form-select">
+                <option value="">/ (Root Directory - Standard)</option>
+                <option value="/public">/public (Laravel, Symfony, ThinkPHP)</option>
+                <option value="/dist">/dist (Vite, Vue, React Production Build)</option>
+                <option value="/build">/build (Webpack, Next.js Static Export)</option>
+              </select>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                Point to framework public folder to keep vendor / .env secure.
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Directory Ownership &amp; Permission</label>
+              <div style="background: var(--surface-elevated); padding: 0.75rem 1rem; border-radius: 0.45rem; font-family: var(--font-mono); font-size: 0.85rem; border: 1px solid var(--border); color: var(--cyan-glow);">
+                User: www-data:www-data | Permissions: 755 (Directories) / 644 (Files)
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 3: URL REWRITE -->
+          <div id="modtab-rewrite" class="mod-tab-content">
+            <div class="form-group">
+              <label>Framework URL Rewrite Preset</label>
+              <select id="modRewritePreset" class="form-select" onchange="updateRewriteSnippetPreview()">
+                <option value="">Default (Static File Server)</option>
+                <option value="laravel">Laravel / Symfony (try_files {path} {path}/ /index.php?{query})</option>
+                <option value="wordpress">WordPress / WooCommerce (FastCGI + Security Deny rules)</option>
+                <option value="spa">Single Page App (try_files {path} /index.html)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Caddyfile Rewrite Snippet Preview</label>
+              <pre class="code-block" id="modRewritePreview" style="height: 160px;"></pre>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 4: PHP VERSION -->
+          <div id="modtab-php" class="mod-tab-content">
+            <div class="form-group">
+              <label>PHP-FPM Worker Runtime</label>
+              <select id="modPhpVersion" class="form-select" onchange="updatePhpSocketPreview()">
+                <option value="none">Static (No PHP Processing)</option>
+                <option value="8.4">PHP 8.4-FPM (Bleeding Edge)</option>
+                <option value="8.3">PHP 8.3-FPM (High Performance)</option>
+                <option value="8.2">PHP 8.2-FPM (Recommended LTS)</option>
+                <option value="8.1">PHP 8.1-FPM</option>
+                <option value="7.4">PHP 7.4-FPM (Legacy)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>FastCGI Socket Endpoint</label>
+              <input id="modPhpSocketPreview" class="form-input" readonly style="font-family: var(--font-mono); color: var(--cyan-glow);">
+            </div>
+            <div class="mod-hint-box">
+              ZPanl configures FastCGI with <code>pm = ondemand</code>, dynamically spinning up worker processes when HTTP requests arrive and terminating idle workers after 10s to keep RAM footprint &lt; 10 MB.
+            </div>
+          </div>
+
+          <!-- SUB-TAB 5: REVERSE PROXY -->
+          <div id="modtab-proxy" class="mod-tab-content">
+            <div class="toggle-row">
+              <label for="modProxyToggle">
+                Enable Reverse Proxy
+                <span class="sub">Forward all traffic to internal application server (Node, Go, Python, Docker)</span>
+              </label>
+              <input type="checkbox" id="modProxyToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>Upstream Target (Host:Port or Unix Socket)</label>
+              <input id="modProxyUpstream" class="form-input" style="font-family: var(--font-mono);" placeholder="127.0.0.1:3000">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                Example: <code>127.0.0.1:3000</code> for Next.js, <code>127.0.0.1:8000</code> for Python FastAPI/Django.
+              </div>
+            </div>
+            <div class="mod-hint-box" style="margin-top: 0.75rem;">
+              Caddy v2 handles reverse proxying natively with automated WebSocket upgrading (<code>Connection: Upgrade</code>), streaming buffering, and standard proxy headers (<code>X-Forwarded-For</code>, <code>X-Real-IP</code>).
+            </div>
+          </div>
+
+          <!-- SUB-TAB 6: SSL -->
+          <div id="modtab-ssl" class="mod-tab-content">
+            <div class="toggle-row">
+              <label for="modSslToggle">
+                Automatic HTTPS (Let's Encrypt / ZeroSSL)
+                <span class="sub">Zero-configuration automated ACME certificate issuance and renewal</span>
+              </label>
+              <input type="checkbox" id="modSslToggle" checked style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+            <div class="form-group">
+              <label>SSL / TLS Protocol Strictness</label>
+              <div style="background: var(--surface-elevated); padding: 0.75rem 1rem; border-radius: 0.45rem; border: 1px solid var(--border); font-size: 0.85rem;">
+                <div style="color: var(--green-glow); font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;"></span>
+                  TLS 1.2 &amp; TLS 1.3 Modern Cipher Suite Active
+                </div>
+                <div style="color: var(--text-dim); font-size: 0.75rem; margin-top: 0.35rem;">
+                  Automated OCSP stapling &amp; HTTP/2, HTTP/3 (QUIC) enabled by Caddy v2.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 7: MAINTENANCE MODE -->
+          <div id="modtab-maintenance" class="mod-tab-content">
+            <div class="toggle-row" style="border-left: 4px solid var(--yellow);">
+              <label for="modMaintToggle">
+                Site Maintenance Mode (HTTP 503)
+                <span class="sub">Immediately returns 503 Service Unavailable for maintenance without removing vhost</span>
+              </label>
+              <input type="checkbox" id="modMaintToggle" style="accent-color: var(--yellow); transform: scale(1.3);">
+            </div>
+            <div class="mod-hint-box" style="border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); color: #fde68a;">
+              When maintenance mode is activated, Caddy intercepts all incoming traffic for this virtual host and cleanly returns an HTTP 503 response. Safe for software upgrades, database migrations, and emergencies.
+            </div>
+          </div>
+
+          <!-- SUB-TAB 8: CONFIG (CADDY) -->
+          <div id="modtab-config" class="mod-tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Active Virtual Host Caddyfile Block</span>
+              <button class="btn btn-secondary" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" onclick="copyModCaddyfile()">Copy Config</button>
+            </div>
+            <pre class="code-block" id="modCaddyfilePreview" style="height: 240px; margin: 0;"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 0.75rem 1.25rem;">
+        <button class="btn btn-secondary" onclick="closeSiteModModal()">Close</button>
+        <button class="btn" onclick="saveSiteModChanges()">Save &amp; Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: FILE EDITOR -->
   <div id="fileEditorModal" class="modal">
     <div class="modal-box" style="max-width: 960px; width: 95%;">
@@ -1188,20 +1466,34 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
       tbody.innerHTML = sites.map(s => {
         let kindBadge = '<span class="badge badge-cyan">Static</span>';
-        if (s.kind === 'spa_fallback') kindBadge = '<span class="badge badge-purple">SPA Fallback</span>';
-        if (s.kind === 'php_fpm') kindBadge = '<span class="badge badge-blue">PHP-FPM</span>';
+        if (s.kind === 'reverse_proxy' || s.proxy_upstream) kindBadge = '<span class="badge badge-purple">Proxy</span>';
+        else if (s.kind === 'spa_fallback') kindBadge = '<span class="badge badge-purple">SPA</span>';
+        else if (s.kind === 'php_fpm') kindBadge = '<span class="badge badge-blue">PHP-FPM</span>';
+
+        const maintBadge = s.maintenance ? '<span class="badge badge-yellow" style="margin-left: 0.35rem;">Maint (503)</span>' : '';
+        const aliasCount = s.aliases && s.aliases.length ? `<span style="font-size: 0.72rem; color: var(--text-dim); display: block;">+${s.aliases.length} alias</span>` : '';
+        const portStr = s.port && s.port !== 80 && s.port !== 443 ? `:${s.port}` : '';
 
         return `
           <tr>
-            <td style="font-weight: 700; color: var(--cyan-glow); font-size: 0.95rem;">${s.domain}</td>
+            <td>
+              <div style="font-weight: 700; color: var(--cyan-glow); font-size: 0.95rem; display: flex; align-items: center;">
+                ${s.domain}${portStr}
+                ${maintBadge}
+              </div>
+              ${aliasCount}
+            </td>
             <td>${kindBadge}</td>
             <td style="font-family: var(--font-mono);">${s.php_version ? 'PHP ' + s.php_version : '<span style="color: var(--text-dim);">-</span>'}</td>
-            <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${s.root_path}</td>
-            <td><span class="badge badge-green">Auto HTTPS</span></td>
+            <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
+              ${s.root_path}${s.running_dir ? '<span style="color: var(--cyan);">' + s.running_dir + '</span>' : ''}
+            </td>
+            <td><span class="badge badge-green">${s.ssl_enabled ? 'Auto HTTPS' : 'HTTP Only'}</span></td>
             <td style="text-align: right;">
-              <div style="display: inline-flex; gap: 0.4rem;">
-                <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="openSiteInFiles('${s.domain}')">Files</button>
-                <button class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="deleteSite('${s.domain}')">Delete</button>
+              <div style="display: inline-flex; gap: 0.35rem;">
+                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: var(--cyan-glow);" onclick="openSiteModModal('${s.domain}')">⚙️ Config</button>
+                <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="openSiteInFiles('${s.domain}')">Files</button>
+                <button class="btn btn-danger" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="deleteSite('${s.domain}')">Del</button>
               </div>
             </td>
           </tr>
@@ -1215,18 +1507,21 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No virtual hosts registered yet.</td></tr>';
         return;
       }
-      tbody.innerHTML = sites.slice(0, 5).map(s => `
-        <tr>
-          <td style="font-weight: 700; color: var(--cyan-glow);">${s.domain}</td>
-          <td><span class="badge badge-cyan">${s.kind}</span></td>
-          <td style="font-family: var(--font-mono);">${s.php_version ? 'PHP ' + s.php_version : '-'}</td>
-          <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${s.root_path}</td>
-          <td><span class="badge badge-green">Active</span></td>
-          <td style="text-align: right;">
-            <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="openSiteInFiles('${s.domain}')">Browse Files</button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = sites.slice(0, 5).map(s => {
+        const maintBadge = s.maintenance ? '<span class="badge badge-yellow" style="margin-left: 0.35rem;">Maint</span>' : '';
+        return `
+          <tr>
+            <td style="font-weight: 700; color: var(--cyan-glow);">${s.domain}${maintBadge}</td>
+            <td><span class="badge badge-cyan">${s.kind}</span></td>
+            <td style="font-family: var(--font-mono);">${s.php_version ? 'PHP ' + s.php_version : '-'}</td>
+            <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${s.root_path}</td>
+            <td><span class="badge badge-green">Active</span></td>
+            <td style="text-align: right;">
+              <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="openSiteModModal('${s.domain}')">⚙️ Config</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function filterSitesTable() {
@@ -1601,6 +1896,240 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       const sizes = ['B', 'KB', 'MB', 'GB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    // ============================================
+    // AAPANEL-STYLE SITE MODIFICATION MODAL LOGIC
+    // ============================================
+    let currentModSite = null;
+
+    function switchModTab(tabName) {
+      document.querySelectorAll('.mod-tab-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mod-tab-content').forEach(el => el.classList.remove('active'));
+      
+      const btn = document.getElementById(`btn-modtab-${tabName}`);
+      if (btn) btn.classList.add('active');
+      const content = document.getElementById(`modtab-${tabName}`);
+      if (content) content.classList.add('active');
+
+      if (tabName === 'config' && currentModSite) {
+        loadModCaddyfile(currentModSite.domain);
+      }
+    }
+
+    async function openSiteModModal(domain) {
+      try {
+        const res = await fetch(`/api/v1/sites/detail?domain=${encodeURIComponent(domain)}`);
+        if (!res.ok) {
+          showToast('Failed to load site details', 'error');
+          return;
+        }
+        currentModSite = await res.json();
+        if (!currentModSite.aliases) currentModSite.aliases = [];
+
+        document.getElementById('modSiteDomainTitle').textContent = currentModSite.domain;
+        const d = new Date((currentModSite.created_at || 0) * 1000);
+        document.getElementById('modSiteTimeTitle').textContent = d.toISOString().replace('T', ' ').substring(0, 19);
+
+        // Tab 1: Domain Manager
+        document.getElementById('modNewAliases').value = '';
+        renderModDomainTable();
+
+        // Tab 2: Directory
+        document.getElementById('modRootPath').value = currentModSite.root_path || '';
+        document.getElementById('modRunningDir').value = currentModSite.running_dir || '';
+
+        // Tab 3: URL rewrite
+        document.getElementById('modRewritePreset').value = currentModSite.rewrite_preset || '';
+        updateRewriteSnippetPreview();
+
+        // Tab 4: PHP version
+        if (currentModSite.kind === 'php_fpm') {
+          document.getElementById('modPhpVersion').value = currentModSite.php_version || '8.2';
+        } else {
+          document.getElementById('modPhpVersion').value = 'none';
+        }
+        updatePhpSocketPreview();
+
+        // Tab 5: Reverse proxy
+        const isProxy = currentModSite.kind === 'reverse_proxy' || !!currentModSite.proxy_upstream;
+        document.getElementById('modProxyToggle').checked = isProxy;
+        document.getElementById('modProxyUpstream').value = currentModSite.proxy_upstream || '';
+
+        // Tab 6: SSL
+        document.getElementById('modSslToggle').checked = currentModSite.ssl_enabled !== false;
+
+        // Tab 7: Maintenance Mode
+        document.getElementById('modMaintToggle').checked = !!currentModSite.maintenance;
+
+        // Tab 8: Config
+        loadModCaddyfile(currentModSite.domain);
+
+        switchModTab('domain');
+        document.getElementById('siteModModal').classList.add('active');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function closeSiteModModal() {
+      document.getElementById('siteModModal').classList.remove('active');
+    }
+
+    function renderModDomainTable() {
+      if (!currentModSite) return;
+      const tbody = document.getElementById('modDomainTableBody');
+      let html = `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--cyan-glow);">
+            ${currentModSite.domain}
+            <span class="badge badge-cyan" style="margin-left: 0.35rem; font-size: 0.65rem;">Primary</span>
+          </td>
+          <td style="padding: 0.6rem 0.75rem; font-family: var(--font-mono); color: var(--text-muted);">${currentModSite.port || 80}</td>
+          <td style="padding: 0.6rem 0.75rem; text-align: right; color: var(--text-dim); font-size: 0.75rem;">Inoperable</td>
+        </tr>
+      `;
+
+      (currentModSite.aliases || []).forEach((alias, idx) => {
+        let port = currentModSite.port || 80;
+        let name = alias;
+        if (alias.includes(':')) {
+          const parts = alias.split(':');
+          name = parts[0];
+          port = parts[1];
+        }
+        html += `
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 0.6rem 0.75rem; font-family: var(--font-mono);">${name}</td>
+            <td style="padding: 0.6rem 0.75rem; font-family: var(--font-mono); color: var(--text-muted);">${port}</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right;">
+              <button class="btn btn-danger" style="padding: 0.15rem 0.45rem; font-size: 0.7rem;" onclick="removeDomainAlias(${idx})">Del</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function addDomainAliases() {
+      if (!currentModSite) return;
+      const raw = document.getElementById('modNewAliases').value.trim();
+      if (!raw) return;
+      const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      lines.forEach(line => {
+        if (!currentModSite.aliases.includes(line) && line !== currentModSite.domain) {
+          currentModSite.aliases.push(line);
+        }
+      });
+      document.getElementById('modNewAliases').value = '';
+      renderModDomainTable();
+      showToast(`Added ${lines.length} domain alias(es). Remember to click Save & Apply!`, 'info');
+    }
+
+    function removeDomainAlias(index) {
+      if (!currentModSite || !currentModSite.aliases) return;
+      currentModSite.aliases.splice(index, 1);
+      renderModDomainTable();
+    }
+
+    function updateRewriteSnippetPreview() {
+      const preset = document.getElementById('modRewritePreset').value;
+      const pre = document.getElementById('modRewritePreview');
+      if (preset === 'laravel') {
+        pre.textContent = `# Laravel / Symfony Clean URLs\nphp_fastcgi unix//run/php/php8.2-fpm.sock\nfile_server\ntry_files {path} {path}/ /index.php?{query}`;
+      } else if (preset === 'wordpress') {
+        pre.textContent = `# WordPress Core & Security Hardening\nphp_fastcgi unix//run/php/php8.2-fpm.sock\nfile_server\n@blocked {\n    path /wp-config.php /xmlrpc.php\n}\nrespond @blocked 403`;
+      } else if (preset === 'spa') {
+        pre.textContent = `# Single Page App (React, Vue, Vite)\ntry_files {path} /index.html\nfile_server`;
+      } else {
+        pre.textContent = `# Static File Server\nfile_server`;
+      }
+    }
+
+    function updatePhpSocketPreview() {
+      const ver = document.getElementById('modPhpVersion').value;
+      const input = document.getElementById('modPhpSocketPreview');
+      if (ver === 'none') {
+        input.value = 'Static Mode - No PHP Worker Socket';
+      } else {
+        input.value = `unix//run/php/php${ver}-fpm.sock`;
+      }
+    }
+
+    function openModSiteInFileManager() {
+      if (!currentModSite) return;
+      closeSiteModModal();
+      openSiteInFiles(currentModSite.domain);
+    }
+
+    async function loadModCaddyfile(domain) {
+      try {
+        const res = await fetch(`/api/v1/sites/vhost?domain=${encodeURIComponent(domain)}`);
+        if (res.ok) {
+          document.getElementById('modCaddyfilePreview').textContent = await res.text();
+        } else {
+          document.getElementById('modCaddyfilePreview').textContent = '# Could not load vhost block: ' + await res.text();
+        }
+      } catch (e) {
+        document.getElementById('modCaddyfilePreview').textContent = '# Error: ' + e.message;
+      }
+    }
+
+    function copyModCaddyfile() {
+      const text = document.getElementById('modCaddyfilePreview').textContent;
+      navigator.clipboard.writeText(text);
+      showToast('Virtual Host Caddyfile block copied to clipboard!', 'info');
+    }
+
+    async function saveSiteModChanges() {
+      if (!currentModSite) return;
+      try {
+        const isProxy = document.getElementById('modProxyToggle').checked;
+        const phpVer = document.getElementById('modPhpVersion').value;
+        const rewrite = document.getElementById('modRewritePreset').value;
+
+        let kind = 'static';
+        if (isProxy) {
+          kind = 'reverse_proxy';
+        } else if (phpVer !== 'none') {
+          kind = 'php_fpm';
+        } else if (rewrite === 'spa') {
+          kind = 'spa_fallback';
+        }
+
+        const payload = {
+          domain: currentModSite.domain,
+          aliases: currentModSite.aliases,
+          port: currentModSite.port || 80,
+          root_path: document.getElementById('modRootPath').value.trim() || currentModSite.root_path,
+          running_dir: document.getElementById('modRunningDir').value || null,
+          kind: kind,
+          php_version: phpVer !== 'none' ? phpVer : null,
+          proxy_upstream: isProxy ? document.getElementById('modProxyUpstream').value.trim() : null,
+          rewrite_preset: rewrite || null,
+          maintenance: document.getElementById('modMaintToggle').checked,
+          ssl_enabled: document.getElementById('modSslToggle').checked
+        };
+
+        const res = await fetch('/api/v1/sites/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          showToast('Update failed: ' + err, 'error');
+          return;
+        }
+
+        showToast('✨ Site settings applied & Caddyfile reloaded in < 1ms!', 'success');
+        closeSiteModModal();
+        loadSites();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
     }
 
     // Initial load

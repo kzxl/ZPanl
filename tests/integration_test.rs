@@ -16,6 +16,7 @@ fn test_site_database_workflow() {
         php_version: None,
         ssl_enabled: true,
         created_at: 1000,
+        ..Default::default()
     };
 
     let site2 = SiteRecord {
@@ -26,6 +27,7 @@ fn test_site_database_workflow() {
         php_version: Some("8.3".to_string()),
         ssl_enabled: true,
         created_at: 2000,
+        ..Default::default()
     };
 
     assert!(db.add(site1).is_ok());
@@ -41,6 +43,7 @@ fn test_site_database_workflow() {
         php_version: None,
         ssl_enabled: true,
         created_at: 3000,
+        ..Default::default()
     };
     assert!(db.add(dup).is_err());
 
@@ -115,4 +118,43 @@ fn test_telemetry_and_services() {
     let services = ServiceManager::list_services();
     assert_eq!(services.len(), 4);
     assert_eq!(services[0].name, "caddy");
+}
+
+#[test]
+fn test_site_modification_and_advanced_features() {
+    let mut db = SiteDatabase::default();
+
+    let mut site = SiteRecord {
+        id: "laravel_site".to_string(),
+        domain: "myapi.com".to_string(),
+        aliases: vec!["api.myapi.com".to_string(), "backend.internal".to_string()],
+        port: 8080,
+        root_path: "/var/www/myapi".to_string(),
+        running_dir: Some("/public".to_string()),
+        kind: SiteKind::PhpFpm,
+        php_version: Some("8.2".to_string()),
+        rewrite_preset: Some("laravel".to_string()),
+        ssl_enabled: true,
+        ..Default::default()
+    };
+
+    assert!(db.add(site.clone()).is_ok());
+
+    // Generate Caddyfile and verify
+    let caddyfile = db.generate_site_caddyfile(&site);
+    assert!(caddyfile.contains("myapi.com:8080, api.myapi.com:8080, backend.internal:8080"));
+    assert!(caddyfile.contains("root * /var/www/myapi/public"));
+    assert!(caddyfile.contains("try_files {path} {path}/ /index.php?{query}"));
+
+    // Test Maintenance Mode
+    site.maintenance = true;
+    let maint_caddyfile = db.generate_site_caddyfile(&site);
+    assert!(maint_caddyfile.contains("respond 503"));
+
+    // Test Update in Database
+    site.maintenance = false;
+    site.proxy_upstream = Some("127.0.0.1:3000".to_string());
+    assert!(db.update("myapi.com", site.clone()).is_ok());
+    let updated_caddy = db.generate_site_caddyfile(db.find_by_domain("myapi.com").unwrap());
+    assert!(updated_caddy.contains("reverse_proxy 127.0.0.1:3000"));
 }

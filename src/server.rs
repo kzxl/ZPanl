@@ -26,6 +26,27 @@ struct CreateSitePayload {
     php_version: Option<String>,
     #[allow(dead_code)]
     ssl_enabled: Option<bool>,
+    aliases: Option<Vec<String>>,
+    port: Option<u16>,
+    running_dir: Option<String>,
+    proxy_upstream: Option<String>,
+    rewrite_preset: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct UpdateSitePayload {
+    domain: String,
+    aliases: Option<Vec<String>>,
+    port: Option<u16>,
+    root_path: Option<String>,
+    running_dir: Option<String>,
+    kind: Option<SiteKind>,
+    php_version: Option<String>,
+    proxy_upstream: Option<String>,
+    rewrite_preset: Option<String>,
+    maintenance: Option<bool>,
+    ssl_enabled: Option<bool>,
+    custom_caddy: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -179,10 +200,17 @@ fn handle_connection(
             let record = SiteRecord {
                 id: format!("site_{}", now),
                 domain: payload.domain,
+                aliases: payload.aliases.unwrap_or_default(),
+                port: payload.port.unwrap_or(80),
                 root_path: payload.root_path,
+                running_dir: payload.running_dir,
                 kind: payload.kind,
                 php_version: payload.php_version,
+                proxy_upstream: payload.proxy_upstream,
+                rewrite_preset: payload.rewrite_preset,
+                maintenance: false,
                 ssl_enabled: true,
+                custom_caddy: None,
                 created_at: now,
             };
 
@@ -198,6 +226,118 @@ fn handle_connection(
                     )
                 }
                 Err(err) => send_response(&mut stream, 400, "text/plain", err.as_bytes()),
+            }
+        }
+
+        ("POST", "/api/v1/sites/update") | ("PUT", "/api/v1/sites") => {
+            let payload: UpdateSitePayload = match serde_json::from_slice(&body) {
+                Ok(p) => p,
+                Err(e) => {
+                    return send_response(&mut stream, 400, "text/plain", e.to_string().as_bytes())
+                }
+            };
+
+            let mut guard = db.lock().unwrap();
+            let mut record = match guard.find_by_domain(&payload.domain).cloned() {
+                Some(r) => r,
+                None => return send_response(&mut stream, 404, "text/plain", b"Site not found"),
+            };
+
+            if let Some(aliases) = payload.aliases {
+                record.aliases = aliases;
+            }
+            if let Some(port) = payload.port {
+                record.port = port;
+            }
+            if let Some(root_path) = payload.root_path {
+                record.root_path = root_path;
+            }
+            if let Some(running_dir) = payload.running_dir {
+                record.running_dir = if running_dir.trim().is_empty() {
+                    None
+                } else {
+                    Some(running_dir)
+                };
+            }
+            if let Some(kind) = payload.kind {
+                record.kind = kind;
+            }
+            if let Some(php_version) = payload.php_version {
+                record.php_version = if php_version.trim().is_empty() {
+                    None
+                } else {
+                    Some(php_version)
+                };
+            }
+            if let Some(proxy_upstream) = payload.proxy_upstream {
+                record.proxy_upstream = if proxy_upstream.trim().is_empty() {
+                    None
+                } else {
+                    Some(proxy_upstream)
+                };
+            }
+            if let Some(rewrite_preset) = payload.rewrite_preset {
+                record.rewrite_preset = if rewrite_preset.trim().is_empty() {
+                    None
+                } else {
+                    Some(rewrite_preset)
+                };
+            }
+            if let Some(maintenance) = payload.maintenance {
+                record.maintenance = maintenance;
+            }
+            if let Some(ssl_enabled) = payload.ssl_enabled {
+                record.ssl_enabled = ssl_enabled;
+            }
+            if let Some(custom_caddy) = payload.custom_caddy {
+                record.custom_caddy = if custom_caddy.trim().is_empty() {
+                    None
+                } else {
+                    Some(custom_caddy)
+                };
+            }
+
+            let domain = payload.domain.clone();
+            match guard.update(&domain, record) {
+                Ok(()) => {
+                    let _ = guard.save(db_path);
+                    send_response(
+                        &mut stream,
+                        200,
+                        "application/json",
+                        b"{\"status\":\"updated\"}",
+                    )
+                }
+                Err(err) => send_response(&mut stream, 400, "text/plain", err.as_bytes()),
+            }
+        }
+
+        ("GET", "/api/v1/sites/vhost") => {
+            let site_domain = parse_query_param(query, "domain").unwrap_or_default();
+            let guard = db.lock().unwrap();
+            match guard.find_by_domain(&site_domain) {
+                Some(site) => {
+                    let vhost_block = guard.generate_site_caddyfile(site);
+                    send_response(
+                        &mut stream,
+                        200,
+                        "text/plain; charset=utf-8",
+                        vhost_block.as_bytes(),
+                    )
+                }
+                None => send_response(&mut stream, 404, "text/plain", b"Site not found"),
+            }
+        }
+
+        ("GET", "/api/v1/sites/detail") => {
+            let site_domain = parse_query_param(query, "domain").unwrap_or_default();
+            let guard = db.lock().unwrap();
+            match guard.find_by_domain(&site_domain) {
+                Some(site) => {
+                    let json = serde_json::to_vec(site).unwrap_or_default();
+                    send_response(&mut stream, 200, "application/json", &json)
+                }
+                None => send_response(&mut stream, 404, "text/plain", b"Site not found"),
             }
         }
 

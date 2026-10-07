@@ -91,6 +91,7 @@ impl Cli {
                             php_version: php_ver,
                             ssl_enabled: true,
                             created_at: now,
+                            ..Default::default()
                         };
 
                         if let Err(e) = db.add(record) {
