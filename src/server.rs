@@ -257,6 +257,25 @@ fn handle_connection(
             )
         }
 
+        ("GET", "/api/v1/php/pool") => {
+            let site_domain = parse_query_param(query, "domain").unwrap_or_default();
+            let guard = db.lock().unwrap();
+            match guard.generate_php_pool(&site_domain) {
+                Some(ini) => send_response(
+                    &mut stream,
+                    200,
+                    "text/plain; charset=utf-8",
+                    ini.as_bytes(),
+                ),
+                None => send_response(
+                    &mut stream,
+                    404,
+                    "text/plain",
+                    b"PHP Pool not found or site is not PHP",
+                ),
+            }
+        }
+
         ("GET", "/api/v1/files/list") => {
             let site_domain = parse_query_param(query, "site").unwrap_or_default();
             let subpath = parse_query_param(query, "path").unwrap_or_default();

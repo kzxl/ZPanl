@@ -1,4 +1,4 @@
-/// Embedded modern single-page application for the ZPanl dashboard.
+/// Embedded professional single-page application for the ZPanl web control panel.
 pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,12 +7,13 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
   <title>ZPanl ⚡ Sovereign Web Panel</title>
   <style>
     :root {
-      --bg: #07090e;
-      --surface: #0e131f;
-      --surface-elevated: #141c2e;
-      --surface-card: rgba(18, 26, 43, 0.7);
+      --bg: #090d16;
+      --sidebar-bg: #0d121f;
+      --surface: #121829;
+      --surface-elevated: #18223a;
+      --surface-hover: #1e2a47;
       --border: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(6, 182, 212, 0.6);
+      --border-light: rgba(255, 255, 255, 0.12);
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
@@ -20,6 +21,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       --cyan-glow: #22d3ee;
       --blue: #3b82f6;
       --green: #10b981;
+      --green-glow: #34d399;
       --yellow: #f59e0b;
       --red: #f43f5e;
       --purple: #a855f7;
@@ -29,111 +31,149 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
-      background-image: 
-        radial-gradient(circle at 15% 10%, rgba(6, 182, 212, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 85% 90%, rgba(59, 130, 246, 0.04) 0%, transparent 40%);
       color: var(--text);
       font-family: var(--font-sans);
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* HEADER */
-    header {
-      background: rgba(14, 19, 31, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 2rem;
+    /* APP LAYOUT: SIDEBAR + CONTENT */
+    #sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      flex-shrink: 0;
       position: sticky;
       top: 0;
-      z-index: 100;
+      height: 100vh;
+      z-index: 50;
     }
-    .brand {
+    .sidebar-brand {
+      padding: 1.25rem 1.5rem;
       display: flex;
       align-items: center;
       gap: 0.85rem;
+      border-bottom: 1px solid var(--border);
       text-decoration: none;
       color: inherit;
     }
-    .brand-icon {
-      width: 32px;
-      height: 32px;
+    .brand-logo-icon {
+      width: 36px;
+      height: 36px;
       background: linear-gradient(135deg, var(--cyan), var(--blue));
-      border-radius: 8px;
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
     }
-    .brand-icon svg { width: 18px; height: 18px; fill: #fff; }
+    .brand-logo-icon svg { width: 20px; height: 20px; fill: #fff; }
+    .brand-names {
+      display: flex;
+      flex-direction: column;
+    }
     .brand-title {
       font-weight: 800;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       letter-spacing: -0.03em;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
     .brand-tag {
       font-size: 0.65rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      background: rgba(6, 182, 212, 0.12);
-      color: var(--cyan-glow);
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      padding: 0.15rem 0.5rem;
-      border-radius: 9999px;
+      color: var(--cyan);
     }
 
-    /* NAVIGATION */
-    nav {
+    .sidebar-nav {
+      flex: 1;
+      padding: 1.25rem 0.75rem;
+      overflow-y: auto;
       display: flex;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 0.25rem;
-      border-radius: 0.5rem;
-      border: 1px solid var(--border);
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .nav-group-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      padding: 0 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
       gap: 0.25rem;
     }
-    nav button {
+    .nav-item button {
+      width: 100%;
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
       color: var(--text-muted);
-      padding: 0.45rem 1rem;
-      border-radius: 0.375rem;
+      padding: 0.55rem 0.85rem;
+      border-radius: 0.5rem;
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.75rem;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+    .nav-item button svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      opacity: 0.8;
       transition: all 0.15s ease;
     }
-    nav button svg { width: 16px; height: 16px; fill: currentColor; }
-    nav button:hover {
+    .nav-item button:hover {
       color: var(--text);
       background: rgba(255, 255, 255, 0.04);
     }
-    nav button.active {
-      color: var(--cyan-glow);
-      background: rgba(6, 182, 212, 0.15);
-      box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+    .nav-item button.active {
+      color: #fff;
+      background: linear-gradient(90deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.1));
+      border-color: rgba(6, 182, 212, 0.4);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+    }
+    .nav-item button.active svg {
+      fill: var(--cyan-glow);
+      opacity: 1;
+    }
+    .nav-badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      color: var(--text-muted);
     }
 
-    /* HEADER STATUS */
-    .header-status {
+    .sidebar-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .server-status-pill {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      font-size: 0.8rem;
-      font-family: var(--font-mono);
+      gap: 0.5rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
+      font-family: var(--font-mono);
     }
     .pulse-dot {
       width: 8px;
@@ -143,20 +183,71 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       box-shadow: 0 0 8px var(--green);
       animation: pulse 2s infinite;
       display: inline-block;
-      margin-right: 0.4rem;
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.4; transform: scale(0.85); }
     }
 
-    /* MAIN CONTAINER */
-    main {
+    /* MAIN CONTENT WRAPPER */
+    #content-wrapper {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--bg);
+    }
+
+    /* TOP HEADER BAR */
+    #topbar {
+      height: 64px;
+      background: rgba(13, 18, 31, 0.75);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .topbar-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .topbar-breadcrumb strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .topbar-quick-stats {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.4rem;
+      color: var(--text-muted);
+    }
+    .stat-pill strong { color: var(--cyan-glow); font-weight: 700; }
+
+    /* CONTENT VIEW */
+    main {
       padding: 2rem;
       max-width: 1440px;
-      margin: 0 auto;
       width: 100%;
+      margin: 0 auto;
     }
     .tab-content { display: none; animation: fadeIn 0.2s ease-out; }
     .tab-content.active { display: block; }
@@ -165,44 +256,36 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* CARDS & GRIDS */
+    /* CARDS & RADIAL GAUGES */
     .grid-4 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1.25rem;
       margin-bottom: 2rem;
     }
     .card {
-      background: var(--surface-card);
-      backdrop-filter: blur(16px);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 0.75rem;
       padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       position: relative;
       overflow: hidden;
+      transition: border-color 0.2s, transform 0.15s;
     }
-    .card::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.4), transparent);
-      opacity: 0;
-      transition: opacity 0.2s;
+    .card:hover {
+      border-color: var(--border-light);
     }
-    .card:hover::before { opacity: 1; }
-
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
+      align-items: flex-start;
+      margin-bottom: 1rem;
     }
     .card-title {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       color: var(--text-dim);
       font-weight: 700;
     }
@@ -211,32 +294,63 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       opacity: 0.8;
     }
     .card-icon svg { width: 20px; height: 20px; fill: currentColor; }
-    .card-value {
-      font-size: 2rem;
+
+    /* RADIAL METER WRAPPER */
+    .radial-gauge-container {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .radial-circle {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
+    }
+    .radial-circle svg {
+      width: 80px;
+      height: 80px;
+      transform: rotate(-90deg);
+    }
+    .radial-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.06);
+      stroke-width: 7;
+    }
+    .radial-progress {
+      fill: none;
+      stroke: var(--cyan);
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-dasharray: 226;
+      stroke-dashoffset: 226;
+      transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .radial-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .radial-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .radial-main-val {
+      font-size: 1.5rem;
       font-weight: 800;
       font-family: var(--font-mono);
       letter-spacing: -0.03em;
-      margin-bottom: 0.5rem;
     }
-    .card-subtitle {
+    .radial-sub-val {
       font-size: 0.75rem;
       color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      margin-top: 0.4rem;
-    }
-    .progress-bar {
-      height: 6px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 9999px;
-      overflow: hidden;
-      margin-top: 0.75rem;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 9999px;
-      background: linear-gradient(90deg, var(--cyan), var(--blue));
-      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* TOOLBARS */
@@ -244,18 +358,18 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       gap: 1rem;
       flex-wrap: wrap;
     }
     .toolbar-title {
-      font-size: 1.35rem;
-      font-weight: 700;
+      font-size: 1.25rem;
+      font-weight: 800;
       letter-spacing: -0.02em;
     }
     .toolbar-actions {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.6rem;
       align-items: center;
     }
 
@@ -288,8 +402,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       box-shadow: none;
     }
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.15);
+      background: var(--surface-hover);
+      border-color: var(--border-light);
       transform: translateY(-1px);
     }
     .btn-danger {
@@ -306,7 +420,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
     /* TABLES */
     .table-container {
-      background: var(--surface-card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 0.75rem;
       overflow: hidden;
@@ -319,13 +433,13 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       font-size: 0.875rem;
     }
     th {
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.25);
       color: var(--text-dim);
       padding: 0.85rem 1.25rem;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       border-bottom: 1px solid var(--border);
     }
     td {
@@ -334,15 +448,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       vertical-align: middle;
     }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
 
     /* BADGES */
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
-      padding: 0.2rem 0.55rem;
-      border-radius: 0.3rem;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.35rem;
       font-size: 0.75rem;
       font-weight: 600;
       font-family: var(--font-mono);
@@ -354,9 +468,9 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     .badge-red { background: rgba(244, 63, 94, 0.12); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
     .badge-yellow { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-    /* SEARCH & INPUTS */
+    /* SEARCH INPUTS */
     .search-input {
-      background: var(--surface);
+      background: var(--surface-elevated);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 0.5rem 0.85rem;
@@ -376,7 +490,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(8px);
       align-items: center;
       justify-content: center;
@@ -393,7 +507,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 0.75rem;
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       overflow: hidden;
     }
@@ -427,16 +541,16 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     .form-group { margin-bottom: 1.25rem; }
     .form-group label {
       display: block;
-      font-size: 0.78rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       margin-bottom: 0.4rem;
     }
     .form-input, .form-select {
       width: 100%;
-      background: #07090e;
+      background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 0.6rem 0.85rem;
@@ -517,248 +631,355 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <!-- HEADER -->
-  <header>
-    <a href="#" class="brand" onclick="switchTab('overview')">
-      <div class="brand-icon">
+  <!-- LEFT SIDEBAR -->
+  <aside id="sidebar">
+    <a href="#" class="sidebar-brand" onclick="switchTab('overview')">
+      <div class="brand-logo-icon">
         <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       </div>
-      <div class="brand-title">
-        <span>ZPanl</span>
-        <span class="brand-tag">SOVEREIGN LINUX</span>
+      <div class="brand-names">
+        <div class="brand-title">ZPanl</div>
+        <div class="brand-tag">SOVEREIGN EDGE</div>
       </div>
     </a>
 
-    <nav>
-      <button class="active" onclick="switchTab('overview')">
-        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-        Overview
-      </button>
-      <button onclick="switchTab('sites')">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-        Websites
-      </button>
-      <button onclick="switchTab('files')">
-        <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-        Files
-      </button>
-      <button onclick="switchTab('services')">
-        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-        Services
-      </button>
-      <button onclick="switchTab('caddy')">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-        Caddyfile
-      </button>
-    </nav>
-
-    <div class="header-status">
-      <div><span class="pulse-dot"></span><span id="procMode">Linux /proc Engine</span></div>
-      <div id="uptimeDisplay">Uptime: 0s</div>
-    </div>
-  </header>
-
-  <main>
-    <!-- TAB: OVERVIEW -->
-    <div id="tab-overview" class="tab-content active">
-      <div class="grid-4">
-        <!-- CPU CARD -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">CPU Utilization</span>
-            <span class="card-icon">
-              <svg viewBox="0 0 24 24"><path d="M17 17H7V7h10v10zm2-14v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h-2v-2h-2v2h-2v-2h-2v2H7v-2H5v-2H3v-2h2v-2H3v-2h2V9H3V7h2V5h2V3h2v2h2V3h2v2h2V3h2zm-4 12V9H9v6h6z"/></svg>
-            </span>
-          </div>
-          <div class="card-value" id="cpuVal">0.0%</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="cpuBar" style="width: 0%;"></div>
-          </div>
-          <div class="card-subtitle">
-            <span>Zero-alloc /proc parser</span>
-            <span id="cpuDeltaText">Sub-microsecond</span>
-          </div>
-        </div>
-
-        <!-- RAM CARD -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Memory Allocation</span>
-            <span class="card-icon">
-              <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM2 4v16h20V4H2zm3 4h2v8H5V8zm4 0h2v8H9V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
-            </span>
-          </div>
-          <div class="card-value" id="ramVal">0 / 0 MB</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="ramBar" style="width: 0%;"></div>
-          </div>
-          <div class="card-subtitle">
-            <span id="ramFreeText">Available: 0 MB</span>
-            <span id="ramPercentText">0.0%</span>
-          </div>
-        </div>
-
-        <!-- NETWORK CARD -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Network Throughput</span>
-            <span class="card-icon">
-              <svg viewBox="0 0 24 24"><path d="M4.5 11h-2V9H1v6h1.5v-2h2v2H6V9H4.5v2zm15 0h-2V9H16v6h1.5v-2h2v2H21V9h-1.5v2zm-7.5-6h-1V2H8v5h3v2h2V7h3V2h-3v3h-1zM11 17h2v2h-2v-2zm-3 2h2v2H8v-2zm6 0h2v2h-2v-2zm-5 2h4v1h-4v-1z"/></svg>
-            </span>
-          </div>
-          <div class="card-value" id="netVal" style="font-size: 1.6rem;">↓ 0 KB/s</div>
-          <div class="card-subtitle" style="margin-top: 1rem;">
-            <span id="netTxText">↑ 0 KB/s outbound</span>
-            <span>/proc/net/dev</span>
-          </div>
-        </div>
-
-        <!-- STACK INFO CARD -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Engine Topology</span>
-            <span class="card-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
-            </span>
-          </div>
-          <div class="card-value" style="font-size: 1.35rem; color: var(--cyan-glow);">Pure Rust + Caddy v2</div>
-          <div class="card-subtitle" style="margin-top: 1.25rem;">
-            <span>Daemon RAM: &lt; 10 MB</span>
-            <span style="color: var(--green);">Zero External Deps</span>
-          </div>
-        </div>
+    <div class="sidebar-nav">
+      <!-- CORE SECTION -->
+      <div>
+        <div class="nav-group-title">Core Management</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button class="active" onclick="switchTab('overview')">
+              <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+              Dashboard
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('sites')">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              Websites
+              <span class="nav-badge" id="navSitesCount">0</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('files')">
+              <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+              File Manager
+            </button>
+          </li>
+        </ul>
       </div>
 
-      <!-- SITES SUMMARY TABLE -->
-      <div class="toolbar">
-        <h3 class="toolbar-title">Active Virtual Hosts</h3>
-        <button class="btn" onclick="openAddSiteModal()">
+      <!-- SYSTEM & SERVERS -->
+      <div>
+        <div class="nav-group-title">Services & Engines</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button onclick="switchTab('services')">
+              <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              Services
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('caddy')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              Caddyfile
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('php')">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4zm2 4v8h2v-3h2c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2H6zm2 2h2v2H8v-2zm7-2v8h2v-3h2c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2h-4zm2 2h2v2h-2v-2z"/></svg>
+              PHP-FPM Pools
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SIDEBAR FOOTER -->
+    <div class="sidebar-footer">
+      <div class="server-status-pill">
+        <span class="pulse-dot"></span>
+        <span id="sidebarProcMode">Linux /proc Active</span>
+      </div>
+      <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">
+        Footprint: &lt; 10 MB RAM
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENT WRAPPER -->
+  <div id="content-wrapper">
+    <!-- TOPBAR -->
+    <header id="topbar">
+      <div class="topbar-breadcrumb">
+        <span>ZPanl</span>
+        <span>/</span>
+        <strong id="breadcrumbTitle">Dashboard</strong>
+      </div>
+
+      <div class="topbar-quick-stats">
+        <div class="stat-pill">
+          <span>CPU:</span>
+          <strong id="topbarCpu">0.0%</strong>
+        </div>
+        <div class="stat-pill">
+          <span>RAM:</span>
+          <strong id="topbarRam">0 / 0 MB</strong>
+        </div>
+        <div class="stat-pill">
+          <span>NET:</span>
+          <strong id="topbarNet">↓ 0 KB/s</strong>
+        </div>
+        <button class="btn" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;" onclick="openAddSiteModal()">
           <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-          New Site
+          Deploy Site
         </button>
       </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Domain</th>
-              <th>Type</th>
-              <th>PHP Pool</th>
-              <th>Web Root</th>
-              <th>HTTPS</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="overviewSitesTable">
-            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading websites...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </header>
 
-    <!-- TAB: SITES -->
-    <div id="tab-sites" class="tab-content">
-      <div class="toolbar">
-        <h2 class="toolbar-title">Virtual Host Management</h2>
-        <div class="toolbar-actions">
-          <input type="text" id="siteSearchInput" class="search-input" placeholder="Search domain..." oninput="filterSitesTable()">
-          <button class="btn" onclick="openAddSiteModal()">
-            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            Create Virtual Host
-          </button>
-        </div>
-      </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Domain</th>
-              <th>Type</th>
-              <th>PHP Engine</th>
-              <th>Document Root</th>
-              <th>Security / SSL</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="sitesTableBody">
-            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading hosted sites...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <main>
+      <!-- TAB 1: DASHBOARD -->
+      <div id="tab-overview" class="tab-content active">
+        <!-- 4 RADIAL GAUGES (AAPANEL STYLE) -->
+        <div class="grid-4">
+          <!-- CPU GAUGE -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">CPU Utilization</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M17 17H7V7h10v10zm2-14v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h-2v-2h-2v2h-2v-2h-2v2H7v-2H5v-2H3v-2h2v-2H3v-2h2V9H3V7h2V5h2V3h2v2h2V3h2v2h2V3h2zm-4 12V9H9v6h6z"/></svg>
+              </span>
+            </div>
+            <div class="radial-gauge-container">
+              <div class="radial-circle">
+                <svg viewBox="0 0 80 80">
+                  <circle class="radial-bg" cx="40" cy="40" r="36"/>
+                  <circle class="radial-progress" id="cpuRadial" cx="40" cy="40" r="36"/>
+                </svg>
+                <div class="radial-label" id="cpuRadialText">0%</div>
+              </div>
+              <div class="radial-details">
+                <div class="radial-main-val" id="cpuDetailVal">0.0%</div>
+                <div class="radial-sub-val">Linux /proc/stat delta</div>
+                <div class="radial-sub-val" style="color: var(--cyan);">Non-blocking parser</div>
+              </div>
+            </div>
+          </div>
 
-    <!-- TAB: FILES -->
-    <div id="tab-files" class="tab-content">
-      <div class="toolbar">
-        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-          <select id="fileSiteSelect" class="form-select" style="width: 280px;" onchange="loadSiteFiles()"></select>
-          <div style="display: flex; align-items: center; gap: 0.35rem; font-family: var(--font-mono); font-size: 0.85rem; background: var(--surface); padding: 0.4rem 0.8rem; border-radius: 0.4rem; border: 1px solid var(--border);">
-            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: var(--cyan);"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-            <span id="fileBreadcrumb" style="color: var(--cyan-glow);">/</span>
+          <!-- RAM GAUGE -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Memory Allocation</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM2 4v16h20V4H2zm3 4h2v8H5V8zm4 0h2v8H9V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
+              </span>
+            </div>
+            <div class="radial-gauge-container">
+              <div class="radial-circle">
+                <svg viewBox="0 0 80 80">
+                  <circle class="radial-bg" cx="40" cy="40" r="36"/>
+                  <circle class="radial-progress" id="ramRadial" cx="40" cy="40" r="36" style="stroke: var(--purple);"/>
+                </svg>
+                <div class="radial-label" id="ramRadialText">0%</div>
+              </div>
+              <div class="radial-details">
+                <div class="radial-main-val" id="ramDetailVal">0 / 0 MB</div>
+                <div class="radial-sub-val" id="ramAvailText">Available: 0 MB</div>
+                <div class="radial-sub-val" style="color: var(--purple);">/proc/meminfo</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NETWORK THROUGHPUT -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Network I/O</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M4.5 11h-2V9H1v6h1.5v-2h2v2H6V9H4.5v2zm15 0h-2V9H16v6h1.5v-2h2v2H21V9h-1.5v2zm-7.5-6h-1V2H8v5h3v2h2V7h3V2h-3v3h-1zM11 17h2v2h-2v-2zm-3 2h2v2H8v-2zm6 0h2v2h-2v-2zm-5 2h4v1h-4v-1z"/></svg>
+              </span>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 80px;">
+              <div class="radial-main-val" id="netDetailRx" style="font-size: 1.6rem; color: var(--green-glow);">↓ 0 KB/s</div>
+              <div class="radial-sub-val" id="netDetailTx" style="font-size: 0.85rem; margin-top: 0.35rem;">↑ 0 KB/s outbound</div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.5rem; display: flex; justify-content: space-between;">
+              <span>Interfaces: eth0, lo</span>
+              <span>/proc/net/dev</span>
+            </div>
+          </div>
+
+          <!-- SYSTEM ARCHITECTURE -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Panel Sovereign Stack</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
+              </span>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 80px;">
+              <div style="font-weight: 800; font-size: 1.25rem; color: var(--cyan-glow);">Pure Rust + Caddy</div>
+              <div class="radial-sub-val" style="margin-top: 0.35rem;">Single binary (< 1 MB)</div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--green); display: flex; justify-content: space-between; margin-top: 0.5rem;">
+              <span>Zero external deps</span>
+              <span id="uptimeQuickText">Uptime: 0s</span>
+            </div>
           </div>
         </div>
-        <div class="toolbar-actions">
-          <button class="btn btn-secondary" onclick="openNewEntryModal(false)">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-            + File
-          </button>
-          <button class="btn btn-secondary" onclick="openNewEntryModal(true)">
-            <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
-            + Folder
-          </button>
-          <button class="btn btn-secondary" onclick="loadSiteFiles()">
+
+        <!-- RECENT SITES -->
+        <div class="toolbar">
+          <h3 class="toolbar-title">Active Virtual Hosts</h3>
+          <button class="btn btn-secondary" onclick="switchTab('sites')">View All Websites &rarr;</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Domain Name</th>
+                <th>Type</th>
+                <th>PHP Version</th>
+                <th>Web Root</th>
+                <th>SSL Security</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="overviewSitesTable">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading websites...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 2: WEBSITES -->
+      <div id="tab-sites" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title">Websites & Virtual Hosts</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Declarative Caddy v2 reverse proxy routing with automatic Let's Encrypt HTTPS</div>
+          </div>
+          <div class="toolbar-actions">
+            <input type="text" id="siteSearchInput" class="search-input" placeholder="Search domain or path..." oninput="filterSitesTable()">
+            <button class="btn" onclick="openAddSiteModal()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Add Virtual Host
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Domain</th>
+                <th>Type</th>
+                <th>PHP Engine</th>
+                <th>Document Root</th>
+                <th>Security / SSL</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sitesTableBody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Loading websites...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: FILE MANAGER -->
+      <div id="tab-files" class="tab-content">
+        <div class="toolbar">
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <select id="fileSiteSelect" class="form-select" style="width: 300px;" onchange="loadSiteFiles()"></select>
+            <div style="display: flex; align-items: center; gap: 0.35rem; font-family: var(--font-mono); font-size: 0.85rem; background: var(--surface-elevated); padding: 0.45rem 0.85rem; border-radius: 0.45rem; border: 1px solid var(--border);">
+              <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: var(--cyan);"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+              <span id="fileBreadcrumb" style="color: var(--cyan-glow);">/</span>
+            </div>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-secondary" onclick="openNewEntryModal(false)">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              New File
+            </button>
+            <button class="btn btn-secondary" onclick="openNewEntryModal(true)">
+              <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
+              New Folder
+            </button>
+            <button class="btn btn-secondary" onclick="loadSiteFiles()">
+              <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Type</th>
+                <th>Size</th>
+                <th>POSIX Permissions</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="filesTableBody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Select a site to explore files.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 4: SERVICES -->
+      <div id="tab-services" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title">Linux Systemd Services</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Daemon process supervision via <code>zero-sys</code></div>
+          </div>
+          <button class="btn btn-secondary" onclick="loadServices()">
             <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-            Refresh
+            Refresh Daemons
           </button>
         </div>
-      </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>File Name</th>
-              <th>Type</th>
-              <th>Size</th>
-              <th>POSIX Permissions</th>
-              <th style="text-align: right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="filesTableBody">
-            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Select a virtual host to inspect files.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TAB: SERVICES -->
-    <div id="tab-services" class="tab-content">
-      <div class="toolbar">
-        <h2 class="toolbar-title">Systemd Web & Database Services</h2>
-        <button class="btn btn-secondary" onclick="loadServices()">
-          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-          Refresh Status
-        </button>
-      </div>
-      <div class="grid-4" id="servicesGrid">
-        Loading services...
-      </div>
-    </div>
-
-    <!-- TAB: CADDYFILE -->
-    <div id="tab-caddy" class="tab-content">
-      <div class="toolbar">
-        <div>
-          <h2 class="toolbar-title">Active Reverse Proxy Configuration</h2>
-          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Automatically synchronized to <code>/etc/caddy/Caddyfile</code></div>
-        </div>
-        <div class="toolbar-actions">
-          <button class="btn btn-secondary" onclick="copyCaddyfile()">Copy Config</button>
-          <button class="btn" onclick="loadCaddyfile()">Reload Preview</button>
+        <div class="grid-4" id="servicesGrid">
+          Loading services...
         </div>
       </div>
-      <pre class="code-block" id="caddyfileContent">Loading Caddyfile...</pre>
-    </div>
-  </main>
+
+      <!-- TAB 5: CADDYFILE -->
+      <div id="tab-caddy" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title">Active Reverse Proxy Configuration</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Live synchronized from <code>/etc/caddy/Caddyfile</code></div>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-secondary" onclick="copyCaddyfile()">Copy Caddyfile</button>
+            <button class="btn" onclick="loadCaddyfile()">Reload Preview</button>
+          </div>
+        </div>
+        <pre class="code-block" id="caddyfileContent">Loading Caddyfile...</pre>
+      </div>
+
+      <!-- TAB 6: PHP-FPM POOLS -->
+      <div id="tab-php" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title">PHP-FPM Worker Pools</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Isolated on-demand fastcgi worker pools generated by <code>zero-fastcgi</code></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Select Site to Inspect PHP Pool Configuration</h3>
+          <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+            <select id="phpSiteSelect" class="form-select" style="width: 320px;" onchange="loadPhpPoolConfig()"></select>
+            <button class="btn btn-secondary" onclick="loadPhpPoolConfig()">View Pool INI</button>
+          </div>
+        </div>
+        <pre class="code-block" id="phpPoolConfigContent">Select a PHP website above to inspect its pool.d/*.conf configuration.</pre>
+      </div>
+    </main>
+  </div>
 
   <!-- MODAL: ADD SITE -->
   <div id="addSiteModal" class="modal">
@@ -770,7 +991,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       <div class="modal-body">
         <div class="form-group">
           <label>Fully Qualified Domain Name</label>
-          <input id="newDomain" class="form-input" placeholder="e.g. blog.company.com" oninput="autoSuggestRoot()">
+          <input id="newDomain" class="form-input" placeholder="e.g. blog.mydomain.com" oninput="autoSuggestRoot()">
         </div>
         <div class="form-group">
           <label>Application Type</label>
@@ -790,7 +1011,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
         </div>
         <div class="form-group">
           <label>Document Web Root Path</label>
-          <input id="newRoot" class="form-input" placeholder="/var/www/blog.company.com">
+          <input id="newRoot" class="form-input" placeholder="/var/www/blog.mydomain.com">
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem;">
           <input type="checkbox" id="newSsl" checked disabled style="accent-color: var(--cyan);">
@@ -864,6 +1085,15 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     let editingRelPath = '';
     let allSites = [];
 
+    const tabTitles = {
+      overview: 'Dashboard',
+      sites: 'Websites & Virtual Hosts',
+      files: 'File Manager',
+      services: 'Systemd Services',
+      caddy: 'Reverse Proxy Caddyfile',
+      php: 'PHP-FPM Worker Pools'
+    };
+
     function showToast(message, type = 'info') {
       const c = document.getElementById('toastContainer');
       const t = document.createElement('div');
@@ -879,44 +1109,56 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
 
     function switchTab(tab) {
       currentTab = tab;
-      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#sidebar button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       
-      const navBtn = Array.from(document.querySelectorAll('nav button')).find(b => b.textContent.trim().toLowerCase().includes(tab));
+      const navBtn = Array.from(document.querySelectorAll('#sidebar button')).find(b => b.textContent.trim().toLowerCase().includes(tab));
       if (navBtn) navBtn.classList.add('active');
       
-      document.getElementById('tab-' + tab).classList.add('active');
+      const targetContent = document.getElementById('tab-' + tab);
+      if (targetContent) targetContent.classList.add('active');
+
+      document.getElementById('breadcrumbTitle').textContent = tabTitles[tab] || 'Overview';
 
       if (tab === 'sites') loadSites();
       if (tab === 'files') initFilesTab();
       if (tab === 'services') loadServices();
       if (tab === 'caddy') loadCaddyfile();
+      if (tab === 'php') initPhpTab();
     }
 
-    // Telemetry Polling
+    // Telemetry Polling & Radial Gauges
     async function pollTelemetry() {
       try {
         const res = await fetch('/api/v1/telemetry');
         if (!res.ok) return;
         const d = await res.json();
 
-        // CPU
-        document.getElementById('cpuVal').textContent = d.cpu_usage_percent.toFixed(1) + '%';
-        document.getElementById('cpuBar').style.width = Math.min(d.cpu_usage_percent, 100) + '%';
+        // Topbar
+        document.getElementById('topbarCpu').textContent = d.cpu_usage_percent.toFixed(1) + '%';
+        document.getElementById('topbarRam').textContent = `${d.ram_used_mb} / ${d.ram_total_mb} MB`;
+        document.getElementById('topbarNet').textContent = `↓ ${d.net_rx_kbps} KB/s`;
 
-        // RAM
-        document.getElementById('ramVal').textContent = `${d.ram_used_mb} / ${d.ram_total_mb} MB`;
-        document.getElementById('ramBar').style.width = Math.min(d.ram_usage_percent, 100) + '%';
-        document.getElementById('ramFreeText').textContent = `Available: ${d.ram_free_mb} MB`;
-        document.getElementById('ramPercentText').textContent = `${d.ram_usage_percent.toFixed(1)}%`;
+        // CPU Radial Dial (circumference = 2 * pi * 36 ≈ 226)
+        const cpuOffset = 226 - (226 * Math.min(d.cpu_usage_percent, 100)) / 100;
+        document.getElementById('cpuRadial').style.strokeDashoffset = cpuOffset;
+        document.getElementById('cpuRadialText').textContent = Math.round(d.cpu_usage_percent) + '%';
+        document.getElementById('cpuDetailVal').textContent = d.cpu_usage_percent.toFixed(1) + '%';
+
+        // RAM Radial Dial
+        const ramOffset = 226 - (226 * Math.min(d.ram_usage_percent, 100)) / 100;
+        document.getElementById('ramRadial').style.strokeDashoffset = ramOffset;
+        document.getElementById('ramRadialText').textContent = Math.round(d.ram_usage_percent) + '%';
+        document.getElementById('ramDetailVal').textContent = `${d.ram_used_mb} / ${d.ram_total_mb} MB`;
+        document.getElementById('ramAvailText').textContent = `Available: ${d.ram_free_mb} MB`;
 
         // Network
-        document.getElementById('netVal').textContent = `↓ ${d.net_rx_kbps} KB/s`;
-        document.getElementById('netTxText').textContent = `↑ ${d.net_tx_kbps} KB/s outbound`;
+        document.getElementById('netDetailRx').textContent = `↓ ${d.net_rx_kbps} KB/s`;
+        document.getElementById('netDetailTx').textContent = `↑ ${d.net_tx_kbps} KB/s outbound`;
 
-        // Status & Uptime
-        document.getElementById('uptimeDisplay').textContent = `Uptime: ${d.uptime_seconds}s`;
-        document.getElementById('procMode').textContent = d.is_linux_proc ? 'Linux /proc Native' : 'Local Dev Fallback';
+        // Sidebar & Uptime
+        document.getElementById('uptimeQuickText').textContent = `Uptime: ${d.uptime_seconds}s`;
+        document.getElementById('sidebarProcMode').textContent = d.is_linux_proc ? 'Linux /proc Native' : 'Local Dev Fallback';
       } catch (e) {
         console.error('Telemetry error:', e);
       }
@@ -929,6 +1171,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       try {
         const res = await fetch('/api/v1/sites');
         allSites = await res.json();
+        document.getElementById('navSitesCount').textContent = allSites.length;
         renderSitesTable(allSites);
         renderOverviewTable(allSites);
       } catch (e) {
@@ -939,7 +1182,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
     function renderSitesTable(sites) {
       const tbody = document.getElementById('sitesTableBody');
       if (!sites.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No websites hosted yet. Click "+ Create Virtual Host" to start!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No virtual hosts registered yet. Click "+ Add Virtual Host" to start!</td></tr>';
         return;
       }
 
@@ -955,8 +1198,8 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
             <td style="font-family: var(--font-mono);">${s.php_version ? 'PHP ' + s.php_version : '<span style="color: var(--text-dim);">-</span>'}</td>
             <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${s.root_path}</td>
             <td><span class="badge badge-green">Auto HTTPS</span></td>
-            <td>
-              <div style="display: flex; gap: 0.4rem;">
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 0.4rem;">
                 <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="openSiteInFiles('${s.domain}')">Files</button>
                 <button class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="deleteSite('${s.domain}')">Delete</button>
               </div>
@@ -979,7 +1222,7 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
           <td style="font-family: var(--font-mono);">${s.php_version ? 'PHP ' + s.php_version : '-'}</td>
           <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${s.root_path}</td>
           <td><span class="badge badge-green">Active</span></td>
-          <td>
+          <td style="text-align: right;">
             <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="openSiteInFiles('${s.domain}')">Browse Files</button>
           </td>
         </tr>
@@ -1320,6 +1563,36 @@ pub const INDEX_HTML: &str = r###"<!DOCTYPE html>
       const text = document.getElementById('caddyfileContent').textContent;
       navigator.clipboard.writeText(text);
       showToast('Caddyfile copied to clipboard!', 'info');
+    }
+
+    // PHP Pools Tab
+    async function initPhpTab() {
+      const res = await fetch('/api/v1/sites');
+      const sites = await res.json();
+      const phpSites = sites.filter(s => s.kind === 'php_fpm');
+      const sel = document.getElementById('phpSiteSelect');
+      if (!phpSites.length) {
+        sel.innerHTML = '<option value="">No PHP-FPM sites hosted</option>';
+        document.getElementById('phpPoolConfigContent').textContent = 'No PHP-FPM sites configured. Create one in the Websites tab!';
+        return;
+      }
+      sel.innerHTML = phpSites.map(s => `<option value="${s.domain}">🐘 ${s.domain} (PHP ${s.php_version || '8.2'})</option>`).join('');
+      loadPhpPoolConfig();
+    }
+
+    async function loadPhpPoolConfig() {
+      const domain = document.getElementById('phpSiteSelect').value;
+      if (!domain) return;
+      try {
+        const res = await fetch(`/api/v1/php/pool?domain=${encodeURIComponent(domain)}`);
+        if (res.ok) {
+          document.getElementById('phpPoolConfigContent').textContent = await res.text();
+        } else {
+          document.getElementById('phpPoolConfigContent').textContent = 'Could not load pool: ' + await res.text();
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     function formatBytes(bytes) {
