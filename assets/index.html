@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZPanl ⚡ Sovereign Web Panel</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body class="theme-dark">
+  <!-- SOVEREIGN AUTHENTICATION LOGIN GATE -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div style="position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.45rem;">
+        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <span class="themeIconDisplay">🌙</span> <span class="themeTextDisplay">Dark</span>
+        </button>
+        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;" onclick="toggleLanguage()">
+          <span class="langFlagDisplay">🇻🇳</span> <span class="langTextDisplay">Tiếng Việt</span>
+        </button>
+      </div>
+      <div class="login-header">
+        <div class="login-logo-box">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h2 class="login-title">ZPanl</h2>
+        <div class="login-subtitle" data-i18n="login_sovereign_subtitle">Sovereign Edge Linux Web Panel</div>
+      </div>
+
+      <div id="loginErrorMsg" class="login-error"></div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label data-i18n="login_username_label">Admin Username</label>
+          <input id="loginUsername" type="text" class="form-input" required autocomplete="username" placeholder="admin" autofocus>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label data-i18n="login_password_label">Password</label>
+          <input id="loginPassword" type="password" class="form-input" required autocomplete="current-password" placeholder="••••••••••••">
+        </div>
+        <button id="btnLoginSubmit" type="submit" class="btn btn-login">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          <span data-i18n="login_submit_btn">Enter Control Panel</span>
+        </button>
+      </form>
+
+      <div style="margin-top: 1.5rem; text-align: center; font-size: 0.72rem; color: var(--text-dim);">
+        <span data-i18n="login_protected_hint">Protected by Pure Rust SHA-256 Key Stretching &amp; Brute-Force Gate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APPLICATION CONTAINER -->
+  <div id="appContainer" style="display: none; width: 100vw; min-height: 100vh;">
+    <!-- LEFT SIDEBAR -->
+    <aside id="sidebar">
+    <a href="#" class="sidebar-brand" onclick="switchTab('overview')">
+      <div class="brand-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div class="brand-names">
+        <div class="brand-title">ZPanl</div>
+        <div class="brand-tag">SOVEREIGN EDGE</div>
+      </div>
+    </a>
+
+    <div class="sidebar-nav">
+      <!-- CORE SECTION -->
+      <div>
+        <div class="nav-group-title" data-i18n="nav_core">Core Management</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button class="active" onclick="switchTab('overview')">
+              <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+              <span data-i18n="nav_dashboard">Dashboard</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('sites')">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              <span data-i18n="nav_websites">Websites</span>
+              <span class="nav-badge" id="navSitesCount">0</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('files')">
+              <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+              <span data-i18n="nav_files">File Manager</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- SYSTEM & SERVERS -->
+      <div>
+        <div class="nav-group-title" data-i18n="nav_services_group">Services & Engines</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button onclick="switchTab('services')">
+              <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              <span data-i18n="nav_services">Services</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('caddy')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <span data-i18n="nav_caddyfile">Caddyfile</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('php')">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4zm2 4v8h2v-3h2c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2H6zm2 2h2v2H8v-2zm7-2v8h2v-3h2c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2h-4zm2 2h2v2h-2v-2z"/></svg>
+              <span data-i18n="nav_php_pools">PHP-FPM Pools</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- DATA & AUTOMATION -->
+      <div>
+        <div class="nav-group-title" data-i18n="nav_data_group">Data &amp; Automation</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <button onclick="switchTab('databases')">
+              <svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zm6 5.27c-.72.48-1.89.96-3.4 1.25-.8.15-1.68.23-2.6.23s-1.8-.08-2.6-.23c-1.51-.29-2.68-.77-3.4-1.25V9.4c1.19.86 3.39 1.35 6 1.35s4.81-.49 6-1.35v1.87zm0 5c-.72.48-1.89.96-3.4 1.25-.8.15-1.68.23-2.6.23s-1.8-.08-2.6-.23c-1.51-.29-2.68-.77-3.4-1.25v-1.87c1.19.86 3.39 1.35 6 1.35s4.81-.49 6-1.35v1.87z"/></svg>
+              <span data-i18n="nav_databases">Databases</span>
+              <span class="nav-badge" id="navDatabasesCount">0</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button onclick="switchTab('cron')">
+              <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+              <span data-i18n="nav_cron">Cron Tasks</span>
+              <span class="nav-badge" id="navCronCount">0</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SIDEBAR FOOTER -->
+    <div class="sidebar-footer">
+      <div class="server-status-pill">
+        <span class="pulse-dot"></span>
+        <span id="sidebarProcMode" data-i18n="nav_online">Linux /proc Active</span>
+      </div>
+      <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;" data-i18n="nav_footprint">
+        Footprint: &lt; 10 MB RAM
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENT WRAPPER -->
+  <div id="content-wrapper">
+    <!-- TOPBAR -->
+    <header id="topbar">
+      <div class="topbar-breadcrumb">
+        <span>ZPanl</span>
+        <span>/</span>
+        <strong id="breadcrumbTitle">Dashboard</strong>
+      </div>
+
+      <div class="topbar-quick-stats">
+        <div class="stat-pill">
+          <span>CPU:</span>
+          <strong id="topbarCpu">0.0%</strong>
+        </div>
+        <div class="stat-pill">
+          <span>RAM:</span>
+          <strong id="topbarRam">0 / 0 MB</strong>
+        </div>
+        <div class="stat-pill">
+          <span>NET:</span>
+          <strong id="topbarNet">↓ 0 KB/s</strong>
+        </div>
+        <!-- THEME SWITCHER -->
+        <button class="btn btn-secondary" id="themeSwitchBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: flex; align-items: center; gap: 0.35rem;" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <span class="themeIconDisplay">🌙</span> <span class="themeTextDisplay">Dark</span>
+        </button>
+        <!-- LANGUAGE SWITCHER -->
+        <button class="btn btn-secondary" id="langSwitchBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; display: flex; align-items: center; gap: 0.35rem;" onclick="toggleLanguage()">
+          <span id="langFlag">🇻🇳</span> <span id="langText">Tiếng Việt</span>
+        </button>
+        <!-- ADMIN SECURITY BADGE -->
+        <div class="user-badge" style="display: flex; align-items: center; gap: 0.45rem; background: var(--surface-elevated); border: 1px solid var(--border); padding: 0.25rem 0.65rem; border-radius: 0.45rem;">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: var(--cyan);"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span id="topbarAdminUser" style="font-size: 0.78rem; font-weight: 700; color: var(--cyan-glow);">admin</span>
+          <button onclick="openAdminSecurityModal()" title="Security &amp; Credentials" style="background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 2px;">
+            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          </button>
+          <button onclick="handleLogout()" title="Logout" style="background: none; border: none; cursor: pointer; color: var(--red); display: flex; align-items: center; padding: 2px;">
+            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          </button>
+        </div>
+        <button class="btn" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;" onclick="openAddSiteModal()">
+          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          <span data-i18n="deploy_site">Deploy Site</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <!-- TAB 1: DASHBOARD -->
+      <div id="tab-overview" class="tab-content active">
+        <!-- 1. SOVEREIGN HEALTH & ACTION HERO BANNER -->
+        <div class="overview-hero-banner" style="background: var(--hero-banner-bg); border: 1px solid var(--hero-banner-border); border-radius: 0.75rem; padding: 1.15rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <span class="pulse-dot" style="width: 12px; height: 12px; box-shadow: 0 0 12px var(--green);"></span>
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <h2 style="font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em;" data-i18n="hero_status_title">All Sovereign Systems Operational</h2>
+                <span class="badge badge-green" data-i18n="hero_badge_healthy">Optimal</span>
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;">
+                <span><strong id="heroSiteCount" style="color: var(--cyan);">0</strong> <span data-i18n="nav_websites">Websites</span></span>
+                <span>•</span>
+                <span><strong id="heroDbCount" style="color: var(--purple);">0</strong> <span data-i18n="nav_databases">Databases</span></span>
+                <span>•</span>
+                <span><strong id="heroCronCount" style="color: var(--yellow);">0</strong> <span data-i18n="nav_cron">Cron Tasks</span></span>
+                <span>•</span>
+                <span id="heroUptimeLabel">Uptime: 0s</span>
+                <span>•</span>
+                <span class="badge badge-cyan" style="font-size: 0.68rem; padding: 0.15rem 0.45rem;">Edge Footprint &lt; 10 MB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Shortcuts -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAddSiteModal()">
+              + <span data-i18n="deploy_site">Deploy Site</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAddDatabaseModal()">
+              + <span data-i18n="add_db_btn">Add DB</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAddCronModal()">
+              + <span data-i18n="add_cron_btn">Add Cron</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="switchTab('caddy')">
+              ⚙️ <span data-i18n="nav_caddyfile">Caddyfile</span>
+            </button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="openAdminSecurityModal()">
+              🛡️ <span data-i18n="sec_tab_logs">Audit</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. CORE RADIAL METRICS -->
+        <div class="grid-4" style="margin-bottom: 1.5rem;">
+          <!-- CPU GAUGE -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" data-i18n="card_cpu_title">CPU Utilization</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M17 17H7V7h10v10zm2-14v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h-2v-2h-2v2h-2v-2h-2v2H7v-2H5v-2H3v-2h2v-2H3v-2h2V9H3V7h2V5h2V3h2v2h2V3h2v2h2V3h2zm-4 12V9H9v6h6z"/></svg>
+              </span>
+            </div>
+            <div class="radial-gauge-container">
+              <div class="radial-circle">
+                <svg viewBox="0 0 80 80">
+                  <circle class="radial-bg" cx="40" cy="40" r="36"/>
+                  <circle class="radial-progress" id="cpuRadial" cx="40" cy="40" r="36"/>
+                </svg>
+                <div class="radial-label" id="cpuRadialText">0%</div>
+              </div>
+              <div class="radial-details">
+                <div class="radial-main-val" id="cpuDetailVal">0.0%</div>
+                <div class="radial-sub-val">Linux /proc/stat delta</div>
+                <div class="radial-sub-val" style="color: var(--cyan);">Non-blocking sampling</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RAM GAUGE -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" data-i18n="card_ram_title">Memory Allocation</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM2 4v16h20V4H2zm3 4h2v8H5V8zm4 0h2v8H9V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
+              </span>
+            </div>
+            <div class="radial-gauge-container">
+              <div class="radial-circle">
+                <svg viewBox="0 0 80 80">
+                  <circle class="radial-bg" cx="40" cy="40" r="36"/>
+                  <circle class="radial-progress" id="ramRadial" cx="40" cy="40" r="36" style="stroke: var(--purple);"/>
+                </svg>
+                <div class="radial-label" id="ramRadialText">0%</div>
+              </div>
+              <div class="radial-details">
+                <div class="radial-main-val" id="ramDetailVal">0 / 0 MB</div>
+                <div class="radial-sub-val" id="ramAvailText">Available: 0 MB</div>
+                <div class="radial-sub-val" style="color: var(--purple);">Linux /proc/meminfo</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NETWORK THROUGHPUT -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" data-i18n="card_net_title">Network I/O</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M4.5 11h-2V9H1v6h1.5v-2h2v2H6V9H4.5v2zm15 0h-2V9H16v6h1.5v-2h2v2H21V9h-1.5v2zm-7.5-6h-1V2H8v5h3v2h2V7h3V2h-3v3h-1zM11 17h2v2h-2v-2zm-3 2h2v2H8v-2zm6 0h2v2h-2v-2zm-5 2h4v1h-4v-1z"/></svg>
+              </span>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 80px;">
+              <div class="radial-main-val" id="netDetailRx" style="font-size: 1.55rem; color: var(--green);">↓ 0 KB/s</div>
+              <div class="radial-sub-val" id="netDetailTx" style="font-size: 0.85rem; margin-top: 0.35rem;">↑ 0 KB/s outbound</div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.5rem; display: flex; justify-content: space-between;">
+              <span>Sockets: Active</span>
+              <span>/proc/net/dev</span>
+            </div>
+          </div>
+
+          <!-- SYSTEM ARCHITECTURE -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" data-i18n="card_stack_title">Panel Sovereign Stack</span>
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
+              </span>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 80px;">
+              <div style="font-weight: 800; font-size: 1.25rem; color: var(--cyan);">Pure Rust + Caddy</div>
+              <div class="radial-sub-val" style="margin-top: 0.35rem;">Single binary (&lt; 1.2 MB)</div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--green); display: flex; justify-content: space-between; margin-top: 0.5rem;">
+              <span>Zero external runtime</span>
+              <span id="uptimeQuickText">Uptime: 0s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. REAL-TIME TELEMETRY WAVEFORM (CANVAS) -->
+        <div class="card" style="margin-bottom: 1.75rem; padding: 1.25rem 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan);"></span>
+                <span data-i18n="chart_telemetry_title">Real-Time Host Activity Waveform (60s Live Feed)</span>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" data-i18n="chart_telemetry_subtitle">Non-blocking live metrics sampling from host /proc subsystem</div>
+            </div>
+
+            <!-- Chart Live Legend -->
+            <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; font-family: var(--font-mono);">
+              <span style="display: flex; align-items: center; gap: 0.35rem; color: var(--cyan); font-weight: 600;">
+                <span style="width: 12px; height: 3px; background: var(--cyan); border-radius: 2px;"></span> CPU: <span id="chartLiveCpu">0%</span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 0.35rem; color: var(--purple); font-weight: 600;">
+                <span style="width: 12px; height: 3px; background: var(--purple); border-radius: 2px;"></span> RAM: <span id="chartLiveRam">0%</span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 0.35rem; color: var(--green); font-weight: 600;">
+                <span style="width: 12px; height: 3px; background: var(--green); border-radius: 2px;"></span> Net: <span id="chartLiveNet">↓ 0 KB/s</span>
+              </span>
+            </div>
+          </div>
+
+          <div style="position: relative; width: 100%; height: 140px; border-radius: 0.5rem; overflow: hidden; background: var(--surface-elevated); border: 1px solid var(--border);">
+            <canvas id="telemetryCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+          </div>
+        </div>
+
+        <!-- 4. SPLIT 2-COLUMN: SITES TABLE + SOVEREIGN ENGINE MATRIX -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+          <!-- LEFT: ACTIVE SITES -->
+          <div>
+            <div class="toolbar" style="margin-bottom: 0.75rem;">
+              <h3 class="toolbar-title" style="font-size: 1.05rem;" data-i18n="active_vhosts">Active Virtual Hosts</h3>
+              <button class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.3rem 0.65rem;" onclick="switchTab('sites')"><span data-i18n="view_all_sites">View All Websites &rarr;</span></button>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="th_domain">Domain Name</th>
+                    <th data-i18n="th_type">Type</th>
+                    <th data-i18n="th_php">PHP</th>
+                    <th data-i18n="th_security">SSL</th>
+                    <th style="text-align: right;" data-i18n="th_actions">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewSitesTable">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;" data-i18n="loading_sites">Loading websites...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RIGHT: SOVEREIGN ENGINE MATRIX & SERVICES -->
+          <div>
+            <div class="toolbar" style="margin-bottom: 0.75rem;">
+              <h3 class="toolbar-title" style="font-size: 1.05rem;" data-i18n="engine_matrix_title">Sovereign Engines</h3>
+              <button class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.3rem 0.65rem;" onclick="switchTab('services')"><span data-i18n="nav_services">Services &rarr;</span></button>
+            </div>
+            <div class="card" style="padding: 1.15rem 1.25rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <!-- Caddy Web Server -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.65rem;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">Caddy v2 HTTP/3</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">Declarative reverse proxy</div>
+                  </div>
+                  <span class="badge badge-green">Running</span>
+                </div>
+
+                <!-- PHP FastCGI Pool -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.65rem;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">PHP-FPM Worker Pool</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">pm=ondemand (Auto-scale)</div>
+                  </div>
+                  <span class="badge badge-cyan">ondemand</span>
+                </div>
+
+                <!-- Layer-7 WAF -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.65rem;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">Layer-7 Edge WAF</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">Heuristic Bot &amp; SQLi Shield</div>
+                  </div>
+                  <span class="badge badge-purple">Armed</span>
+                </div>
+
+                <!-- Brute Force Lockout -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">Authentication Gate</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">5-fail lock / 15m lockout</div>
+                  </div>
+                  <span class="badge badge-green">Protected</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: WEBSITES -->
+      <div id="tab-sites" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="sites_title">Websites & Virtual Hosts</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="sites_subtitle">Declarative Caddy v2 reverse proxy routing with automatic Let's Encrypt HTTPS</div>
+          </div>
+          <div class="toolbar-actions">
+            <input type="text" id="siteSearchInput" class="search-input" placeholder="Search domain or path..." data-i18n-placeholder="search_placeholder" oninput="filterSitesTable()">
+            <button class="btn" onclick="openAddSiteModal()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span data-i18n="add_vhost_btn">Add Virtual Host</span>
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_domain">Domain</th>
+                <th data-i18n="th_type">Type</th>
+                <th data-i18n="th_php">PHP Engine</th>
+                <th data-i18n="th_root">Document Root</th>
+                <th data-i18n="th_security">Security / SSL</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sitesTableBody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="loading_sites">Loading websites...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: FILE MANAGER -->
+      <div id="tab-files" class="tab-content">
+        <div class="toolbar">
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <select id="fileSiteSelect" class="form-select" style="width: 300px;" onchange="loadSiteFiles()"></select>
+            <div style="display: flex; align-items: center; gap: 0.35rem; font-family: var(--font-mono); font-size: 0.85rem; background: var(--surface-elevated); padding: 0.45rem 0.85rem; border-radius: 0.45rem; border: 1px solid var(--border);">
+              <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: var(--cyan);"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+              <span id="fileBreadcrumb" style="color: var(--cyan-glow);">/</span>
+            </div>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-secondary" onclick="openFilePicker()">
+              <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+              <span data-i18n="upload_btn">Upload</span>
+            </button>
+            <input type="file" id="filePickerInput" multiple style="display:none" onchange="handlePickedFiles(event)">
+            <button class="btn btn-secondary" onclick="openNewEntryModal(false)">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <span data-i18n="new_file_btn">New File</span>
+            </button>
+            <button class="btn btn-secondary" onclick="openNewEntryModal(true)">
+              <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
+              <span data-i18n="new_folder_btn">New Folder</span>
+            </button>
+            <button class="btn btn-secondary" onclick="loadSiteFiles()">
+              <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+              <span data-i18n="refresh_btn">Refresh</span>
+            </button>
+          </div>
+        </div>
+        <div class="table-container" id="filesDropZone" style="position: relative; min-height: 280px;">
+          <!-- DRAG & DROP OVERLAY -->
+          <div id="fileDropOverlay" class="file-drop-overlay" style="display: none;">
+            <div class="file-drop-box">
+              <svg viewBox="0 0 24 24" style="width: 52px; height: 52px; fill: var(--cyan); margin-bottom: 0.6rem;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+              <div style="font-size: 1.15rem; font-weight: 700; color: var(--cyan-glow);" data-i18n="upload_drop_hint">Drop files or folders here to upload</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.35rem;" id="dropZoneTargetSubpath">Target: /</div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_file_name">File Name</th>
+                <th data-i18n="th_file_type">Type</th>
+                <th data-i18n="th_file_size">Size</th>
+                <th data-i18n="th_file_perm">POSIX Permissions</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="filesTableBody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="select_site_explore">Select a site to explore files.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 4: SERVICES -->
+      <div id="tab-services" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="services_title">Linux Systemd Services</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="services_subtitle">Daemon process supervision via <code>zero-sys</code></div>
+          </div>
+          <button class="btn btn-secondary" onclick="loadServices()">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            <span data-i18n="refresh_daemons">Refresh Daemons</span>
+          </button>
+        </div>
+        <div class="grid-4" id="servicesGrid">
+          Loading services...
+        </div>
+      </div>
+
+      <!-- TAB 5: CADDYFILE -->
+      <div id="tab-caddy" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="caddy_title">Active Reverse Proxy Configuration</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="caddy_subtitle">Live synchronized from <code>/etc/caddy/Caddyfile</code></div>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-secondary" onclick="copyCaddyfile()" data-i18n="copy_caddyfile">Copy Caddyfile</button>
+            <button class="btn" onclick="loadCaddyfile()" data-i18n="reload_preview">Reload Preview</button>
+          </div>
+        </div>
+        <pre class="code-block" id="caddyfileContent">Loading Caddyfile...</pre>
+      </div>
+
+      <!-- TAB 6: PHP-FPM POOLS -->
+      <div id="tab-php" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="php_title">PHP-FPM Worker Pools</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="php_subtitle">Isolated on-demand fastcgi worker pools generated by <code>zero-fastcgi</code></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.5rem;" data-i18n="select_site_php">Select Site to Inspect PHP Pool Configuration</h3>
+          <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+            <select id="phpSiteSelect" class="form-select" style="width: 320px;" onchange="loadPhpPoolConfig()"></select>
+            <button class="btn btn-secondary" onclick="loadPhpPoolConfig()" data-i18n="view_pool_ini">View Pool INI</button>
+          </div>
+        </div>
+        <pre class="code-block" id="phpPoolConfigContent">Select a PHP website above to inspect its pool.d/*.conf configuration.</pre>
+      </div>
+
+      <!-- TAB 7: DATABASES -->
+      <div id="tab-databases" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="databases_title">Database Management</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="databases_subtitle">Managed relational databases with one-click SQL dumps and access credentials</div>
+          </div>
+          <div class="toolbar-actions">
+            <input type="text" id="dbSearchInput" class="search-input" placeholder="Search database..." data-i18n-placeholder="search_db_placeholder" oninput="filterDatabasesTable()">
+            <button class="btn" onclick="openAddDatabaseModal()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span data-i18n="add_db_btn">Add Database</span>
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_db_name">Database Name</th>
+                <th data-i18n="th_db_engine">Engine</th>
+                <th data-i18n="th_db_user">Username</th>
+                <th data-i18n="th_db_host">Access Host</th>
+                <th data-i18n="th_db_site">Linked Site</th>
+                <th data-i18n="th_db_size">Size</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="databasesTableBody">
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="loading_databases">Loading databases...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 8: CRON TASKS -->
+      <div id="tab-cron" class="tab-content">
+        <div class="toolbar">
+          <div>
+            <h2 class="toolbar-title" data-i18n="cron_title">Scheduled Tasks &amp; Crontab</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" data-i18n="cron_subtitle">Precision recurring background automation, shell maintenance, and framework schedules</div>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn" onclick="openAddCronModal()">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span data-i18n="add_cron_btn">Add Cron Job</span>
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_cron_name">Task Name</th>
+                <th data-i18n="th_cron_schedule">Schedule</th>
+                <th data-i18n="th_cron_command">Command</th>
+                <th data-i18n="th_cron_status">Last Status</th>
+                <th data-i18n="th_cron_last_run">Last Executed</th>
+                <th style="text-align: right;" data-i18n="th_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cronTableBody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;" data-i18n="loading_cron">Loading scheduled tasks...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+  </div> <!-- /#appContainer -->
+
+  <!-- MODAL: ADD SITE -->
+  <div id="addSiteModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 data-i18n="modal_add_title">Deploy New Virtual Host</h3>
+        <button class="modal-close" onclick="closeAddSiteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="modal_domain_label">Fully Qualified Domain Name</label>
+          <input id="newDomain" class="form-input" placeholder="e.g. blog.mydomain.com" oninput="autoSuggestRoot()">
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_app_type">Application Type</label>
+          <select id="newKind" class="form-select" onchange="togglePhpField()">
+            <option value="static" data-i18n="type_static">Static HTML / CSS / JS / Assets</option>
+            <option value="spa_fallback" data-i18n="type_spa">Single Page Application (SPA Fallback /index.html)</option>
+            <option value="php_fpm" data-i18n="type_php">Dynamic PHP (PHP-FPM Unix Socket)</option>
+          </select>
+        </div>
+        <div class="form-group" id="phpVersionGroup" style="display: none;">
+          <label data-i18n="modal_php_ver">PHP-FPM Worker Version</label>
+          <select id="newPhpVer" class="form-select">
+            <option value="8.3">PHP 8.3-FPM (Latest)</option>
+            <option value="8.2" selected>PHP 8.2-FPM (Recommended LTS)</option>
+            <option value="8.1">PHP 8.1-FPM</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_web_root">Document Web Root Path</label>
+          <input id="newRoot" class="form-input" placeholder="/var/www/blog.mydomain.com">
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem;">
+          <input type="checkbox" id="newSsl" checked disabled style="accent-color: var(--cyan);">
+          <label for="newSsl" style="font-size: 0.85rem; color: var(--text-muted); cursor: default;" data-i18n="modal_auto_https">
+            Automatic HTTPS via Caddy (Let's Encrypt / ZeroSSL)
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddSiteModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateSite()" data-i18n="btn_create_vhost">Create Virtual Host</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SITE MODIFICATION (aaPanel Style) -->
+  <div id="siteModModal" class="modal">
+    <div class="modal-box" style="max-width: 860px; width: 95%; height: 580px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="padding: 0.85rem 1.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600;">
+          <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: var(--cyan);"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span><span data-i18n="mod_title_prefix">Site modification</span> [<span id="modSiteDomainTitle" style="color: var(--cyan-glow);">domain.com</span>] -- <span data-i18n="mod_time_added">Time added</span> [<span id="modSiteTimeTitle" style="color: var(--text-dim); font-size: 0.8rem;">2026-10-07</span>]</span>
+        </div>
+        <button class="modal-close" onclick="closeSiteModModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0; display: flex; flex: 1; overflow: hidden;">
+        <!-- LEFT SUB-SIDEBAR -->
+        <div class="mod-sidebar">
+          <div class="mod-tab-item active" id="btn-modtab-domain" onclick="switchModTab('domain')" data-i18n="mod_tab_domain">Domain Manager</div>
+          <div class="mod-tab-item" id="btn-modtab-directory" onclick="switchModTab('directory')" data-i18n="mod_tab_directory">Directory</div>
+          <div class="mod-tab-item" id="btn-modtab-limit" onclick="switchModTab('limit')" data-i18n="mod_tab_limit">Limit access</div>
+          <div class="mod-tab-item" id="btn-modtab-rewrite" onclick="switchModTab('rewrite')" data-i18n="mod_tab_rewrite">URL rewrite</div>
+          <div class="mod-tab-item" id="btn-modtab-php" onclick="switchModTab('php')" data-i18n="mod_tab_php">PHP version</div>
+          <div class="mod-tab-item" id="btn-modtab-proxy" onclick="switchModTab('proxy')" data-i18n="mod_tab_proxy">Reverse proxy</div>
+          <div class="mod-tab-item" id="btn-modtab-ssl" onclick="switchModTab('ssl')" data-i18n="mod_tab_ssl">SSL</div>
+          <div class="mod-tab-item" id="btn-modtab-redirect" onclick="switchModTab('redirect')" data-i18n="mod_tab_redirect">Redirect</div>
+          <div class="mod-tab-item" id="btn-modtab-hotlink" onclick="switchModTab('hotlink')" data-i18n="mod_tab_hotlink">Hotlink Protection</div>
+          <div class="mod-tab-item" id="btn-modtab-maintenance" onclick="switchModTab('maintenance')" data-i18n="mod_tab_maintenance">Maintenance Mode</div>
+          <div class="mod-tab-item" id="btn-modtab-log" onclick="switchModTab('log')" data-i18n="mod_tab_log">Response log</div>
+          <div class="mod-tab-item" id="btn-modtab-waf" onclick="switchModTab('waf')" data-i18n="mod_tab_waf">WAF &amp; Shield</div>
+          <div class="mod-tab-item" id="btn-modtab-deploy" onclick="switchModTab('deploy')" data-i18n="mod_tab_deploy">Git-Ops Deploy</div>
+          <div class="mod-tab-item" id="btn-modtab-config" onclick="switchModTab('config')" data-i18n="mod_tab_config">Config (Caddy)</div>
+        </div>
+        <!-- RIGHT SUB-CONTENT -->
+        <div class="mod-content">
+          <!-- SUB-TAB 1: DOMAIN MANAGER -->
+          <div id="modtab-domain" class="mod-tab-content active">
+            <div class="mod-hint-box" data-i18n="mod_hint_domain">
+              A domain per line, the default port is 80.<br>
+              Wildcard domain format: *.domain.com<br>
+              To add another port, the format is www.domain.com:88
+            </div>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+              <textarea id="modNewAliases" class="form-input" style="flex: 1; height: 75px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="alias1.domain.com&#10;alias2.domain.com:8080"></textarea>
+              <button class="btn btn-success" style="align-self: flex-start; padding: 0.6rem 1.25rem;" onclick="addDomainAliases()" data-i18n="btn_add">Add</button>
+            </div>
+            <div style="margin-top: 1.25rem; border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
+                    <th style="padding: 0.5rem 0.75rem;" data-i18n="th_domain_name">Domain name</th>
+                    <th style="padding: 0.5rem 0.75rem; width: 80px;" data-i18n="th_port">Port</th>
+                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 100px;" data-i18n="th_operate">Operate</th>
+                  </tr>
+                </thead>
+                <tbody id="modDomainTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 2: DIRECTORY -->
+          <div id="modtab-directory" class="mod-tab-content">
+            <div class="form-group">
+              <label data-i18n="mod_base_dir">Site Base Directory</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input id="modRootPath" class="form-input" style="font-family: var(--font-mono);" placeholder="/var/www/domain.com">
+                <button class="btn btn-secondary" onclick="openModSiteInFileManager()" data-i18n="mod_btn_files">Files &rarr;</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label data-i18n="mod_running_dir">Running Directory (Sub-path / Web Root)</label>
+              <select id="modRunningDir" class="form-select">
+                <option value="">/ (Root Directory - Standard)</option>
+                <option value="/public">/public (Laravel, Symfony, ThinkPHP)</option>
+                <option value="/dist">/dist (Vite, Vue, React Production Build)</option>
+                <option value="/build">/build (Webpack, Next.js Static Export)</option>
+              </select>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="mod_running_dir_hint">
+                Point to framework public folder to keep vendor / .env secure.
+              </div>
+            </div>
+            <div class="form-group">
+              <label data-i18n="mod_dir_ownership">Directory Ownership &amp; Permission</label>
+              <div style="background: var(--surface-elevated); padding: 0.75rem 1rem; border-radius: 0.45rem; font-family: var(--font-mono); font-size: 0.85rem; border: 1px solid var(--border); color: var(--cyan-glow);">
+                User: www-data:www-data | Permissions: 755 (Directories) / 644 (Files)
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 3: LIMIT ACCESS -->
+          <div id="modtab-limit" class="mod-tab-content">
+            <div class="form-group">
+              <label data-i18n="mod_ip_blacklist">IP Address Blacklist (CIDR notation supported)</label>
+              <textarea id="modIpBlacklist" class="form-input" style="height: 100px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="192.168.1.50&#10;10.0.0.0/8&#10;172.16.0.0/12"></textarea>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="mod_ip_hint">
+                One IP or CIDR per line. Any connection matching will immediately receive HTTP 403 Forbidden.
+              </div>
+            </div>
+            <div class="toggle-row" style="margin-top: 1rem;">
+              <label for="modBasicAuthToggle">
+                <span data-i18n="mod_basic_auth">HTTP Basic Authentication</span>
+                <span class="sub" data-i18n="mod_basic_auth_desc">Require username and password before granting access to website</span>
+              </label>
+              <input type="checkbox" id="modBasicAuthToggle" style="accent-color: var(--cyan); transform: scale(1.3);" onchange="toggleBasicAuthFields()">
+            </div>
+            <div id="basicAuthFields" style="display: none; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
+              <div class="form-group">
+                <label data-i18n="mod_auth_user">Auth Username</label>
+                <input id="modAuthUser" class="form-input" placeholder="admin">
+              </div>
+              <div class="form-group">
+                <label data-i18n="mod_auth_pass">Auth Password</label>
+                <input id="modAuthPass" type="password" class="form-input" placeholder="••••••••">
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 4: URL REWRITE -->
+          <div id="modtab-rewrite" class="mod-tab-content">
+            <div class="form-group">
+              <label data-i18n="mod_rewrite_preset">Framework URL Rewrite Preset</label>
+              <select id="modRewritePreset" class="form-select" onchange="updateRewriteSnippetPreview()">
+                <option value="">Default (Static File Server)</option>
+                <option value="laravel">Laravel / Symfony (try_files {path} {path}/ /index.php?{query})</option>
+                <option value="wordpress">WordPress / WooCommerce (FastCGI + Security Deny rules)</option>
+                <option value="spa">Single Page App (try_files {path} /index.html)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label data-i18n="mod_rewrite_preview">Caddyfile Rewrite Snippet Preview</label>
+              <pre class="code-block" id="modRewritePreview" style="height: 160px;"></pre>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 5: PHP VERSION -->
+          <div id="modtab-php" class="mod-tab-content">
+            <div class="form-group">
+              <label data-i18n="mod_php_runtime">PHP-FPM Worker Runtime</label>
+              <select id="modPhpVersion" class="form-select" onchange="updatePhpSocketPreview()">
+                <option value="none">Static (No PHP Processing)</option>
+                <option value="8.4">PHP 8.4-FPM (Bleeding Edge)</option>
+                <option value="8.3">PHP 8.3-FPM (High Performance)</option>
+                <option value="8.2">PHP 8.2-FPM (Recommended LTS)</option>
+                <option value="8.1">PHP 8.1-FPM</option>
+                <option value="7.4">PHP 7.4-FPM (Legacy)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label data-i18n="mod_fastcgi_socket">FastCGI Socket Endpoint</label>
+              <input id="modPhpSocketPreview" class="form-input" readonly style="font-family: var(--font-mono); color: var(--cyan-glow);">
+            </div>
+            <div class="mod-hint-box" data-i18n="mod_php_hint">
+              ZPanl configures FastCGI with <code>pm = ondemand</code>, dynamically spinning up worker processes when HTTP requests arrive and terminating idle workers after 10s to keep RAM footprint &lt; 10 MB.
+            </div>
+          </div>
+
+          <!-- SUB-TAB 6: REVERSE PROXY -->
+          <div id="modtab-proxy" class="mod-tab-content">
+            <div class="toggle-row">
+              <label for="modProxyToggle">
+                <span data-i18n="mod_enable_proxy">Enable Reverse Proxy</span>
+                <span class="sub" data-i18n="mod_enable_proxy_desc">Forward all traffic to internal application server (Node, Go, Python, Docker)</span>
+              </label>
+              <input type="checkbox" id="modProxyToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+              <label data-i18n="mod_upstream_target">Upstream Target (Host:Port or Unix Socket)</label>
+              <input id="modProxyUpstream" class="form-input" style="font-family: var(--font-mono);" placeholder="127.0.0.1:3000">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                Example: <code>127.0.0.1:3000</code> for Next.js, <code>127.0.0.1:8000</code> for Python FastAPI/Django.
+              </div>
+            </div>
+            <div class="mod-hint-box" style="margin-top: 0.75rem;">
+              Caddy v2 handles reverse proxying natively with automated WebSocket upgrading (<code>Connection: Upgrade</code>), streaming buffering, and standard proxy headers (<code>X-Forwarded-For</code>, <code>X-Real-IP</code>).
+            </div>
+          </div>
+
+          <!-- SUB-TAB 7: SSL -->
+          <div id="modtab-ssl" class="mod-tab-content">
+            <div class="toggle-row">
+              <label for="modSslToggle">
+                <span data-i18n="mod_auto_ssl">Automatic HTTPS (Let's Encrypt / ZeroSSL)</span>
+                <span class="sub" data-i18n="mod_auto_ssl_desc">Zero-configuration automated ACME certificate issuance and renewal</span>
+              </label>
+              <input type="checkbox" id="modSslToggle" checked style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+            <div class="form-group">
+              <label data-i18n="mod_tls_strict">SSL / TLS Protocol Strictness</label>
+              <div style="background: var(--surface-elevated); padding: 0.75rem 1rem; border-radius: 0.45rem; border: 1px solid var(--border); font-size: 0.85rem;">
+                <div style="color: var(--green-glow); font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;"></span>
+                  <span data-i18n="mod_tls_status">TLS 1.2 &amp; TLS 1.3 Modern Cipher Suite Active</span>
+                </div>
+                <div style="color: var(--text-dim); font-size: 0.75rem; margin-top: 0.35rem;">
+                  Automated OCSP stapling &amp; HTTP/2, HTTP/3 (QUIC) enabled by Caddy v2.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 8: REDIRECT -->
+          <div id="modtab-redirect" class="mod-tab-content">
+            <div class="mod-hint-box" data-i18n="mod_redir_hint">
+              Configure 301 (Permanent) or 302 (Temporary) redirects. Great for migrating old URLs, campaign links, or forwarding external domains.
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; align-items: flex-end;">
+              <div style="flex: 1;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;" data-i18n="mod_redir_src">Source Path</label>
+                <input id="newRedirSource" class="form-input" placeholder="/old-path" style="font-family: var(--font-mono); font-size: 0.85rem;">
+              </div>
+              <div style="flex: 1.5;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;" data-i18n="mod_redir_tgt">Target URL</label>
+                <input id="newRedirTarget" class="form-input" placeholder="https://example.com/new" style="font-family: var(--font-mono); font-size: 0.85rem;">
+              </div>
+              <div style="width: 100px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;" data-i18n="mod_redir_code">HTTP Code</label>
+                <select id="newRedirCode" class="form-select" style="font-size: 0.85rem;">
+                  <option value="301">301 (Perm)</option>
+                  <option value="302">302 (Temp)</option>
+                </select>
+              </div>
+              <button class="btn btn-success" style="padding: 0.55rem 1rem;" onclick="addRedirectRule()" data-i18n="btn_add">Add</button>
+            </div>
+            <div style="margin-top: 1.25rem; border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
+                    <th style="padding: 0.5rem 0.75rem;" data-i18n="th_source">Source</th>
+                    <th style="padding: 0.5rem 0.75rem;" data-i18n="th_target">Target</th>
+                    <th style="padding: 0.5rem 0.75rem; width: 60px;" data-i18n="th_code">Code</th>
+                    <th style="padding: 0.5rem 0.75rem; text-align: right; width: 70px;" data-i18n="th_operate">Operate</th>
+                  </tr>
+                </thead>
+                <tbody id="modRedirectsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 9: HOTLINK PROTECTION -->
+          <div id="modtab-hotlink" class="mod-tab-content">
+            <div class="toggle-row">
+              <label for="modHotlinkToggle">
+                <span data-i18n="mod_hotlink_title">Enable Anti-Leech / Hotlink Protection</span>
+                <span class="sub" data-i18n="mod_hotlink_desc">Block other domains from embedding and stealing your images, media, and bandwidth</span>
+              </label>
+              <input type="checkbox" id="modHotlinkToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+              <label data-i18n="mod_hotlink_exts">Protected Media Extensions</label>
+              <input id="modHotlinkExts" class="form-input" style="font-family: var(--font-mono);" value="*.jpg *.jpeg *.png *.webp *.gif *.svg *.mp4 *.zip">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                Space-separated glob patterns.
+              </div>
+            </div>
+            <div class="mod-hint-box" style="margin-top: 0.75rem;">
+              Caddy checks the HTTP <code>Referer</code> header against the virtual host domain. Direct requests without referrers and internal links remain permitted.
+            </div>
+          </div>
+
+          <!-- SUB-TAB 10: MAINTENANCE MODE -->
+          <div id="modtab-maintenance" class="mod-tab-content">
+            <div class="toggle-row" style="border-left: 4px solid var(--yellow);">
+              <label for="modMaintToggle">
+                <span data-i18n="mod_maint_title">Site Maintenance Mode (HTTP 503)</span>
+                <span class="sub" data-i18n="mod_maint_desc">Immediately returns 503 Service Unavailable for maintenance without removing vhost</span>
+              </label>
+              <input type="checkbox" id="modMaintToggle" style="accent-color: var(--yellow); transform: scale(1.3);">
+            </div>
+            <div class="mod-hint-box" style="border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); color: #fde68a;" data-i18n="mod_maint_box">
+              When maintenance mode is activated, Caddy intercepts all incoming traffic for this virtual host and cleanly returns an HTTP 503 response. Safe for software upgrades, database migrations, and emergencies.
+            </div>
+          </div>
+
+          <!-- SUB-TAB 11: RESPONSE LOG -->
+          <div id="modtab-log" class="mod-tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <select id="modLogType" class="form-select" style="width: 140px; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onchange="loadModSiteLogs()">
+                  <option value="access" data-i18n="mod_log_access">Access Log</option>
+                  <option value="error" data-i18n="mod_log_error">Error Log</option>
+                </select>
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="loadModSiteLogs()" data-i18n="refresh_btn">Refresh</button>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">/var/log/zpanl/&lt;domain&gt;.log</span>
+            </div>
+            <pre class="code-block" id="modLogViewer" style="height: 250px; margin: 0; line-height: 1.5; font-size: 0.78rem; overflow-y: auto;"></pre>
+          </div>
+
+          <!-- SUB-TAB 13: WAF & SHIELD -->
+          <div id="modtab-waf" class="mod-tab-content">
+            <div class="toggle-row" style="border-left: 4px solid var(--purple);">
+              <label for="modWafToggle">
+                <span data-i18n="waf_master_title">Web Application Firewall (WAF) Master Shield</span>
+                <span class="sub" data-i18n="waf_master_desc">Activate heuristic threat mitigation, layer-7 filter, and bot defense</span>
+              </label>
+              <input type="checkbox" id="modWafToggle" style="accent-color: var(--purple); transform: scale(1.3);">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
+              <div class="card" style="padding: 0.75rem; background: var(--surface-elevated);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label for="modBadBotToggle" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                    <span data-i18n="waf_bad_bots">Bad Bot &amp; Scraper Shield</span>
+                    <span style="display: block; font-size: 0.72rem; color: var(--text-dim);" data-i18n="waf_bad_bots_desc">Block ByteSpider, Ahrefs, Semrush, MJ12bot</span>
+                  </label>
+                  <input type="checkbox" id="modBadBotToggle" checked style="accent-color: var(--cyan); transform: scale(1.2);">
+                </div>
+              </div>
+
+              <div class="card" style="padding: 0.75rem; background: var(--surface-elevated);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label for="modSqliXssToggle" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                    <span data-i18n="waf_sqli_xss">Heuristic SQLi / XSS Filter</span>
+                    <span style="display: block; font-size: 0.72rem; color: var(--text-dim);" data-i18n="waf_sqli_xss_desc">Block query injection, traversal, eval patterns</span>
+                  </label>
+                  <input type="checkbox" id="modSqliXssToggle" checked style="accent-color: var(--cyan); transform: scale(1.2);">
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-row" style="margin-top: 1rem;">
+              <label for="modRateLimitToggle">
+                <span data-i18n="waf_rate_limit_title">Client Request Velocity Limiting</span>
+                <span class="sub" data-i18n="waf_rate_limit_desc">Mitigate DDoS surges and brute-force credential stuffing</span>
+              </label>
+              <input type="checkbox" id="modRateLimitToggle" style="accent-color: var(--cyan); transform: scale(1.3);">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="waf_max_reqs">Max Requests per Client</label>
+                <input id="modRateLimitRequests" type="number" class="form-input" value="60" min="5" max="10000">
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="waf_window">Time Window</label>
+                <select id="modRateLimitWindow" class="form-select">
+                  <option value="10s">10 seconds</option>
+                  <option value="30s">30 seconds</option>
+                  <option value="1m" selected>1 minute (Standard)</option>
+                  <option value="5m">5 minutes</option>
+                  <option value="1h">1 hour</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label style="font-size: 0.78rem;" data-i18n="waf_custom_agents">Custom Blocked User-Agents (One per line)</label>
+              <textarea id="modCustomBlockedAgents" class="form-input" style="height: 60px; font-family: var(--font-mono); font-size: 0.8rem;" placeholder="curl&#10;python-requests&#10;Go-http-client"></textarea>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 14: GIT-OPS DEPLOY -->
+          <div id="modtab-deploy" class="mod-tab-content">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="deploy_repo_url">Git Repository URL (HTTPS or SSH)</label>
+                <input id="modDeployRepoUrl" class="form-input" placeholder="https://github.com/org/repo.git" style="font-family: var(--font-mono); font-size: 0.82rem;">
+              </div>
+              <div class="form-group">
+                <label style="font-size: 0.78rem;" data-i18n="deploy_branch">Target Branch</label>
+                <input id="modDeployBranch" class="form-input" value="main" style="font-family: var(--font-mono); font-size: 0.82rem;">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label style="font-size: 0.78rem;" data-i18n="deploy_webhook_label">Automated Webhook Endpoint (GitHub / GitLab / Gitea)</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input id="modDeployWebhookUrl" class="form-input" readonly style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--cyan-glow); background: var(--surface-elevated);">
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="copyWebhookUrl()" data-i18n="copy_caddyfile">Copy</button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
+              <div class="toggle-row" style="padding: 0.5rem 0.75rem;">
+                <label for="modDeploySymlinkToggle">
+                  <span style="font-size: 0.82rem;" data-i18n="deploy_symlink">Zero-Downtime Atomic Symlink</span>
+                  <span class="sub" style="font-size: 0.7rem;" data-i18n="deploy_symlink_desc">Releases /current pattern</span>
+                </label>
+                <input type="checkbox" id="modDeploySymlinkToggle" checked style="accent-color: var(--cyan); transform: scale(1.15);">
+              </div>
+              <div class="toggle-row" style="padding: 0.5rem 0.75rem;">
+                <label for="modDeployAutoToggle">
+                  <span style="font-size: 0.82rem;" data-i18n="deploy_auto">Auto-Deploy on Push</span>
+                  <span class="sub" style="font-size: 0.7rem;" data-i18n="deploy_auto_desc">Webhook triggers build</span>
+                </label>
+                <input type="checkbox" id="modDeployAutoToggle" checked style="accent-color: var(--cyan); transform: scale(1.15);">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.6rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="font-size: 0.78rem;" data-i18n="deploy_build_script">Post-Deploy Hook Command (POSIX Shell / PowerShell)</label>
+                <div style="display: flex; gap: 0.35rem;">
+                  <button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="setDeployPreset('laravel')">Laravel</button>
+                  <button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="setDeployPreset('vite')">Node / Vite</button>
+                  <button class="btn btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;" onclick="setDeployPreset('static')">Static</button>
+                </div>
+              </div>
+              <textarea id="modDeployBuildScript" class="form-input" style="height: 65px; font-family: var(--font-mono); font-size: 0.8rem;" placeholder="composer install --no-dev --optimize-autoloader&#10;php artisan migrate --force"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+              <button class="btn btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;" onclick="saveSiteDeployConfig()" data-i18n="save_deploy_cfg">Save Git Config</button>
+              <button class="btn" id="btnTriggerDeploy" style="padding: 0.4rem 1.1rem; font-size: 0.82rem;" onclick="triggerSiteDeploy()">
+                🚀 <span data-i18n="btn_deploy_now">Deploy Now</span>
+              </button>
+            </div>
+
+            <!-- HISTORY TABLE -->
+            <div style="margin-top: 1rem;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="deploy_recent_history">Recent Deployment Releases</div>
+              <div style="border: 1px solid var(--border); border-radius: 0.4rem; overflow: hidden; max-height: 140px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-dim); text-align: left;">
+                      <th style="padding: 0.4rem 0.6rem;">Release</th>
+                      <th style="padding: 0.4rem 0.6rem;">Commit</th>
+                      <th style="padding: 0.4rem 0.6rem;">Status</th>
+                      <th style="padding: 0.4rem 0.6rem;">Time</th>
+                      <th style="padding: 0.4rem 0.6rem; text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modDeployHistoryTableBody">
+                    <tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 1rem;">No deployments yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 12: CONFIG (CADDY) -->
+          <div id="modtab-config" class="mod-tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;" data-i18n="mod_active_block">Active Virtual Host Caddyfile Block</span>
+              <button class="btn btn-secondary" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" onclick="copyModCaddyfile()" data-i18n="mod_copy_config">Copy Config</button>
+            </div>
+            <pre class="code-block" id="modCaddyfilePreview" style="height: 240px; margin: 0;"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 0.75rem 1.25rem;">
+        <button class="btn btn-secondary" onclick="closeSiteModModal()" data-i18n="btn_close">Close</button>
+        <button class="btn" onclick="saveSiteModChanges()" data-i18n="btn_save_apply">Save &amp; Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: FILE EDITOR -->
+  <div id="fileEditorModal" class="modal">
+    <div class="modal-box" style="max-width: 960px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--cyan);"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <span id="editorFileName" style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700;">file.php</span>
+          <span id="editorMime" class="badge badge-cyan">text/plain</span>
+        </div>
+        <button class="modal-close" onclick="closeEditorModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <div class="editor-wrapper">
+          <textarea id="editorTextarea" class="editor-textarea" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);">
+          Shortcut: <kbd style="background: rgba(255,255,255,0.1); padding: 0.15rem 0.4rem; border-radius: 3px;">Ctrl+S</kbd> to save
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-secondary" onclick="closeEditorModal()" data-i18n="btn_cancel">Cancel</button>
+          <button class="btn" onclick="saveFileContent()" data-i18n="save_changes_btn">Save Changes (Atomic)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW ENTRY -->
+  <div id="newEntryModal" class="modal">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="newEntryTitle" data-i18n="modal_new_item">Create New Item</h3>
+        <button class="modal-close" onclick="closeNewEntryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label id="newEntryLabel" data-i18n="item_name">Item Name</label>
+          <input id="newEntryName" class="form-input" placeholder="e.g. index.php">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeNewEntryModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateEntry()" data-i18n="create_btn">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD DATABASE -->
+  <div id="addDatabaseModal" class="modal">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 data-i18n="modal_add_db_title">Create Relational Database</h3>
+        <button class="modal-close" onclick="closeAddDatabaseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="modal_db_name">Database Name</label>
+          <input id="newDbName" class="form-input" placeholder="e.g. blog_db">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label data-i18n="modal_db_engine">Database Engine</label>
+            <select id="newDbEngine" class="form-select">
+              <option value="mysql">MySQL 8.0</option>
+              <option value="mariadb">MariaDB 10.11 LTS</option>
+              <option value="sqlite">SQLite 3 (Embedded)</option>
+              <option value="postgres">PostgreSQL 16</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-i18n="modal_db_collation">Collation</label>
+            <select id="newDbCollation" class="form-select">
+              <option value="utf8mb4_unicode_ci" selected>utf8mb4_unicode_ci</option>
+              <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
+              <option value="utf8_general_ci">utf8_general_ci</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_db_user">Username</label>
+          <input id="newDbUser" class="form-input" value="root">
+        </div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label data-i18n="modal_db_pass">Password</label>
+            <a href="javascript:void(0)" style="font-size: 0.75rem; color: var(--cyan);" onclick="generateRandomPassword()" data-i18n="btn_generate_pass">Generate 16-char Key</a>
+          </div>
+          <input id="newDbPass" class="form-input" placeholder="••••••••••••••••">
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_db_host">Access Permission</label>
+          <select id="newDbHost" class="form-select">
+            <option value="127.0.0.1" selected>127.0.0.1 (Localhost only - Secure)</option>
+            <option value="%">% (Any remote host / External clients)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_db_site">Linked Website (Optional)</label>
+          <select id="newDbSite" class="form-select"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddDatabaseModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateDatabase()" data-i18n="btn_create_db">Create Database</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD CRON JOB -->
+  <div id="addCronModal" class="modal">
+    <div class="modal-box" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 data-i18n="modal_add_cron_title">Schedule Recurring Task</h3>
+        <button class="modal-close" onclick="closeAddCronModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label data-i18n="modal_cron_name">Task Name</label>
+          <input id="newCronName" class="form-input" placeholder="e.g. Laravel Schedule Worker">
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_preset">Schedule Preset</label>
+          <select id="newCronPreset" class="form-select" onchange="onCronPresetChange()">
+            <option value="* * * * *">Every Minute (* * * * *)</option>
+            <option value="0 * * * *">Every Hour (0 * * * *)</option>
+            <option value="0 0 * * *">Daily at Midnight (0 0 * * *)</option>
+            <option value="0 0 * * 0">Weekly on Sunday (0 0 * * 0)</option>
+            <option value="0 0 1 * *">Monthly on the 1st (0 0 1 * *)</option>
+            <option value="*/15 * * * *">WordPress Cron (Every 15 mins)</option>
+            <option value="custom">Custom Expression...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_expr">Cron Expression (Min Hour Day Month Week)</label>
+          <input id="newCronSchedule" class="form-input" value="* * * * *" style="font-family: var(--font-mono); color: var(--cyan-glow);">
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_cmd">Execute Command</label>
+          <textarea id="newCronCommand" class="form-input" style="height: 75px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="php /var/www/site/artisan schedule:run >> /dev/null 2>&1"></textarea>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;" data-i18n="cron_cmd_hint">
+            Standard POSIX shell command executed directly on host environment.
+          </div>
+        </div>
+        <div class="form-group">
+          <label data-i18n="modal_cron_site">Associated Website (Optional)</label>
+          <select id="newCronSite" class="form-select"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddCronModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn" onclick="submitCreateCronJob()" data-i18n="btn_create_cron">Add Scheduled Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CRON LOGS -->
+  <div id="cronLogsModal" class="modal">
+    <div class="modal-box" style="max-width: 720px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: var(--cyan);"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <span data-i18n="modal_cron_log_title">Task Execution Output Log</span>
+        </div>
+        <button class="modal-close" onclick="closeCronLogsModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <pre id="cronLogContent" class="code-block" style="height: 320px; margin: 0; line-height: 1.5; font-size: 0.8rem; overflow-y: auto;">Loading logs...</pre>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button class="btn btn-secondary" onclick="refreshCronLogs()" data-i18n="refresh_btn">Refresh</button>
+        <button class="btn" onclick="closeCronLogsModal()" data-i18n="btn_close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DEPLOY LOGS -->
+  <div id="deployLogsModal" class="modal">
+    <div class="modal-box" style="max-width: 760px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: var(--cyan);"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <span data-i18n="modal_deploy_log_title">Deployment Build &amp; Release Log</span>
+        </div>
+        <button class="modal-close" onclick="closeDeployLogsModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <pre id="deployLogContent" class="code-block" style="height: 340px; margin: 0; line-height: 1.5; font-size: 0.8rem; overflow-y: auto;">Loading release logs...</pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeDeployLogsModal()" data-i18n="btn_close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: UPLOAD FILES (AAPANEL STYLE DRAG & DROP QUEUE) -->
+  <div id="uploadFilesModal" class="modal">
+    <div class="modal-box" style="max-width: 820px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--cyan);"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+          <span data-i18n="upload_modal_title">Upload File</span>
+        </div>
+        <button class="modal-close" onclick="closeUploadFilesModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1rem 1.25rem;">
+        <!-- Top Green Summary Banner -->
+        <div style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35); border-radius: 9999px; padding: 0.55rem 1.25rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; font-weight: 600; color: #4ade80; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <span><span data-i18n="upload_size">Upload Size</span>: <span id="uploadSummarySize" style="font-family: var(--font-mono);">0 B / 0 B</span></span>
+          <span><span data-i18n="avg_speed">Average Speed</span>: <span id="uploadSummarySpeed" style="font-family: var(--font-mono);">0 KB/s</span></span>
+          <span><span data-i18n="upload_success">Upload Success</span>: <span id="uploadSummaryCount" style="font-family: var(--font-mono);">0 / 0</span></span>
+        </div>
+
+        <!-- Files Queue Table -->
+        <div style="border: 1px solid var(--border); border-radius: 0.45rem; overflow: hidden; max-height: 320px; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.25); color: var(--text-dim); text-align: left;">
+                <th style="padding: 0.5rem 0.75rem;" data-i18n="th_file_name">File Name</th>
+                <th style="padding: 0.5rem 0.75rem; width: 110px;" data-i18n="th_file_size">File Size</th>
+                <th style="padding: 0.5rem 0.75rem; width: 150px;" data-i18n="th_upload_status">Upload Status</th>
+                <th style="padding: 0.5rem 0.75rem; width: 90px; text-align: right;" data-i18n="th_operate">Operation</th>
+              </tr>
+            </thead>
+            <tbody id="uploadQueueTableBody">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-dim); padding: 2rem;" data-i18n="upload_empty_queue">No files in queue. Drag &amp; drop files here or click Add Files.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-secondary" onclick="openFilePicker()" style="font-size: 0.8rem;">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor; margin-right: 0.3rem;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          <span data-i18n="btn_add_files">+ Add More Files</span>
+        </button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary" onclick="closeUploadFilesModal()" data-i18n="btn_close">Close</button>
+          <button class="btn" id="btnContinueUpload" onclick="startUploadQueue()" style="background: #16a34a; border-color: #22c55e; color: #fff; font-weight: 600;" data-i18n="btn_continue_upload">Continue Upload</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADMIN SECURITY & CREDENTIALS -->
+  <div id="adminSecurityModal" class="modal">
+    <div class="modal-box" style="max-width: 720px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: var(--cyan);"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+          <span style="font-weight: 700; font-size: 1.05rem;" data-i18n="sec_modal_title">Admin Security &amp; Access Control</span>
+        </div>
+        <button class="modal-close" onclick="closeAdminSecurityModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+        <!-- TABS -->
+        <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.25rem;">
+          <button id="tabBtnSecCreds" class="btn btn-secondary active" style="border-radius: 0; border: none; border-bottom: 2px solid var(--cyan); padding: 0.5rem 0.75rem;" onclick="switchSecTab('creds')" data-i18n="sec_tab_creds">Credentials &amp; Password</button>
+          <button id="tabBtnSecLogs" class="btn btn-secondary" style="border-radius: 0; border: none; border-bottom: 2px solid transparent; padding: 0.5rem 0.75rem;" onclick="switchSecTab('logs')" data-i18n="sec_tab_logs">Login Audit Logs</button>
+        </div>
+
+        <!-- SUBTAB 1: CREDENTIALS -->
+        <div id="secSubtabCreds">
+          <form onsubmit="submitUpdateCredentials(event)">
+            <div class="form-group">
+              <label data-i18n="sec_old_pass">Current Password *</label>
+              <input id="secOldPass" type="password" class="form-input" required placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+              <label data-i18n="sec_new_user">New Username (Leave blank to keep current)</label>
+              <input id="secNewUser" type="text" class="form-input" placeholder="admin">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label data-i18n="sec_new_pass">New Password</label>
+                <input id="secNewPass" type="password" class="form-input" placeholder="Min 6 characters">
+              </div>
+              <div class="form-group">
+                <label data-i18n="sec_confirm_pass">Confirm New Password</label>
+                <input id="secConfirmPass" type="password" class="form-input" placeholder="Re-enter new password">
+              </div>
+            </div>
+            <div class="mod-hint-box" style="margin-top: 0.5rem;" data-i18n="sec_pass_hint">
+              🛡️ Passwords are cryptographically salted and stretched using pure FIPS 180-4 SHA-256 (1,000 iterations). Changing your password immediately invalidates all other active sessions across devices.
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
+              <button type="submit" class="btn" data-i18n="sec_btn_save">Update Credentials</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- SUBTAB 2: LOGIN LOGS -->
+        <div id="secSubtabLogs" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);" data-i18n="sec_logs_subtitle">Audit trail of recent login attempts (Latest 50 events)</span>
+            <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="loadLoginLogs()" data-i18n="refresh_btn">Refresh</button>
+          </div>
+          <div style="border: 1px solid var(--border); border-radius: 0.45rem; overflow: hidden; max-height: 320px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.25); color: var(--text-dim); text-align: left;">
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_time">Time</th>
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_user">Username</th>
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_ip">IP Address</th>
+                  <th style="padding: 0.5rem 0.75rem;" data-i18n="sec_col_agent">User-Agent</th>
+                  <th style="padding: 0.5rem 0.75rem; text-align: right;" data-i18n="sec_col_status">Status</th>
+                </tr>
+              </thead>
+              <tbody id="secLogsTableBody">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 2rem;">Loading login logs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAdminSecurityModal()" data-i18n="btn_close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>
