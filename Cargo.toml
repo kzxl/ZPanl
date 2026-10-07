@@ -1,0 +1,18 @@
+[package]
+name = "zpanl"
+version = "0.1.0"
+edition = "2021"
+authors = ["Phong Vo <phong.vo@zerouniverse.io>", "ZeroUniverse Team"]
+license = "MIT"
+description = "Sovereign, ultra-lightweight Linux web panel for static websites and PHP-FPM hosting"
+readme = "README.md"
+keywords = ["zpanl", "web-panel", "caddy", "php-fpm", "sovereign"]
+
+[dependencies]
+zero-core = { path = "../../ZeroRust/crates/zero-core" }
+zero-sys = { path = "../../ZeroRust/crates/zero-sys" }
+zero-fastcgi = { path = "../../ZeroRust/crates/zero-fastcgi" }
+zero-caddy = { path = "../../ZeroRust/crates/zero-caddy" }
+zero-vfs = { path = "../../ZeroRust/crates/zero-vfs" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
