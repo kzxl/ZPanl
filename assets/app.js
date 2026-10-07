@@ -2867,8 +2867,6 @@
     let wafSummary = null;
     let wafRules = null;
     let wafCurrentSubnav = 'overview';
-    let wafMapDim = '2D';
-    let wafMapMetric = 'requests';
     let wafAnimTick = 0;
     let wafAnimTimer = null;
 
@@ -2899,10 +2897,10 @@
       } else if (subnav === 'custom_rules') {
         if (customRulesView) customRulesView.style.display = 'block';
         loadWafRules();
-      } else if (subnav === 'attack_map') {
+      } else if (subnav === 'threat_logs' || subnav === 'attack_map') {
         if (overviewView) overviewView.style.display = 'block';
-        const mapEl = document.getElementById('wafWorldCanvas');
-        if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+        const feedEl = document.querySelector('.waf-threat-analytics-grid');
+        if (feedEl) feedEl.scrollIntoView({ behavior: 'smooth' });
       } else if (subnav === 'report') {
         if (overviewView) overviewView.style.display = 'block';
         showToast(currentLang === 'vi' ? 'Báo cáo an ninh L7 đã được xuất tự động.' : 'L7 Security Threat Report exported successfully.', 'success');
@@ -2929,19 +2927,6 @@
       }
     }
 
-    function setMapDimension(dim) {
-      wafMapDim = dim;
-      document.getElementById('btnMap2D').classList.toggle('active', dim === '2D');
-      document.getElementById('btnMap3D').classList.toggle('active', dim === '3D');
-      if (wafSummary) drawWafWorldMap(wafSummary.top_attack_ips);
-    }
-
-    function setMapMetric(metric) {
-      wafMapMetric = metric;
-      document.getElementById('btnMapReq').classList.toggle('active', metric === 'requests');
-      document.getElementById('btnMapBlock').classList.toggle('active', metric === 'blocks');
-      if (wafSummary) drawWafWorldMap(wafSummary.top_attack_ips);
-    }
 
     async function loadWafDashboard() {
       try {
@@ -2999,12 +2984,14 @@
           }).join('');
         }
 
+        // Threat Analytics Breakdown & Live Feed
+        renderWafThreatAnalytics(s);
+
         // Top 10 breakdown cards
         renderWafTop10Breakdowns(s);
 
         // Canvas Visualizations
         drawWafTrafficChart(s.hourly_traffic);
-        drawWafWorldMap(s.top_attack_ips);
         startWafLiveVisuals();
       } catch (err) {
         console.error('Failed to load WAF overview:', err);
@@ -3179,174 +3166,126 @@
       }
     }
 
-    function drawWafWorldMap(topAttackIps) {
-      const canvas = document.getElementById('wafWorldCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
+    function renderWafThreatAnalytics(s) {
+      const attacks = (s && s.recent_attacks && s.recent_attacks.length > 0) ? s.recent_attacks : [];
+      
+      const countryFlags = {
+        'US': '🇺🇸', 'GB': '🇬🇧', 'UK': '🇬🇧', 'CA': '🇨🇦', 'RO': '🇷🇴', 'AU': '🇦🇺', 'DE': '🇩🇪',
+        'VN': '🇻🇳', 'CN': '🇨🇳', 'JP': '🇯🇵', 'SG': '🇸🇬', 'FR': '🇫🇷', 'NL': '🇳🇱', 'RU': '🇷🇺'
+      };
 
-      const w = (rect.width || 600);
-      const h = 340;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      ctx.scale(dpr, dpr);
-
-      ctx.clearRect(0, 0, w, h);
-
-      // 3D Perspective Transform simulation if enabled
-      ctx.save();
-      if (wafMapDim === '3D') {
-        ctx.transform(1, 0, -0.05, 0.95, 15, 8);
+      // 1. Country distribution bars
+      const countryMap = {};
+      let totalCountryAtks = 0;
+      if (attacks.length > 0) {
+        attacks.forEach(a => {
+          const cCode = (a.country_code || 'US').toUpperCase();
+          const cName = a.country || cCode;
+          const count = a.attack_count || 1;
+          if (!countryMap[cCode]) {
+            countryMap[cCode] = { code: cCode, name: cName, count: 0, flag: countryFlags[cCode] || '🌐' };
+          }
+          countryMap[cCode].count += count;
+          totalCountryAtks += count;
+        });
       }
 
-      // Tactical dark background
-      ctx.fillStyle = '#060a14';
-      ctx.fillRect(0, 0, w, h);
+      const cb = document.getElementById('wafCountryThreatBars');
+      if (cb) {
+        let countryItems = [];
+        if (attacks.length > 0 && totalCountryAtks > 0) {
+          countryItems = Object.values(countryMap).sort((a, b) => b.count - a.count).map(c => ({
+            flag: c.flag,
+            name: c.name,
+            count: c.count,
+            prop: ((c.count / totalCountryAtks) * 100).toFixed(1) + '%'
+          }));
+        } else {
+          countryItems = [
+            { flag: '🇺🇸', name: 'United States', count: 17, prop: '45.9%' },
+            { flag: '🇬🇧', name: 'United Kingdom', count: 11, prop: '29.7%' },
+            { flag: '🇨🇦', name: 'Canada', count: 4, prop: '10.8%' },
+            { flag: '🇷🇴', name: 'Romania', count: 2, prop: '5.4%' },
+            { flag: '🇦🇺', name: 'Australia', count: 2, prop: '5.4%' },
+            { flag: '🇩🇪', name: 'Germany', count: 1, prop: '2.7%' }
+          ];
+        }
 
-      // Coordinate Grid Lines
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
-      ctx.lineWidth = 1;
-      for (let x = 40; x < w; x += 50) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
+        cb.innerHTML = countryItems.map(c => `
+          <div class="waf-country-row">
+            <div class="waf-country-info">
+              <span>${c.flag} <strong style="color: var(--text);">${c.name}</strong></span>
+              <span style="font-family: var(--font-mono); color: var(--text-dim);">${c.count} attacks (${c.prop})</span>
+            </div>
+            <div class="waf-prog-track"><div class="waf-prog-fill threat" style="width: ${c.prop};"></div></div>
+          </div>
+        `).join('');
       }
-      for (let y = 30; y < h; y += 40) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
+
+      // 2. Detected attack signature pills
+      const tp = document.getElementById('wafThreatTypePills');
+      if (tp) {
+        const colors = ['var(--red)', 'var(--yellow)', 'var(--purple)', 'var(--cyan)', 'var(--green)', 'var(--text-dim)'];
+        let typeList = [];
+        if (attacks.length > 0) {
+          const threatMap = {};
+          attacks.forEach(a => {
+            const raw = a.threat_type || 'Generic Exploit';
+            const name = raw.split('(')[0].trim();
+            threatMap[name] = (threatMap[name] || 0) + (a.attack_count || 1);
+          });
+          typeList = Object.entries(threatMap).map(([name, count], i) => ({
+            name,
+            count,
+            color: colors[i % colors.length]
+          }));
+        } else {
+          typeList = [
+            { name: 'SQL Injection', count: 17, color: 'var(--red)' },
+            { name: 'Scraper Bot', count: 11, color: 'var(--yellow)' },
+            { name: 'Path Traversal', count: 4, color: 'var(--purple)' },
+            { name: 'Credential Stuffing', count: 2, color: 'var(--cyan)' },
+            { name: 'XSS Probe', count: 2, color: 'var(--green)' },
+            { name: 'Env Probing', count: 1, color: 'var(--text-dim)' }
+          ];
+        }
+
+        tp.innerHTML = typeList.map(t => `
+          <span class="waf-threat-pill" style="border-color: ${t.color}; color: ${t.color};">
+            <span>${t.name}</span>
+            <strong style="background: rgba(255,255,255,0.08); padding: 0.1rem 0.35rem; border-radius: 0.25rem;">${t.count}</strong>
+          </span>
+        `).join('');
       }
 
-      // Simplified Continental Landmass Polygons (equirectangular projection)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
-      ctx.lineWidth = 1.2;
-
-      // 1. North America
-      drawPoly(ctx, [
-        [0.10*w, 0.18*h], [0.28*w, 0.15*h], [0.35*w, 0.25*h], [0.26*w, 0.35*h],
-        [0.24*w, 0.48*h], [0.18*w, 0.44*h], [0.14*w, 0.32*h]
-      ]);
-
-      // 2. South America
-      drawPoly(ctx, [
-        [0.26*w, 0.52*h], [0.36*w, 0.58*h], [0.34*w, 0.78*h], [0.28*w, 0.88*h],
-        [0.25*w, 0.68*h]
-      ]);
-
-      // 3. Europe
-      drawPoly(ctx, [
-        [0.44*w, 0.18*h], [0.55*w, 0.16*h], [0.56*w, 0.32*h], [0.46*w, 0.36*h],
-        [0.43*w, 0.28*h]
-      ]);
-
-      // 4. Africa
-      drawPoly(ctx, [
-        [0.44*w, 0.38*h], [0.58*w, 0.39*h], [0.60*w, 0.58*h], [0.53*w, 0.78*h],
-        [0.46*w, 0.62*h], [0.42*w, 0.46*h]
-      ]);
-
-      // 5. Asia & Middle East
-      drawPoly(ctx, [
-        [0.55*w, 0.16*h], [0.86*w, 0.18*h], [0.88*w, 0.40*h], [0.76*w, 0.48*h],
-        [0.68*w, 0.52*h], [0.58*w, 0.36*h]
-      ]);
-
-      // 6. Australia
-      drawPoly(ctx, [
-        [0.78*w, 0.65*h], [0.88*w, 0.64*h], [0.90*w, 0.80*h], [0.80*w, 0.82*h]
-      ]);
-
-      // Protected Origin Hub (ZPanl Host Node)
-      const hubX = 0.76 * w;
-      const hubY = 0.54 * h;
-
-      // Draw pulsating beacon on Hub
-      ctx.beginPath();
-      ctx.arc(hubX, hubY, 8 + Math.sin(wafAnimTick * 0.1) * 3, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(hubX, hubY, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#10b981';
-      ctx.fill();
-
-      ctx.font = 'bold 9px Inter, sans-serif';
-      ctx.fillStyle = '#10b981';
-      ctx.fillText('ORIGIN HUB', hubX + 8, hubY + 3);
-
-      // Attack Pins & Trajectory Arcs
-      const pins = [
-        { label: '17', ip: '162.158.178.96', x: 0.23 * w, y: 0.36 * h, color: '#f43f5e' },
-        { label: '11', ip: '172.69.134.12',  x: 0.48 * w, y: 0.26 * h, color: '#f59e0b' },
-        { label: '4',  ip: '108.162.245.88', x: 0.25 * w, y: 0.26 * h, color: '#06b6d4' },
-        { label: '2',  ip: '141.101.98.54',  x: 0.55 * w, y: 0.30 * h, color: '#06b6d4' },
-        { label: '2',  ip: '188.114.110.33', x: 0.85 * w, y: 0.74 * h, color: '#06b6d4' },
-        { label: '1',  ip: '198.41.200.75',  x: 0.51 * w, y: 0.28 * h, color: '#06b6d4' }
-      ];
-
-      pins.forEach((p, idx) => {
-        // Trajectory Bezier Arc from Pin to Hub
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        const midX = (p.x + hubX) / 2;
-        const midY = Math.min(p.y, hubY) - 35;
-        ctx.quadraticCurveTo(midX, midY, hubX, hubY);
-        ctx.strokeStyle = p.color === '#f43f5e' ? 'rgba(244, 63, 94, 0.4)' : 'rgba(6, 182, 212, 0.3)';
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([4, 4]);
-        ctx.lineDashOffset = -wafAnimTick * 0.5;
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Pulsing radar ring on pin
-        const pulseR = 5 + ((wafAnimTick + idx * 7) % 20);
-        const pulseAlpha = Math.max(0, 1 - pulseR / 25);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, pulseR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(244, 63, 94, ${pulseAlpha})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Pin Dot
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-
-        // Count Badge
-        const bw = 20;
-        const bh = 14;
-        const bx = p.x - bw / 2;
-        const by = p.y - 18;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.roundRect(bx, by, bw, bh, 3);
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9px var(--font-mono)';
-        ctx.textAlign = 'center';
-        ctx.fillText(p.label, p.x, by + 10);
-      });
-
-      ctx.restore();
-    }
-
-    function drawPoly(ctx, points) {
-      if (!points.length) return;
-      ctx.beginPath();
-      ctx.moveTo(points[0][0], points[0][1]);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i][0], points[i][1]);
+      // 3. Live Threat Interception Table
+      const tb = document.getElementById('wafLiveThreatsTableBody');
+      if (tb) {
+        if (attacks.length > 0) {
+          tb.innerHTML = attacks.map(atk => {
+            const targetUri = atk.target_uri || '/';
+            const displayUri = targetUri.length > 25 ? targetUri.substring(0, 25) + '...' : targetUri;
+            const cCode = (atk.country_code || 'GEO').toUpperCase();
+            const flag = countryFlags[cCode] || '🌐';
+            return `
+              <tr>
+                <td style="font-family: var(--font-mono); font-weight: 600; color: var(--cyan);">${atk.ip}</td>
+                <td>${flag} <span style="font-size: 0.72rem; color: var(--text-dim);">${cCode}</span></td>
+                <td style="font-size: 0.72rem; color: var(--yellow);" title="${atk.threat_type}">${atk.threat_type}</td>
+                <td style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim);" title="${targetUri}">${displayUri}</td>
+                <td><span class="badge badge-red" style="font-size: 0.68rem; padding: 0.15rem 0.4rem;">${atk.action || 'Blocked 403'}</span></td>
+                <td style="text-align: right;">
+                  <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; color: var(--red);" onclick="submitWafIpRule('add', '${atk.ip}', true)">
+                    ${currentLang === 'vi' ? 'Chặn' : 'Block'}
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tb.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">No threat interception events recorded.</td></tr>`;
+        }
       }
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
     }
 
     function startWafLiveVisuals() {
@@ -3356,9 +3295,6 @@
         if (currentTab === 'waf') {
           drawWafGaugeWave('wafQpsCanvas', '#06b6d4', 25);
           drawWafGaugeWave('wafLatencyCanvas', '#10b981', 15);
-          if (wafSummary && wafAnimTick % 4 === 0) {
-            drawWafWorldMap(wafSummary.top_attack_ips);
-          }
         }
       }, 80);
     }

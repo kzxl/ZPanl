@@ -671,7 +671,7 @@
           <button class="waf-subnav-btn" id="wafSubnavRegion" onclick="switchWafSubnav('region')">Region</button>
           <button class="waf-subnav-btn" id="wafSubnavTrafficLimit" onclick="switchWafSubnav('traffic_limit')">Traffic Limit</button>
           <button class="waf-subnav-btn" id="wafSubnavCustomRules" onclick="switchWafSubnav('custom_rules')">Custom rules</button>
-          <button class="waf-subnav-btn" id="wafSubnavAttackMap" onclick="switchWafSubnav('attack_map')">Attack Map</button>
+          <button class="waf-subnav-btn" id="wafSubnavThreatLogs" onclick="switchWafSubnav('threat_logs')">Threat Logs</button>
           <button class="waf-subnav-btn" id="wafSubnavReport" onclick="switchWafSubnav('report')">Report</button>
           <button class="waf-subnav-btn" id="wafSubnavGlobal" onclick="switchWafSubnav('global')">Global</button>
         </div>
@@ -799,53 +799,62 @@
             </div>
           </div>
 
-          <!-- ACCESS / BLOCK MAP & ATTACK IP TABLE ROW -->
+          <!-- GEOGRAPHIC THREAT ORIGINS & LIVE INTERCEPTION FEED -->
           <div class="waf-card">
             <div class="waf-card-header">
               <div class="waf-card-title">
-                <span>Access/Block Map</span>
+                <svg viewBox="0 0 24 24" width="18" height="18" style="width: 18px; height: 18px; fill: var(--cyan);"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                <span>Geographic Threat Distribution &amp; Live Interception</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 1rem;">
-                <div class="waf-btn-group">
-                  <button class="waf-btn-toggle active" id="btnMap2D" onclick="setMapDimension('2D')">2D</button>
-                  <button class="waf-btn-toggle" id="btnMap3D" onclick="setMapDimension('3D')">3D</button>
-                </div>
-                <div class="waf-btn-group">
-                  <button class="waf-btn-toggle active" id="btnMapReq" onclick="setMapMetric('requests')">Requests</button>
-                  <button class="waf-btn-toggle" id="btnMapBlock" onclick="setMapMetric('blocks')">Blocks</button>
-                </div>
-                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-dim);">
-                  <span>Low</span>
-                  <span class="waf-heat-bar"></span>
-                  <span>High</span>
-                </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span class="stat-pill" style="color: var(--green); font-size: 0.72rem;">● Active L7 Filter</span>
+                <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;" onclick="loadWafDashboard()">
+                  🔄 <span data-i18n="refresh_btn">Refresh</span>
+                </button>
               </div>
             </div>
 
-            <div class="waf-map-grid">
-              <!-- VECTOR WORLD MAP CANVAS -->
-              <div class="waf-map-container">
-                <canvas id="wafWorldCanvas" height="340"></canvas>
+            <div class="waf-threat-analytics-grid">
+              <!-- LEFT: COUNTRY THREAT DISTRIBUTION & THREAT TYPES -->
+              <div style="background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.15rem;">
+                <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                  <span>Top Threat Origins by Country</span>
+                  <span style="font-size: 0.72rem; color: var(--text-dim);">Share of Attacks</span>
+                </div>
+                <div id="wafCountryThreatBars" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                  <!-- Dynamic Country Progress Bars with Flag, Name, Count & % -->
+                </div>
+
+                <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                  <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 0.65rem; color: var(--text);">
+                    Detected Attack Signatures
+                  </div>
+                  <div id="wafThreatTypePills" style="display: flex; flex-wrap: wrap; gap: 0.45rem;">
+                    <!-- Threat signatures pills -->
+                  </div>
+                </div>
               </div>
 
-              <!-- SIDE ATTACK IP TABLE -->
+              <!-- RIGHT: LIVE THREAT INTERCEPTION LOG AUDIT TABLE -->
               <div>
-                <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
-                  <span>Top Attack Sources</span>
-                  <span class="stat-pill" style="font-size: 0.7rem; color: var(--red);">Live Interception</span>
+                <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                  <span>Live Threat Interception Feed</span>
+                  <span class="stat-pill" style="font-size: 0.7rem; color: var(--red);">Real-time Audit</span>
                 </div>
-                <div class="waf-table-wrapper">
+                <div class="waf-table-wrapper" style="max-height: 380px;">
                   <table class="waf-table">
                     <thead>
                       <tr>
-                        <th>Attack IP</th>
-                        <th>Attack times</th>
-                        <th>IP attribution</th>
+                        <th>Attacker IP</th>
+                        <th>Origin</th>
+                        <th>Signature</th>
+                        <th>Target URI</th>
+                        <th>Status</th>
                         <th style="text-align: right;">Action</th>
                       </tr>
                     </thead>
-                    <tbody id="wafAttackIpTableBody">
-                      <tr><td colspan="4" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">Loading threat intelligence...</td></tr>
+                    <tbody id="wafLiveThreatsTableBody">
+                      <tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">Loading threat intelligence...</td></tr>
                     </tbody>
                   </table>
                 </div>
